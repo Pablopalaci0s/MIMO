@@ -1,8 +1,9 @@
 "use client";
 
-import { ArrowRight, Gift } from "lucide-react";
+import { ArrowRight, Search } from "lucide-react";
 import { motion } from "motion/react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 
 const container = {
@@ -23,58 +24,70 @@ const item = {
 };
 
 export function Hero() {
+  const router = useRouter();
+  const [query, setQuery] = useState("");
+
+  function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    const params = query.trim() ? `?q=${encodeURIComponent(query.trim())}` : "";
+    router.push(`/ayudame-a-elegir${params}`);
+  }
+
   return (
     <section className="relative isolate overflow-hidden bg-white">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-[-12rem] -z-10 flex justify-center blur-3xl"
+        className="pointer-events-none absolute inset-x-0 top-[-14rem] -z-10 flex justify-center blur-3xl"
       >
-        <div className="aspect-square w-[42rem] rounded-full bg-gradient-to-br from-brand-soft via-brand-soft/60 to-transparent opacity-70" />
+        <div className="aspect-square w-[36rem] rounded-full bg-gradient-to-br from-brand-soft via-brand-soft/50 to-transparent opacity-70" />
       </div>
 
       <motion.div
         variants={container}
         initial="hidden"
         animate="show"
-        className="mx-auto flex max-w-3xl flex-col items-center gap-7 px-4 py-24 text-center sm:py-32"
+        className="mx-auto flex max-w-2xl flex-col items-center gap-6 px-4 py-16 text-center sm:py-20"
       >
-        <motion.span
-          variants={item}
-          className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-xs font-medium text-neutral-500 shadow-xs"
-        >
-          <Gift className="size-3.5 text-brand" strokeWidth={2.25} />
-          Regalos con IA, hechos en El Salvador
-        </motion.span>
-
         <motion.h1
           variants={item}
-          className="text-5xl font-semibold tracking-tight text-balance text-neutral-900 sm:text-6xl"
+          className="text-4xl font-semibold tracking-tight text-balance text-neutral-900 sm:text-5xl"
         >
           ¿Qué querés decirle?
         </motion.h1>
 
-        <motion.p variants={item} className="max-w-xl text-lg text-balance text-neutral-500">
+        <motion.p variants={item} className="max-w-md text-balance text-neutral-500">
           Encontrá el detalle perfecto para esa persona especial.
         </motion.p>
 
-        <motion.div variants={item} className="mt-3 flex flex-col gap-3 sm:flex-row">
+        <motion.form
+          variants={item}
+          onSubmit={handleSubmit}
+          className="mt-2 flex w-full max-w-xl items-center gap-2 rounded-full border border-neutral-200 bg-white p-1.5 pl-5 shadow-sm transition-shadow focus-within:border-neutral-300 focus-within:shadow-md"
+        >
+          <Search className="size-4 shrink-0 text-neutral-400" strokeWidth={2} />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Cumpleaños de mi novia, presupuesto $30..."
+            className="h-9 min-w-0 flex-1 bg-transparent text-sm text-neutral-900 outline-none placeholder:text-neutral-400"
+          />
           <Button
-            className="h-12 rounded-full bg-brand px-7 text-base font-medium text-brand-foreground shadow-sm transition-transform duration-200 hover:bg-brand/90 active:scale-[0.98]"
-            asChild
+            type="submit"
+            size="icon"
+            className="size-10 shrink-0 rounded-full bg-brand text-brand-foreground transition-transform hover:bg-brand/90 active:scale-95"
+            aria-label="Buscar detalle"
           >
-            <Link href="/ayudame-a-elegir" className="group">
-              Ayúdame a elegir
-              <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-            </Link>
+            <ArrowRight className="size-4" />
           </Button>
-          <Button
-            variant="outline"
-            className="h-12 rounded-full px-7 text-base font-medium transition-transform duration-200 active:scale-[0.98]"
-            asChild
-          >
-            <Link href="/regalos">Explorar regalos</Link>
-          </Button>
-        </motion.div>
+        </motion.form>
+
+        <motion.a
+          variants={item}
+          href="/regalos"
+          className="text-sm font-medium text-neutral-500 underline-offset-4 transition-colors hover:text-neutral-900 hover:underline"
+        >
+          O explorá el catálogo completo
+        </motion.a>
       </motion.div>
     </section>
   );
