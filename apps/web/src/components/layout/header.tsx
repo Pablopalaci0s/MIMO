@@ -11,16 +11,21 @@ export async function Header() {
   const user = session?.user ?? null;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/90 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-neutral-200/70 bg-white/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-        <Link href="/" className="text-lg font-semibold tracking-tight">
+        <Link href="/" className="text-lg font-semibold tracking-tight text-neutral-900">
           MIMO
         </Link>
 
-        <nav className="hidden items-center gap-6 text-sm font-medium text-neutral-600 sm:flex">
+        <nav className="hidden items-center gap-8 text-sm font-medium text-neutral-600 sm:flex">
           {NAV_LINKS.map((link) => (
-            <Link key={link.href} href={link.href} className="transition hover:text-neutral-900">
+            <Link
+              key={link.href}
+              href={link.href}
+              className="group relative py-1 transition-colors duration-200 hover:text-neutral-900"
+            >
               {link.label}
+              <span className="absolute inset-x-0 -bottom-0.5 h-px scale-x-0 bg-neutral-900 transition-transform duration-200 ease-out group-hover:scale-x-100" />
             </Link>
           ))}
         </nav>
@@ -30,10 +35,10 @@ export async function Header() {
             <UserMenu user={user} />
           ) : (
             <div className="hidden items-center gap-2 sm:flex">
-              <Button variant="ghost" asChild>
+              <Button variant="ghost" className="transition-transform active:scale-[0.98]" asChild>
                 <Link href="/iniciar-sesion">Iniciar sesión</Link>
               </Button>
-              <Button asChild>
+              <Button className="transition-transform active:scale-[0.98]" asChild>
                 <Link href="/registro">Crear cuenta</Link>
               </Button>
             </div>
