@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { auth } from "@mimo/auth";
 import { Button } from "@/components/ui/button";
+import { CartSheet } from "./cart-sheet";
 import { MobileNav } from "./mobile-nav";
 import { UserMenu } from "./user-menu";
 
@@ -30,7 +31,8 @@ export async function Header() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
+          <CartSheet />
           {user ? (
             <UserMenu user={user} />
           ) : (

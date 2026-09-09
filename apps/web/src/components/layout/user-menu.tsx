@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, User as UserIcon } from "lucide-react";
+import { LogOut, Package, User as UserIcon } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -45,6 +45,11 @@ export function UserMenu({ user }: { user: AuthSessionUser }) {
           <p className="text-xs font-normal text-muted-foreground">{ROLE_LABEL[user.role]}</p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/mis-pedidos">
+            <Package /> Mis pedidos
+          </Link>
+        </DropdownMenuItem>
         {user.role === "BUSINESS" && (
           <DropdownMenuItem asChild>
             <Link href="/negocio">

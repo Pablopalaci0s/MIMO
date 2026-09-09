@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { ApiResponse } from "@mimo/types";
 import { ForbiddenError, UnauthorizedError } from "@mimo/auth";
 import { ZodError } from "zod";
+import { AppError } from "@/lib/errors";
 
 export function apiSuccess<T>(data: T, init?: number): NextResponse<ApiResponse<T>> {
   return NextResponse.json({ success: true, data }, { status: init ?? 200 });
@@ -25,6 +26,9 @@ export function apiErrorFromException(error: unknown): NextResponse<ApiResponse<
   }
   if (error instanceof ForbiddenError) {
     return apiError("FORBIDDEN", error.message, 403);
+  }
+  if (error instanceof AppError) {
+    return apiError(error.code, error.message, error.status);
   }
   console.error("[api] unhandled error:", error);
   return apiError("INTERNAL_ERROR", "Ocurrió un error inesperado", 500);

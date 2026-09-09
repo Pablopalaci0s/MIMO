@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AddToCart } from "@/components/catalog/add-to-cart";
 import { ProductCard } from "@/components/catalog/product-card";
-import { ProductPersonalizer } from "@/components/catalog/product-personalizer";
 import { formatPreparationTime } from "@/lib/format";
 import { getProductBySlug, listRelatedProducts } from "@/lib/services/product-service";
 
@@ -82,7 +82,7 @@ export default async function ProductPage({ params }: PageProps<"/productos/[slu
 
           <p className="text-neutral-600">{product.description}</p>
 
-          {product.isPersonalizable && <ProductPersonalizer />}
+          <AddToCart product={product} />
         </div>
       </div>
 

@@ -7,10 +7,12 @@ Centraliza lo que hoy los negocios manejan por Instagram/WhatsApp: catálogo,
 disponibilidad, precios, entrega y pago, todo en un solo lugar — con un
 asistente de IA que ayuda a elegir el regalo correcto.
 
-Este repositorio contiene la **Fase 1** del proyecto: arquitectura del
-monorepo, base de datos y autenticación. Las fases siguientes (home, catálogo,
-carrito/checkout, paneles de negocio/admin, IA de recomendaciones, PWA, etc.)
-se construyen en el orden descrito más abajo.
+El proyecto se construye por fases (ver **Estado del proyecto** más abajo).
+Completas hasta ahora: arquitectura del monorepo, base de datos y
+autenticación (Fase 1), home y navegación (Fase 2), catálogo de productos y
+negocios (Fase 3), y carrito/checkout/pedidos (Fase 4). Las fases siguientes
+(paneles de negocio/admin, IA de recomendaciones, PWA, etc.) se construyen
+en el orden descrito más abajo.
 
 ## Arquitectura
 
@@ -128,7 +130,7 @@ npm run db:migrate:deploy  # aplicar migraciones en producción (sin prompts)
 - [x] **Fase 1** — Arquitectura, base de datos, autenticación
 - [x] **Fase 2** — Home, diseño, navegación
 - [x] **Fase 3** — Productos, categorías, negocios
-- [ ] Fase 4 — Carrito, checkout, pedidos
+- [x] **Fase 4** — Carrito, checkout, pedidos
 - [ ] Fase 5 — Panel de negocio
 - [ ] Fase 6 — Panel administrativo
 - [ ] Fase 7 — IA de recomendaciones
@@ -136,6 +138,38 @@ npm run db:migrate:deploy  # aplicar migraciones en producción (sin prompts)
 - [ ] Fase 9 — Fechas importantes, favoritos, notificaciones
 - [ ] Fase 10 — PWA y optimización móvil
 - [ ] Fase 11 — Testing y revisión completa
+
+## Diseño: pagos y seguimiento de pedidos (Fase 4)
+
+Dos decisiones de producto que definen cómo se construyó el checkout:
+
+**Seguimiento de pedidos.** MIMO no tiene flota propia de repartidores — cada
+negocio maneja su propia entrega (sección 20 del spec). Por eso el
+"tracking" no es GPS en vivo, sino una línea de tiempo de estados que el
+negocio actualiza desde su panel (Fase 5):
+`Pendiente → Confirmado → Preparando → En camino → Entregado` (o
+`Cancelado`). Como el carrito es multi-tienda, cada `OrderItem` tiene su
+propio estado independiente del estado general del `Order`: un negocio
+puede confirmar/entregar su parte sin depender de los demás. GPS en vivo y
+repartidores propios (sección 41) quedan para cuando haya volumen que lo
+justifique.
+
+**Pago: autorizar primero, capturar al confirmar — no cobrar en el checkout.**
+El problema real: si se cobra en el momento del checkout, un negocio puede
+recibir una plata que ya no puede reembolsar fácilmente si no puede cumplir
+el pedido. La solución adoptada es autorizar la tarjeta (hold) en el
+checkout pero *no* capturar el cobro; el negocio tiene una ventana corta
+(ej. 30–60 min) para confirmar que puede cumplirlo, y recién ahí se captura.
+Si no confirma a tiempo, el pedido se cancela automáticamente y no se cobra
+nada. Esto requiere un proveedor que soporte auth/capture por separado
+(Stripe lo hace nativamente) y un job programado que cancele pedidos sin
+confirmar. **Estado actual de la implementación:** todavía no hay un
+proveedor de pagos real integrado, así que el checkout de esta fase solo
+ofrece **pago contra entrega (efectivo)**, que no necesita auth/capture.
+Tarjeta y PayPal se muestran en la UI como "Próximamente" — el modelo
+`Payment` (`status`: `PENDING/PAID/FAILED/REFUNDED`) y el flujo de
+confirmación del negocio (Fase 5) ya están pensados para que integrar
+Stripe después sea un cambio localizado, no un rediseño.
 
 ## Notas técnicas
 

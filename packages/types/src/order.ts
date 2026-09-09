@@ -22,6 +22,22 @@ export interface CartItemInput {
   personalization?: PersonalizationInput;
 }
 
+/** Ítem del carrito tal como vive en el cliente (localStorage) — incluye
+ * los datos de presentación para no tener que volver a pedirlos al mostrar
+ * el carrito. El precio acá es solo para mostrar: el servidor siempre
+ * recalcula desde la base de datos al hacer checkout. */
+export interface CartItem {
+  productId: string;
+  productSlug: string;
+  productName: string;
+  businessId: string;
+  businessName: string;
+  unitPrice: number;
+  imageUrl: string | null;
+  quantity: number;
+  personalization?: PersonalizationInput;
+}
+
 export interface CheckoutAddressInput {
   recipientName: string;
   recipientPhone: string;
