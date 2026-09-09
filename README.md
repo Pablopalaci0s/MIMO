@@ -95,7 +95,9 @@ ocasiones/emociones, y tres cuentas de prueba:
 | Cliente  | cliente@mimo.sv    | Cliente123!  |
 | Negocio  | negocio@mimo.sv    | Negocio123!  |
 
-También crea un negocio de demostración (`Flores Demo MIMO`, marcado `isDemo`).
+También crea 10 negocios ficticios (marcados `isDemo`) con 57 productos en
+total, repartidos en las 12 categorías, con zonas de entrega y ratings
+aleatorios — ver `packages/database/prisma/seed-data/demo-catalog.ts`.
 
 ## 6. Iniciar desarrollo
 
@@ -125,7 +127,7 @@ npm run db:migrate:deploy  # aplicar migraciones en producción (sin prompts)
 
 - [x] **Fase 1** — Arquitectura, base de datos, autenticación
 - [x] **Fase 2** — Home, diseño, navegación
-- [ ] Fase 3 — Productos, categorías, negocios
+- [x] **Fase 3** — Productos, categorías, negocios
 - [ ] Fase 4 — Carrito, checkout, pedidos
 - [ ] Fase 5 — Panel de negocio
 - [ ] Fase 6 — Panel administrativo

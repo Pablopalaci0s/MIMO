@@ -27,11 +27,30 @@ export async function listEmotions(): Promise<OccasionDTO[]> {
     orderBy: { name: "asc" },
   });
 
-  return emotions.map((emotion) => ({
-    id: emotion.id,
-    name: emotion.name,
-    slug: emotion.slug,
-    emoji: emotion.emoji,
-    type: emotion.type,
-  }));
+  return emotions.map(toOccasionDTO);
+}
+
+export async function listOccasions(): Promise<OccasionDTO[]> {
+  const occasions = await prisma.occasion.findMany({
+    where: { type: "OCCASION" },
+    orderBy: { name: "asc" },
+  });
+
+  return occasions.map(toOccasionDTO);
+}
+
+function toOccasionDTO(occasion: {
+  id: string;
+  name: string;
+  slug: string;
+  emoji: string | null;
+  type: OccasionDTO["type"];
+}): OccasionDTO {
+  return {
+    id: occasion.id,
+    name: occasion.name,
+    slug: occasion.slug,
+    emoji: occasion.emoji,
+    type: occasion.type,
+  };
 }

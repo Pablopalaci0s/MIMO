@@ -1,7 +1,18 @@
 import { PrismaClient } from "@prisma/client";
 import { hash } from "bcryptjs";
+import { DEMO_BUSINESSES } from "./seed-data/demo-catalog";
 
 const prisma = new PrismaClient();
+
+function randomBetween(min: number, max: number): number {
+  return Math.random() * (max - min) + min;
+}
+
+function placeholderImageUrl(text: string): string {
+  // .png explícito: placehold.co sirve SVG por defecto, y next/image bloquea
+  // SVG remoto por seguridad salvo que se habilite dangerouslyAllowSVG.
+  return `https://placehold.co/800x600/f4f4f5/171717.png?text=${encodeURIComponent(text)}`;
+}
 
 // El Salvador: los 14 departamentos con sus municipios. Se listan todos los
 // departamentos (para que la plataforma nunca dependa solo de San Salvador,
@@ -175,31 +186,121 @@ async function main() {
     },
   });
 
-  const sanSalvador = await prisma.municipality.findFirst({
-    where: { slug: "san-salvador" },
-  });
+  console.log("Seeding catálogo demo (negocios y productos)...");
 
-  const demoBusiness = await prisma.business.upsert({
-    where: { slug: "flores-demo-mimo" },
-    update: {},
-    create: {
-      name: "Flores Demo MIMO",
-      slug: "flores-demo-mimo",
-      description: "Negocio de demostración para probar el flujo de MIMO. [DEMO]",
-      status: "APPROVED",
-      verified: true,
-      isDemo: true,
-      municipalityId: sanSalvador?.id,
-      addressLine: "Calle Demo #123, San Salvador",
-      preparationTimeMinutes: 90,
-    },
-  });
+  const categoryBySlug = new Map(
+    (await prisma.category.findMany()).map((category) => [category.slug, category]),
+  );
+  const occasionBySlug = new Map(
+    (await prisma.occasion.findMany()).map((occasion) => [occasion.slug, occasion]),
+  );
 
-  await prisma.businessUser.upsert({
-    where: { businessId_userId: { businessId: demoBusiness.id, userId: businessOwner.id } },
-    update: {},
-    create: { businessId: demoBusiness.id, userId: businessOwner.id, role: "OWNER" },
-  });
+  for (const [businessIndex, demoBusiness] of DEMO_BUSINESSES.entries()) {
+    const municipality = await prisma.municipality.findFirst({
+      where: { slug: demoBusiness.municipalitySlug },
+    });
+    const businessSlug = slugify(demoBusiness.name);
+
+    const business = await prisma.business.upsert({
+      where: { slug: businessSlug },
+      update: {},
+      create: {
+        name: demoBusiness.name,
+        slug: businessSlug,
+        description: demoBusiness.description,
+        whatsapp: demoBusiness.whatsapp,
+        status: "APPROVED",
+        verified: businessIndex % 3 !== 0,
+        isDemo: true,
+        municipalityId: municipality?.id,
+        addressLine: demoBusiness.addressLine,
+        preparationTimeMinutes: demoBusiness.prepMinutes,
+        ratingAvg: Number(randomBetween(3.9, 5).toFixed(1)),
+        ratingCount: Math.floor(randomBetween(8, 140)),
+      },
+    });
+
+    // El primer negocio queda vinculado a la cuenta demo de negocio para
+    // poder iniciar sesión y ver el panel (Fase 5).
+    if (businessIndex === 0) {
+      await prisma.businessUser.upsert({
+        where: { businessId_userId: { businessId: business.id, userId: businessOwner.id } },
+        update: {},
+        create: { businessId: business.id, userId: businessOwner.id, role: "OWNER" },
+      });
+    }
+
+    if (municipality) {
+      const existingZone = await prisma.deliveryZone.findFirst({
+        where: { businessId: business.id },
+      });
+      if (!existingZone) {
+        await prisma.deliveryZone.create({
+          data: {
+            businessId: business.id,
+            name: `${municipality.name} y alrededores`,
+            municipalityId: municipality.id,
+            deliveryFee: Number(randomBetween(1.5, 4).toFixed(2)),
+            estimatedMinutes: Math.floor(randomBetween(45, 120)),
+          },
+        });
+      }
+    }
+
+    for (const demoProduct of demoBusiness.products) {
+      const category = categoryBySlug.get(demoProduct.categorySlug);
+      if (!category) continue;
+
+      const productSlug = `${businessSlug}-${slugify(demoProduct.name)}`;
+      const availableToday = Math.random() > 0.25;
+
+      const product = await prisma.product.upsert({
+        where: { slug: productSlug },
+        update: {},
+        create: {
+          businessId: business.id,
+          categoryId: category.id,
+          name: demoProduct.name,
+          slug: productSlug,
+          description: demoProduct.description,
+          price: demoProduct.price,
+          isPersonalizable: demoProduct.personalizable ?? false,
+          availableToday,
+          preparationTimeMinutes: demoProduct.prepMinutes ?? demoBusiness.prepMinutes,
+          isDemo: true,
+          status: "ACTIVE",
+          stock: Math.floor(randomBetween(5, 60)),
+          ratingAvg: Number(randomBetween(3.7, 5).toFixed(1)),
+          ratingCount: Math.floor(randomBetween(0, 90)),
+          salesCount: Math.floor(randomBetween(0, 250)),
+        },
+      });
+
+      const existingImage = await prisma.productImage.findFirst({
+        where: { productId: product.id },
+      });
+      if (!existingImage) {
+        await prisma.productImage.create({
+          data: {
+            productId: product.id,
+            url: placeholderImageUrl(demoProduct.name),
+            altText: demoProduct.name,
+            position: 0,
+          },
+        });
+      }
+
+      for (const occasionSlug of demoProduct.occasionSlugs) {
+        const occasion = occasionBySlug.get(occasionSlug);
+        if (!occasion) continue;
+        await prisma.productOccasion.upsert({
+          where: { productId_occasionId: { productId: product.id, occasionId: occasion.id } },
+          update: {},
+          create: { productId: product.id, occasionId: occasion.id },
+        });
+      }
+    }
+  }
 
   console.log("Seed completo.");
 }
