@@ -4,6 +4,9 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -38,55 +41,46 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-sm flex-col justify-center gap-6 px-6">
+    <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 px-6 py-16">
       <div>
-        <h1 className="text-2xl font-semibold">Creá tu cuenta</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Creá tu cuenta</h1>
         <p className="mt-1 text-sm text-neutral-500">Es gratis y toma un minuto.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1 text-sm">
-          Nombre
-          <input
-            required
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            className="rounded-lg border border-neutral-300 px-3 py-2 outline-none focus:border-neutral-900"
-          />
-        </label>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="name">Nombre</Label>
+          <Input id="name" required value={name} onChange={(event) => setName(event.target.value)} />
+        </div>
 
-        <label className="flex flex-col gap-1 text-sm">
-          Correo
-          <input
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="email">Correo</Label>
+          <Input
+            id="email"
             type="email"
             required
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="rounded-lg border border-neutral-300 px-3 py-2 outline-none focus:border-neutral-900"
           />
-        </label>
+        </div>
 
-        <label className="flex flex-col gap-1 text-sm">
-          Contraseña
-          <input
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="password">Contraseña</Label>
+          <Input
+            id="password"
             type="password"
             required
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="rounded-lg border border-neutral-300 px-3 py-2 outline-none focus:border-neutral-900"
           />
           <span className="text-xs text-neutral-400">Mínimo 8 caracteres, con mayúscula y número.</span>
-        </label>
+        </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-destructive">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-700 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={loading} className="h-10">
           {loading ? "Creando cuenta..." : "Crear cuenta"}
-        </button>
+        </Button>
       </form>
 
       <p className="text-sm text-neutral-500">
@@ -95,6 +89,6 @@ export default function RegisterPage() {
           Iniciá sesión
         </Link>
       </p>
-    </main>
+    </div>
   );
 }

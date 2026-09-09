@@ -4,6 +4,9 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export function LoginForm() {
   const router = useRouter();
@@ -38,37 +41,33 @@ export function LoginForm() {
   return (
     <>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1 text-sm">
-          Correo
-          <input
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="email">Correo</Label>
+          <Input
+            id="email"
             type="email"
             required
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="rounded-lg border border-neutral-300 px-3 py-2 outline-none focus:border-neutral-900"
           />
-        </label>
+        </div>
 
-        <label className="flex flex-col gap-1 text-sm">
-          Contraseña
-          <input
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="password">Contraseña</Label>
+          <Input
+            id="password"
             type="password"
             required
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="rounded-lg border border-neutral-300 px-3 py-2 outline-none focus:border-neutral-900"
           />
-        </label>
+        </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-destructive">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-700 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={loading} className="h-10">
           {loading ? "Entrando..." : "Entrar"}
-        </button>
+        </Button>
       </form>
 
       <p className="text-sm text-neutral-500">

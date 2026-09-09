@@ -12,8 +12,8 @@ export interface UserDTO {
 
 export interface AuthSessionUser {
   id: string;
-  name: string;
-  email: string;
-  image: string | null;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
   role: UserRole;
 }

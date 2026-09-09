@@ -124,7 +124,7 @@ npm run db:migrate:deploy  # aplicar migraciones en producción (sin prompts)
 ## Estado del proyecto — orden de desarrollo
 
 - [x] **Fase 1** — Arquitectura, base de datos, autenticación
-- [ ] Fase 2 — Home, diseño, navegación
+- [x] **Fase 2** — Home, diseño, navegación
 - [ ] Fase 3 — Productos, categorías, negocios
 - [ ] Fase 4 — Carrito, checkout, pedidos
 - [ ] Fase 5 — Panel de negocio
@@ -148,3 +148,7 @@ npm run db:migrate:deploy  # aplicar migraciones en producción (sin prompts)
   (vía la CLI de Prisma). Es una dependencia de *tooling* de desarrollo, no
   llega al código que corre en producción; no hay una versión de Prisma que
   la resuelva todavía.
+- **UI**: shadcn/ui (preset Nova, Base UI/Radix + Lucide) sobre Tailwind v4.
+  Paleta blanco/negro/gris con un acento de marca (`--brand`) reservado para
+  el CTA principal y las categorías emocionales — nunca para el resto de la
+  interfaz.
