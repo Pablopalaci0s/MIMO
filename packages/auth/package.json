@@ -1,0 +1,25 @@
+{
+  "name": "@mimo/auth",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "@auth/prisma-adapter": "^2.7.4",
+    "@mimo/database": "*",
+    "@mimo/validation": "*",
+    "bcryptjs": "^2.4.3",
+    "next-auth": "5.0.0-beta.32"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "typescript": "^5"
+  },
+  "peerDependencies": {
+    "next": "^16.0.0",
+    "react": "^19.0.0"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  }
+}

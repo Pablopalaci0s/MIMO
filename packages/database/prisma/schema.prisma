@@ -1,0 +1,726 @@
+// MIMO — Prisma schema
+// Fase 1: arquitectura de datos completa del marketplace.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  USER
+  BUSINESS
+  ADMIN
+}
+
+enum BusinessRole {
+  OWNER
+  STAFF
+}
+
+enum BusinessStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+  REJECTED
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+}
+
+enum OccasionType {
+  OCCASION
+  EMOTION
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+// Per-vendor status within a multi-business order, so each business can
+// manage its own line items independently of the overall order status.
+enum OrderItemStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum DeliveryWindow {
+  ASAP
+  MORNING // 9AM-12PM
+  MIDDAY // 12PM-3PM
+  AFTERNOON // 3PM-6PM
+  EVENING // 6PM-9PM
+}
+
+enum PaymentProvider {
+  CARD
+  PAYPAL
+  CASH
+  OTHER
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum ModerationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum FavoriteTargetType {
+  PRODUCT
+  BUSINESS
+}
+
+enum ImportantDateType {
+  ANNIVERSARY
+  BIRTHDAY
+  MOTHERS_DAY
+  FATHERS_DAY
+  GRADUATION
+  OTHER
+}
+
+enum NotificationType {
+  ORDER_CONFIRMED
+  ORDER_IN_PROGRESS
+  ORDER_OUT_FOR_DELIVERY
+  ORDER_DELIVERED
+  ORDER_CANCELLED
+  IMPORTANT_DATE_REMINDER
+  BUSINESS_APPROVED
+  BUSINESS_SUSPENDED
+  REVIEW_RECEIVED
+  PROMOTION
+  SYSTEM
+}
+
+enum PromotionDiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+enum ReportTargetType {
+  PRODUCT
+  BUSINESS
+  REVIEW
+  USER
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWED
+  RESOLVED
+  DISMISSED
+}
+
+enum BusinessPlan {
+  FREE
+  PRO
+  PREMIUM
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// UBICACIÓN — El Salvador (departamentos / municipios), no solo San Salvador
+// ─────────────────────────────────────────────────────────────────────────
+
+model Department {
+  id             String         @id @default(uuid()) @db.Uuid
+  name           String
+  slug           String         @unique
+  municipalities Municipality[]
+  createdAt      DateTime       @default(now())
+
+  @@map("departments")
+}
+
+model Municipality {
+  id           String         @id @default(uuid()) @db.Uuid
+  name         String
+  slug         String
+  departmentId String         @db.Uuid
+  department   Department     @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  latitude     Float?
+  longitude    Float?
+  businesses     Business[]
+  deliveryZones  DeliveryZone[]
+  orderAddresses OrderAddress[]
+  createdAt    DateTime       @default(now())
+
+  @@unique([departmentId, slug])
+  @@index([departmentId])
+  @@map("municipalities")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// USUARIOS Y AUTENTICACIÓN
+// ─────────────────────────────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(uuid()) @db.Uuid
+  name          String
+  email         String    @unique
+  emailVerified DateTime?
+  passwordHash  String?
+  phone         String?
+  image         String?
+  role          UserRole  @default(USER)
+
+  accounts Account[]
+  sessions Session[]
+
+  businessMemberships BusinessUser[]
+  orders              Order[]
+  reviews             Review[]
+  favorites           Favorite[]
+  importantDates      ImportantDate[]
+  notifications       Notification[]
+  aiConversations     AIConversation[]
+  aiRecommendations   AIRecommendation[]
+  reports             Report[]
+  pushTokens          PushToken[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([role])
+  @@map("users")
+}
+
+// Auth.js (NextAuth) adapter models — preparados para agregar Google/Apple
+// login y sesiones de la futura app móvil sin tocar el resto del esquema.
+model Account {
+  id                String  @id @default(uuid()) @db.Uuid
+  userId            String  @db.Uuid
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(uuid()) @db.Uuid
+  sessionToken String   @unique
+  userId       String   @db.Uuid
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expires      DateTime
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// Tokens de push notification para la futura app React Native / Expo.
+model PushToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  platform  String // "ios" | "android" | "web"
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("push_tokens")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// NEGOCIOS
+// ─────────────────────────────────────────────────────────────────────────
+
+model Business {
+  id          String         @id @default(uuid()) @db.Uuid
+  name        String
+  slug        String         @unique
+  description String?        @db.Text
+  logoUrl     String?
+  coverUrl    String?
+  whatsapp    String?
+  instagram   String?
+  facebook    String?
+  tiktok      String?
+
+  status   BusinessStatus @default(PENDING)
+  verified Boolean        @default(false)
+  isDemo   Boolean        @default(false)
+  plan     BusinessPlan   @default(FREE)
+
+  municipalityId       String?  @db.Uuid
+  municipality         Municipality? @relation(fields: [municipalityId], references: [id])
+  addressLine          String?
+  latitude             Float?
+  longitude            Float?
+  openingHours         Json? // { mon: ["09:00","18:00"], ... }
+  preparationTimeMinutes Int    @default(60)
+
+  members       BusinessUser[]
+  products      Product[]
+  deliveryZones DeliveryZone[]
+  reviews       Review[]
+  favorites     Favorite[]
+  promotions    Promotion[]
+
+  ratingAvg   Float @default(0)
+  ratingCount Int   @default(0)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([status])
+  @@index([municipalityId])
+  @@map("businesses")
+}
+
+model BusinessUser {
+  id         String       @id @default(uuid()) @db.Uuid
+  businessId String       @db.Uuid
+  business   Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  userId     String       @db.Uuid
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       BusinessRole @default(OWNER)
+  createdAt  DateTime     @default(now())
+
+  @@unique([businessId, userId])
+  @@index([userId])
+  @@map("business_users")
+}
+
+model DeliveryZone {
+  id                  String        @id @default(uuid()) @db.Uuid
+  businessId          String        @db.Uuid
+  business            Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name                String
+  municipalityId      String?       @db.Uuid
+  municipality        Municipality? @relation(fields: [municipalityId], references: [id])
+  deliveryFee         Decimal       @default(0) @db.Decimal(10, 2)
+  estimatedMinutes    Int           @default(60)
+  isActive            Boolean       @default(true)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  @@index([businessId])
+  @@index([municipalityId])
+  @@map("delivery_zones")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// CATÁLOGO
+// ─────────────────────────────────────────────────────────────────────────
+
+model Category {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String
+  slug        String    @unique
+  emoji       String?
+  description String?
+  parentId    String?   @db.Uuid
+  parent      Category? @relation("CategoryToParent", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryToParent")
+  position    Int       @default(0)
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([parentId])
+  @@map("categories")
+}
+
+// Cubre tanto ocasiones (cumpleaños, aniversario) como categorías
+// emocionales (te amo, perdón, gracias) — ver sección 14.
+model Occasion {
+  id        String           @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String           @unique
+  emoji     String?
+  type      OccasionType     @default(OCCASION)
+  products  ProductOccasion[]
+  createdAt DateTime         @default(now())
+
+  @@map("occasions")
+}
+
+model Product {
+  id          String        @id @default(uuid()) @db.Uuid
+  businessId  String        @db.Uuid
+  business    Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  categoryId  String        @db.Uuid
+  category    Category      @relation(fields: [categoryId], references: [id])
+
+  name        String
+  slug        String        @unique
+  description String        @db.Text
+  price       Decimal       @db.Decimal(10, 2)
+  compareAtPrice Decimal?   @db.Decimal(10, 2)
+  currency    String        @default("USD")
+
+  stock                  Int     @default(0)
+  isPersonalizable       Boolean @default(false)
+  availableToday         Boolean @default(true)
+  preparationTimeMinutes Int     @default(60)
+
+  status ProductStatus @default(ACTIVE)
+  isDemo Boolean        @default(false)
+
+  ratingAvg   Float @default(0)
+  ratingCount Int   @default(0)
+  salesCount  Int   @default(0)
+
+  images       ProductImage[]
+  occasions    ProductOccasion[]
+  orderItems   OrderItem[]
+  reviews      Review[]
+  favorites    Favorite[]
+  aiRecommendedIn AIRecommendationProduct[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([businessId])
+  @@index([categoryId])
+  @@index([status])
+  @@map("products")
+}
+
+model ProductImage {
+  id        String   @id @default(uuid()) @db.Uuid
+  productId String   @db.Uuid
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  altText   String?
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+  @@map("product_images")
+}
+
+model ProductOccasion {
+  productId  String   @db.Uuid
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  occasionId String   @db.Uuid
+  occasion   Occasion @relation(fields: [occasionId], references: [id], onDelete: Cascade)
+
+  @@id([productId, occasionId])
+  @@index([occasionId])
+  @@map("product_occasions")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// PEDIDOS
+// ─────────────────────────────────────────────────────────────────────────
+
+model Order {
+  id          String      @id @default(uuid()) @db.Uuid
+  orderNumber String      @unique
+  buyerId     String      @db.Uuid
+  buyer       User        @relation(fields: [buyerId], references: [id])
+
+  buyerName  String
+  buyerEmail String
+  buyerPhone String
+
+  status       OrderStatus @default(PENDING)
+  subtotal     Decimal     @db.Decimal(10, 2)
+  deliveryFee  Decimal     @default(0) @db.Decimal(10, 2)
+  total        Decimal     @db.Decimal(10, 2)
+  currency     String      @default("USD")
+
+  isSurpriseMode        Boolean @default(false)
+  surpriseInstructions  String? @db.Text
+  hideBuyerFromRecipient Boolean @default(false)
+
+  items      OrderItem[]
+  address    OrderAddress?
+  payment    Payment?
+  reviews    Review[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([buyerId])
+  @@index([status])
+  @@map("orders")
+}
+
+// Cada línea pertenece a un negocio; así el pedido queda dividido
+// internamente por vendedor aunque el carrito sea multi-tienda.
+model OrderItem {
+  id         String          @id @default(uuid()) @db.Uuid
+  orderId    String          @db.Uuid
+  order      Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId  String          @db.Uuid
+  product    Product         @relation(fields: [productId], references: [id])
+  businessId String          @db.Uuid
+
+  quantity     Int     @default(1)
+  unitPrice    Decimal @db.Decimal(10, 2)
+  personalization Json? // { message, dedication, color, size, cardText }
+
+  status OrderItemStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([businessId])
+  @@index([productId])
+  @@map("order_items")
+}
+
+model OrderAddress {
+  id      String @id @default(uuid()) @db.Uuid
+  orderId String @unique @db.Uuid
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  recipientName  String
+  recipientPhone String
+  addressLine    String
+  reference      String?
+  municipalityId String?       @db.Uuid
+  municipality   Municipality? @relation(fields: [municipalityId], references: [id])
+  latitude       Float?
+  longitude      Float?
+
+  deliveryDate     DateTime
+  deliveryWindow   DeliveryWindow @default(ASAP)
+  deliveryInstructions String?    @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@map("order_addresses")
+}
+
+model Payment {
+  id         String          @id @default(uuid()) @db.Uuid
+  orderId    String          @unique @db.Uuid
+  order      Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  provider   PaymentProvider
+  status     PaymentStatus   @default(PENDING)
+  amount     Decimal         @db.Decimal(10, 2)
+  currency   String          @default("USD")
+  providerReference String?
+  paidAt     DateTime?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@map("payments")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// REVIEWS Y FAVORITOS
+// ─────────────────────────────────────────────────────────────────────────
+
+model Review {
+  id         String @id @default(uuid()) @db.Uuid
+  userId     String @db.Uuid
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderId    String @db.Uuid
+  order      Order  @relation(fields: [orderId], references: [id])
+  productId  String? @db.Uuid
+  product    Product? @relation(fields: [productId], references: [id])
+  businessId String? @db.Uuid
+  business   Business? @relation(fields: [businessId], references: [id])
+
+  productRating  Int?
+  businessRating Int?
+  deliveryRating Int?
+  comment        String? @db.Text
+
+  status ModerationStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+  @@index([businessId])
+  @@index([orderId])
+  @@map("reviews")
+}
+
+model Favorite {
+  id         String             @id @default(uuid()) @db.Uuid
+  userId     String             @db.Uuid
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetType FavoriteTargetType
+  productId  String?            @db.Uuid
+  product    Product?           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  businessId String?            @db.Uuid
+  business   Business?          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  createdAt  DateTime           @default(now())
+
+  @@unique([userId, productId])
+  @@unique([userId, businessId])
+  @@map("favorites")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// FECHAS IMPORTANTES, NOTIFICACIONES, PROMOCIONES
+// ─────────────────────────────────────────────────────────────────────────
+
+model ImportantDate {
+  id             String            @id @default(uuid()) @db.Uuid
+  userId         String            @db.Uuid
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type           ImportantDateType
+  label          String
+  date           DateTime
+  recipientName  String?
+  remindDaysBefore Int             @default(7)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([userId])
+  @@map("important_dates")
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @db.Uuid
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  body      String
+  isRead    Boolean          @default(false)
+  metadata  Json?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+model Promotion {
+  id             String                @id @default(uuid()) @db.Uuid
+  businessId     String?               @db.Uuid
+  business       Business?             @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  code           String?               @unique
+  title          String
+  description    String?
+  discountType   PromotionDiscountType
+  discountValue  Decimal               @db.Decimal(10, 2)
+  isFeatured     Boolean               @default(false)
+  isActive       Boolean               @default(true)
+  startsAt       DateTime
+  endsAt         DateTime
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  @@index([businessId])
+  @@index([isActive])
+  @@map("promotions")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// IA
+// ─────────────────────────────────────────────────────────────────────────
+
+model AIConversation {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String?  @db.Uuid
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  sessionId String
+  messages  Json // [{ role, content, createdAt }]
+  context   Json? // destinatario, ocasión, presupuesto, gustos, etc.
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([sessionId])
+  @@map("ai_conversations")
+}
+
+model AIRecommendation {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String?  @db.Uuid
+  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  sessionId      String?
+  requestText    String   @db.Text
+  parsedIntent   Json // { recipient, relationship, occasion, budget, likes, location, date }
+  products       AIRecommendationProduct[]
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+  @@map("ai_recommendations")
+}
+
+// Productos reales de la base de datos que la IA recomendó, con la
+// explicación mostrada al usuario — nunca datos inventados por el modelo.
+model AIRecommendationProduct {
+  id                 String           @id @default(uuid()) @db.Uuid
+  recommendationId   String           @db.Uuid
+  recommendation     AIRecommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  productId          String           @db.Uuid
+  product            Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  position           Int              @default(0)
+  explanation        String           @db.Text
+  createdAt          DateTime         @default(now())
+
+  @@index([recommendationId])
+  @@index([productId])
+  @@map("ai_recommendation_products")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// MODERACIÓN
+// ─────────────────────────────────────────────────────────────────────────
+
+model Report {
+  id          String           @id @default(uuid()) @db.Uuid
+  reporterId  String           @db.Uuid
+  reporter    User             @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  targetType  ReportTargetType
+  targetId    String           @db.Uuid
+  reason      String
+  description String?          @db.Text
+  status      ReportStatus     @default(OPEN)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([status])
+  @@index([targetType, targetId])
+  @@map("reports")
+}
