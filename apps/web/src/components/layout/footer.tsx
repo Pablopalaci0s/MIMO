@@ -34,11 +34,30 @@ export function Footer() {
               Crear cuenta
             </Link>
           </div>
+          <div className="flex flex-col gap-2.5">
+            <span className="text-xs font-medium tracking-wide text-neutral-400 uppercase">
+              Legal
+            </span>
+            <Link href="/terminos" className="transition-colors hover:text-neutral-900">
+              Términos y condiciones
+            </Link>
+            <Link href="/privacidad" className="transition-colors hover:text-neutral-900">
+              Privacidad
+            </Link>
+          </div>
         </nav>
       </div>
 
-      <div className="border-t border-neutral-100 px-4 py-5 text-center text-xs text-neutral-400 sm:px-6">
-        © {new Date().getFullYear()} MIMO. Todos los derechos reservados.
+      <div className="flex flex-col items-center gap-2 border-t border-neutral-100 px-4 py-5 text-center text-xs text-neutral-400 sm:flex-row sm:justify-between sm:px-6">
+        <span>© {new Date().getFullYear()} MIMO. Todos los derechos reservados.</span>
+        <span className="flex gap-3">
+          <Link href="/terminos" className="hover:text-neutral-600">
+            Términos
+          </Link>
+          <Link href="/privacidad" className="hover:text-neutral-600">
+            Privacidad
+          </Link>
+        </span>
       </div>
     </footer>
   );

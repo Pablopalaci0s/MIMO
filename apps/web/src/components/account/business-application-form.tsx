@@ -2,6 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import { signIn } from "next-auth/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
@@ -149,6 +150,17 @@ export function BusinessApplicationForm({ municipalities }: { municipalities: Mu
       <p className="text-xs text-neutral-400">
         Tu negocio queda pendiente de aprobación — te avisamos apenas lo revisemos. Mientras tanto ya podés entrar a
         tu panel para conocerlo.
+      </p>
+      <p className="text-xs text-neutral-400">
+        Al enviar la solicitud aceptás nuestros{" "}
+        <Link href="/terminos" className="underline hover:text-neutral-600">
+          Términos
+        </Link>{" "}
+        y nuestra{" "}
+        <Link href="/privacidad" className="underline hover:text-neutral-600">
+          Política de privacidad
+        </Link>
+        .
       </p>
     </form>
   );
