@@ -7,6 +7,11 @@ node_modules/
 .next/
 out/
 
+# Fotos subidas por usuarios (guardadas en disco local — ver README,
+# "Almacenamiento de imágenes")
+apps/web/public/uploads/*
+!apps/web/public/uploads/.gitkeep
+
 # Build de packages
 dist/
 

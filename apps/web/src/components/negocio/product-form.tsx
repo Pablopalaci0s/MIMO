@@ -1,9 +1,10 @@
 "use client";
 
-import { Loader2, Plus, X } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
+import { ImageUploadField } from "@/components/ui/image-upload-field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -48,18 +49,32 @@ export function ProductForm({
   );
   const [status, setStatus] = useState<ProductStatus>(product?.status ?? "ACTIVE");
   const [images, setImages] = useState<{ url: string; altText: string }[]>(
-    product?.images.length ? product.images.map((image) => ({ url: image.url, altText: image.altText ?? "" })) : [{ url: "", altText: "" }],
+    product?.images.length ? product.images.map((image) => ({ url: image.url, altText: image.altText ?? "" })) : [],
   );
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  function updateImage(index: number, field: "url" | "altText", value: string) {
-    setImages((prev) => prev.map((image, i) => (i === index ? { ...image, [field]: value } : image)));
+  function updateImageUrl(index: number, url: string) {
+    setImages((prev) => prev.map((image, i) => (i === index ? { ...image, url } : image)));
+  }
+
+  function updateImageAlt(index: number, altText: string) {
+    setImages((prev) => prev.map((image, i) => (i === index ? { ...image, altText } : image)));
+  }
+
+  function removeImage(index: number) {
+    setImages((prev) => prev.filter((_, i) => i !== index));
   }
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
+
+    if (images.filter((image) => image.url.trim()).length === 0) {
+      setError("Subí al menos una foto del producto.");
+      return;
+    }
+
     setLoading(true);
 
     const input: BusinessProductInput = {
@@ -179,43 +194,30 @@ export function ProductForm({
       </div>
 
       <div className="flex flex-col gap-3">
-        <Label>Imágenes (URL)</Label>
-        {images.map((image, index) => (
-          <div key={index} className="flex gap-2">
-            <Input
-              placeholder="https://..."
-              value={image.url}
-              onChange={(e) => updateImage(index, "url", e.target.value)}
+        <Label>Fotos (hasta 8)</Label>
+        <div className="flex flex-wrap gap-3">
+          {images.map((image, index) => (
+            <div key={index} className="flex flex-col gap-1.5">
+              <ImageUploadField
+                value={image.url}
+                onChange={(url) => updateImageUrl(index, url)}
+                onRemove={() => removeImage(index)}
+              />
+              <Input
+                placeholder="Texto alternativo (opcional)"
+                className="w-28 text-xs"
+                value={image.altText}
+                onChange={(e) => updateImageAlt(index, e.target.value)}
+              />
+            </div>
+          ))}
+          {images.length < 8 && (
+            <ImageUploadField
+              value={null}
+              onChange={(url) => setImages((prev) => [...prev, { url, altText: "" }])}
             />
-            <Input
-              placeholder="Texto alternativo (opcional)"
-              className="max-w-40"
-              value={image.altText}
-              onChange={(e) => updateImage(index, "altText", e.target.value)}
-            />
-            {images.length > 1 && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => setImages((prev) => prev.filter((_, i) => i !== index))}
-              >
-                <X />
-              </Button>
-            )}
-          </div>
-        ))}
-        {images.length < 8 && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="w-fit"
-            onClick={() => setImages((prev) => [...prev, { url: "", altText: "" }])}
-          >
-            <Plus /> Agregar otra imagen
-          </Button>
-        )}
+          )}
+        </div>
       </div>
 
       {error && <p className="text-sm text-destructive">{error}</p>}

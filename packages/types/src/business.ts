@@ -3,6 +3,31 @@ import type { OrderStatus, PersonalizationInput } from "./order";
 
 export type ProductStatus = "DRAFT" | "ACTIVE" | "INACTIVE";
 
+export interface BusinessProfileDTO {
+  name: string;
+  description: string | null;
+  logoUrl: string | null;
+  coverUrl: string | null;
+  phone: string | null;
+  whatsapp: string | null;
+  instagram: string | null;
+  facebook: string | null;
+  tiktok: string | null;
+  addressLine: string | null;
+}
+
+export interface BusinessProfileInput {
+  description?: string;
+  logoUrl?: string | null;
+  coverUrl?: string | null;
+  phone?: string;
+  whatsapp?: string;
+  instagram?: string;
+  facebook?: string;
+  tiktok?: string;
+  addressLine?: string;
+}
+
 /** Un `OrderItem` visto desde el panel del negocio dueño de ese ítem — trae
  * todo lo que ese negocio necesita para prepararlo y entregarlo, sin
  * exponer datos de otros negocios del mismo pedido (carrito multi-tienda). */

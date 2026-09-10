@@ -5,8 +5,17 @@ export const orderItemStatusUpdateSchema = z.object({
   status: z.enum(["CONFIRMED", "PREPARING", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED"]),
 });
 
+/** Acepta tanto una URL absoluta (http/https) como una ruta local propia
+ * (`/uploads/...`, la que devuelve nuestro endpoint de subida de fotos) —
+ * `z.string().url()` por sí solo rechazaría esa segunda forma. */
+const imageUrlSchema = z
+  .string()
+  .trim()
+  .min(1, "URL de imagen inválida")
+  .refine((value) => value.startsWith("/") || /^https?:\/\//.test(value), "URL de imagen inválida");
+
 export const businessProductImageSchema = z.object({
-  url: z.string().trim().url("URL de imagen inválida"),
+  url: imageUrlSchema,
   altText: z.string().trim().max(200).optional(),
 });
 
@@ -47,6 +56,26 @@ export const businessDeliveryZoneInputSchema = z.object({
   isActive: z.boolean(),
 });
 
+const salvadoranPhoneOptional = z
+  .string()
+  .trim()
+  .regex(/^[267]\d{7}$/, "Teléfono salvadoreño inválido (8 dígitos)")
+  .optional()
+  .or(z.literal(""));
+
+export const businessProfileInputSchema = z.object({
+  description: z.string().trim().max(2000).optional().or(z.literal("")),
+  logoUrl: imageUrlSchema.optional().nullable(),
+  coverUrl: imageUrlSchema.optional().nullable(),
+  phone: salvadoranPhoneOptional,
+  whatsapp: z.string().trim().max(30).optional().or(z.literal("")),
+  instagram: z.string().trim().max(100).optional().or(z.literal("")),
+  facebook: z.string().trim().max(100).optional().or(z.literal("")),
+  tiktok: z.string().trim().max(100).optional().or(z.literal("")),
+  addressLine: z.string().trim().min(5).max(255).optional().or(z.literal("")),
+});
+
 export type BusinessProductInputParsed = z.infer<typeof businessProductInputSchema>;
 export type BusinessHoursInputParsed = z.infer<typeof businessHoursInputSchema>;
 export type BusinessDeliveryZoneInputParsed = z.infer<typeof businessDeliveryZoneInputSchema>;
+export type BusinessProfileInputParsed = z.infer<typeof businessProfileInputSchema>;

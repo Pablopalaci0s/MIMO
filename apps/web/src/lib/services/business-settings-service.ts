@@ -3,12 +3,66 @@ import type {
   BusinessDeliveryZoneDTO,
   BusinessDeliveryZoneInput,
   BusinessHoursDTO,
+  BusinessProfileDTO,
+  BusinessProfileInput,
   WeeklyHours,
 } from "@mimo/types";
 import { WEEK_DAYS } from "@mimo/types";
 import { AppError } from "@/lib/errors";
 
 const EMPTY_WEEK: WeeklyHours = Object.fromEntries(WEEK_DAYS.map((day) => [day, null])) as WeeklyHours;
+
+export async function getBusinessProfile(businessId: string): Promise<BusinessProfileDTO> {
+  const business = await prisma.business.findUniqueOrThrow({
+    where: { id: businessId },
+    select: {
+      name: true,
+      description: true,
+      logoUrl: true,
+      coverUrl: true,
+      phone: true,
+      whatsapp: true,
+      instagram: true,
+      facebook: true,
+      tiktok: true,
+      addressLine: true,
+    },
+  });
+  return business;
+}
+
+export async function updateBusinessProfile(
+  businessId: string,
+  input: BusinessProfileInput,
+): Promise<BusinessProfileDTO> {
+  const business = await prisma.business.update({
+    where: { id: businessId },
+    data: {
+      ...(input.description !== undefined ? { description: input.description || null } : {}),
+      ...(input.logoUrl !== undefined ? { logoUrl: input.logoUrl } : {}),
+      ...(input.coverUrl !== undefined ? { coverUrl: input.coverUrl } : {}),
+      ...(input.phone !== undefined ? { phone: input.phone || null } : {}),
+      ...(input.whatsapp !== undefined ? { whatsapp: input.whatsapp || null } : {}),
+      ...(input.instagram !== undefined ? { instagram: input.instagram || null } : {}),
+      ...(input.facebook !== undefined ? { facebook: input.facebook || null } : {}),
+      ...(input.tiktok !== undefined ? { tiktok: input.tiktok || null } : {}),
+      ...(input.addressLine !== undefined ? { addressLine: input.addressLine || null } : {}),
+    },
+    select: {
+      name: true,
+      description: true,
+      logoUrl: true,
+      coverUrl: true,
+      phone: true,
+      whatsapp: true,
+      instagram: true,
+      facebook: true,
+      tiktok: true,
+      addressLine: true,
+    },
+  });
+  return business;
+}
 
 export async function getBusinessHours(businessId: string): Promise<BusinessHoursDTO> {
   const business = await prisma.business.findUniqueOrThrow({

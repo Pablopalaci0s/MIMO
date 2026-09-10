@@ -1,4 +1,4 @@
-import { Clock, LayoutDashboard, Package, ShoppingBag, Store, Truck } from "lucide-react";
+import { Clock, LayoutDashboard, Package, ShoppingBag, Store, Truck, User } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -16,6 +16,7 @@ const NAV_ITEMS: DashboardNavItem[] = [
   { href: "/negocio/productos", label: "Productos", icon: <ShoppingBag className="size-4" /> },
   { href: "/negocio/horarios", label: "Horarios", icon: <Clock className="size-4" /> },
   { href: "/negocio/zonas-de-entrega", label: "Zonas de entrega", icon: <Truck className="size-4" /> },
+  { href: "/negocio/perfil", label: "Perfil", icon: <User className="size-4" /> },
 ];
 
 export default async function BusinessDashboardLayout({ children }: { children: React.ReactNode }) {

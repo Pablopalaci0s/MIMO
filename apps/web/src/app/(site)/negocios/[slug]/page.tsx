@@ -1,5 +1,6 @@
-import { MapPin, MessageCircle, ShieldCheck, Star, Truck } from "lucide-react";
+import { MapPin, MessageCircle, Phone, ShieldCheck, Star, Truck } from "lucide-react";
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/catalog/product-card";
 import { ReportButton } from "@/components/reports/report-button";
@@ -24,6 +25,10 @@ function whatsappHref(whatsapp: string): string {
   return `https://wa.me/${digits}`;
 }
 
+function formatPhone(phone: string): string {
+  return `${phone.slice(0, 4)}-${phone.slice(4)}`;
+}
+
 export default async function BusinessPage({ params }: PageProps<"/negocios/[slug]">) {
   const { slug } = await params;
   const business = await getBusinessBySlug(slug);
@@ -33,12 +38,18 @@ export default async function BusinessPage({ params }: PageProps<"/negocios/[slu
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
-      <div className="h-32 w-full rounded-2xl bg-gradient-to-br from-brand-soft to-neutral-100 sm:h-48" />
+      <div className="relative h-32 w-full overflow-hidden rounded-2xl bg-gradient-to-br from-brand-soft to-neutral-100 sm:h-48">
+        {business.coverUrl && <Image src={business.coverUrl} alt="" fill className="object-cover" priority />}
+      </div>
 
       <div className="-mt-10 flex flex-col gap-4 px-2 sm:-mt-12 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex items-end gap-4">
-          <div className="flex size-20 shrink-0 items-center justify-center rounded-2xl border-4 border-white bg-neutral-900 text-2xl font-semibold text-white shadow-sm sm:size-24">
-            {business.name[0]}
+          <div className="relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-neutral-900 text-2xl font-semibold text-white shadow-sm sm:size-24">
+            {business.logoUrl ? (
+              <Image src={business.logoUrl} alt={business.name} fill className="object-cover" />
+            ) : (
+              business.name[0]
+            )}
           </div>
           <div>
             <div className="flex items-center gap-1.5">
@@ -57,6 +68,15 @@ export default async function BusinessPage({ params }: PageProps<"/negocios/[slu
         </div>
 
         <div className="flex items-center gap-2">
+          {business.phone && (
+            <a
+              href={`tel:+503${business.phone}`}
+              className="flex items-center gap-2 rounded-full border border-neutral-200 px-4 py-2.5 text-sm font-medium text-neutral-700 transition-colors hover:border-neutral-300"
+            >
+              <Phone className="size-4" />
+              {formatPhone(business.phone)}
+            </a>
+          )}
           {business.whatsapp && (
             <a
               href={whatsappHref(business.whatsapp)}
