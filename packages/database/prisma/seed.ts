@@ -22,6 +22,15 @@ function placeholderImageUrl(text: string): string {
 const DEPARTMENTS: Record<string, string[]> = {
   "San Salvador": [
     "San Salvador",
+    // El municipio de San Salvador (la capital) es demasiado grande para
+    // que "cobertura" signifique algo útil a ese nivel — se suma también
+    // por distrito, para que un negocio pueda cubrir, por ejemplo, "San
+    // Salvador Centro" sin comprometerse a toda la capital.
+    "San Salvador Centro",
+    "San Salvador Norte",
+    "San Salvador Sur",
+    "San Salvador Este",
+    "San Salvador Oeste",
     "Mejicanos",
     "Soyapango",
     "Santa Tecla",

@@ -144,6 +144,12 @@ enum BusinessPlan {
   PREMIUM
 }
 
+enum CoverageRequestStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
+}
+
 // ─────────────────────────────────────────────────────────────────────────
 // UBICACIÓN — El Salvador (departamentos / municipios), no solo San Salvador
 // ─────────────────────────────────────────────────────────────────────────
@@ -169,6 +175,7 @@ model Municipality {
   businesses     Business[]
   deliveryZones  DeliveryZone[]
   orderAddresses OrderAddress[]
+  coverageRequests CoverageRequest[]
   createdAt    DateTime       @default(now())
 
   @@unique([departmentId, slug])
@@ -203,6 +210,7 @@ model User {
   aiRecommendations   AIRecommendation[]
   reports             Report[]
   pushTokens          PushToken[]
+  coverageRequests    CoverageRequest[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -278,6 +286,7 @@ model Business {
   description String?        @db.Text
   logoUrl     String?
   coverUrl    String?
+  phone       String?
   whatsapp    String?
   instagram   String?
   facebook    String?
@@ -296,12 +305,13 @@ model Business {
   openingHours         Json? // { mon: ["09:00","18:00"], ... }
   preparationTimeMinutes Int    @default(60)
 
-  members       BusinessUser[]
-  products      Product[]
-  deliveryZones DeliveryZone[]
-  reviews       Review[]
-  favorites     Favorite[]
-  promotions    Promotion[]
+  members          BusinessUser[]
+  products         Product[]
+  deliveryZones    DeliveryZone[]
+  reviews          Review[]
+  favorites        Favorite[]
+  promotions       Promotion[]
+  coverageRequests CoverageRequest[]
 
   ratingAvg   Float @default(0)
   ratingCount Int   @default(0)
@@ -345,6 +355,33 @@ model DeliveryZone {
   @@index([businessId])
   @@index([municipalityId])
   @@map("delivery_zones")
+}
+
+/**
+ * Cuando alguien intenta comprarle a un negocio que no tiene una
+ * `DeliveryZone` activa para su municipio, el checkout no lo deja avanzar
+ * (sección: la cobertura queda a criterio de cada negocio) pero le ofrece
+ * dejar esta señal de demanda — así el negocio/admin ve dónde conviene
+ * abrir cobertura nueva.
+ */
+model CoverageRequest {
+  id             String                @id @default(uuid()) @db.Uuid
+  businessId     String                @db.Uuid
+  business       Business              @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  municipalityId String                @db.Uuid
+  municipality   Municipality          @relation(fields: [municipalityId], references: [id])
+  userId         String?               @db.Uuid
+  user           User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
+  contactName    String?
+  contactPhone   String?
+  contactEmail   String?
+  status         CoverageRequestStatus @default(OPEN)
+  createdAt      DateTime              @default(now())
+
+  @@index([businessId])
+  @@index([municipalityId])
+  @@index([status])
+  @@map("coverage_requests")
 }
 
 // ─────────────────────────────────────────────────────────────────────────
