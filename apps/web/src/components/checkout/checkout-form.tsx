@@ -1,9 +1,9 @@
 "use client";
 
-import { Loader2, ShoppingBag } from "lucide-react";
+import { CheckCircle2, Loader2, MapPinOff, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +18,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useCart } from "@/lib/cart/cart-context";
-import type { DeliveryWindow } from "@mimo/types";
+import type { DeliveryCoverageResult, DeliveryWindow } from "@mimo/types";
 import type { MunicipalityDTO } from "@mimo/types";
 
 const DELIVERY_WINDOWS: { value: DeliveryWindow; label: string }[] = [
@@ -59,6 +59,64 @@ export function CheckoutForm({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const [coverage, setCoverage] = useState<DeliveryCoverageResult[] | null>(null);
+  const [coverageKeyChecked, setCoverageKeyChecked] = useState<string | null>(null);
+  const [checkingCoverage, setCheckingCoverage] = useState(false);
+  const [requestedCoverageFor, setRequestedCoverageFor] = useState<string[]>([]);
+
+  const businessIds = useMemo(() => [...new Set(items.map((item) => item.businessId))], [items]);
+  const coverageKey =
+    municipalityId && businessIds.length > 0 ? `${municipalityId}:${businessIds.join(",")}` : null;
+
+  useEffect(() => {
+    if (!coverageKey) return;
+    let cancelled = false;
+
+    async function checkCoverage() {
+      setCheckingCoverage(true);
+      const response = await fetch("/api/delivery/coverage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ businessIds, municipalityId }),
+      });
+      const body = await response.json();
+      if (cancelled) return;
+      if (body.success) {
+        setCoverage(body.data);
+        setCoverageKeyChecked(coverageKey);
+      }
+      setCheckingCoverage(false);
+    }
+
+    checkCoverage();
+    return () => {
+      cancelled = true;
+    };
+  }, [coverageKey, businessIds, municipalityId]);
+
+  const effectiveCoverage = coverageKey && coverageKey === coverageKeyChecked ? coverage : null;
+  const uncovered = effectiveCoverage?.filter((entry) => !entry.covered) ?? [];
+  const hasUncovered = uncovered.length > 0;
+  const deliveryFeeEstimate =
+    effectiveCoverage && !hasUncovered
+      ? effectiveCoverage.reduce((sum, entry) => sum + (entry.deliveryFee ?? 0), 0)
+      : null;
+
+  async function requestCoverage(businessId: string) {
+    await fetch("/api/delivery/coverage-requests", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        businessId,
+        municipalityId,
+        contactName: buyerName || undefined,
+        contactPhone: buyerPhone || undefined,
+        contactEmail: buyerEmail || undefined,
+      }),
+    });
+    setRequestedCoverageFor((prev) => [...prev, businessId]);
+  }
+
   if (isHydrated && items.length === 0) {
     return (
       <div className="flex flex-col items-center gap-3 py-20 text-center">
@@ -74,6 +132,12 @@ export function CheckoutForm({
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
+
+    if (hasUncovered) {
+      setError("Uno o más negocios de tu carrito no tienen cobertura para tu zona.");
+      return;
+    }
+
     setLoading(true);
 
     const response = await fetch("/api/orders", {
@@ -207,6 +271,52 @@ export function CheckoutForm({
               </SelectContent>
             </Select>
           </div>
+
+          {checkingCoverage && (
+            <p className="text-sm text-neutral-400">Revisando cobertura para tu zona…</p>
+          )}
+
+          {effectiveCoverage && effectiveCoverage.length > 0 && (
+            <div className="flex flex-col gap-2">
+              {effectiveCoverage.map((entry) => (
+                <div
+                  key={entry.businessId}
+                  className={`flex items-center justify-between gap-3 rounded-xl border px-3 py-2 text-sm ${
+                    entry.covered ? "border-neutral-200" : "border-destructive/30 bg-destructive/5"
+                  }`}
+                >
+                  {entry.covered ? (
+                    <span className="flex items-center gap-2 text-neutral-700">
+                      <CheckCircle2 className="size-4 text-emerald-600" />
+                      {entry.businessName}
+                      <span className="text-neutral-400">
+                        · ${entry.deliveryFee?.toFixed(2)} · ~{entry.estimatedMinutes} min
+                      </span>
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2 text-neutral-700">
+                      <MapPinOff className="size-4 text-destructive" />
+                      {entry.businessName}
+                      <span className="text-destructive">· sin cobertura en tu zona</span>
+                    </span>
+                  )}
+                  {!entry.covered &&
+                    (requestedCoverageFor.includes(entry.businessId) ? (
+                      <span className="text-xs text-neutral-400">Solicitud enviada</span>
+                    ) : (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => requestCoverage(entry.businessId)}
+                      >
+                        Solicitar cobertura
+                      </Button>
+                    ))}
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         <section className="flex flex-col gap-4">
@@ -305,11 +415,18 @@ export function CheckoutForm({
           <span className="text-neutral-500">Subtotal</span>
           <span className="font-medium text-neutral-900">${subtotal.toFixed(2)}</span>
         </div>
-        <p className="mt-1 text-xs text-neutral-400">El costo de envío se calcula al confirmar.</p>
+        {deliveryFeeEstimate !== null ? (
+          <div className="mt-1 flex justify-between text-sm">
+            <span className="text-neutral-500">Envío</span>
+            <span className="font-medium text-neutral-900">${deliveryFeeEstimate.toFixed(2)}</span>
+          </div>
+        ) : (
+          <p className="mt-1 text-xs text-neutral-400">El costo de envío se calcula al elegir tu municipio.</p>
+        )}
 
         {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
 
-        <Button type="submit" disabled={loading || !municipalityId} className="mt-4 h-11 w-full">
+        <Button type="submit" disabled={loading || !municipalityId || hasUncovered} className="mt-4 h-11 w-full">
           {loading ? <Loader2 className="size-4 animate-spin" /> : "Confirmar pedido"}
         </Button>
       </aside>

@@ -23,6 +23,7 @@ export async function getAdminStats(): Promise<AdminStatsDTO> {
     revenueAgg,
     pendingReports,
     pendingReviews,
+    pendingCoverageRequests,
   ] = await Promise.all([
     prisma.user.count({ where: { deletedAt: null } }),
     prisma.business.count({ where: { deletedAt: null } }),
@@ -32,6 +33,7 @@ export async function getAdminStats(): Promise<AdminStatsDTO> {
     prisma.order.aggregate({ _sum: { total: true }, where: { status: { not: "CANCELLED" } } }),
     prisma.report.count({ where: { status: "OPEN" } }),
     prisma.review.count({ where: { status: "PENDING" } }),
+    prisma.coverageRequest.count({ where: { status: "OPEN" } }),
   ]);
 
   return {
@@ -43,5 +45,6 @@ export async function getAdminStats(): Promise<AdminStatsDTO> {
     totalRevenue: Number(revenueAgg._sum.total ?? 0),
     pendingReports,
     pendingReviews,
+    pendingCoverageRequests,
   };
 }

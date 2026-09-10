@@ -190,6 +190,76 @@ Fase 1 — mismo patrón que la Fase 7: solo faltaba conectarlo a la UI.
   vez de fallar — el usuario ve el mismo flujo, solo cambia el texto
   generado.
 
+## Diseño: fotos, perfil del negocio y cobertura real de entrega (post-Fase 8)
+
+Cuatro cambios pedidos juntos porque todos tocan "qué tan real/creíble se
+siente el marketplace": fotos de verdad (no URLs pegadas a mano), el negocio
+controlando su propia imagen pública, y que la cobertura de entrega deje de
+ser un número fijo y pase a depender de zonas reales por negocio.
+
+**Subida de fotos — almacenamiento local, no un servicio de nube.** No hay
+credenciales de ningún proveedor de storage (S3, Cloudinary, etc.)
+disponibles para el MVP, así que `POST /api/uploads` guarda el archivo
+directo en `apps/web/public/uploads/<uuid>.<ext>` (`node:fs/promises`,
+`mkdir` + `writeFile`) y devuelve `{ url: "/uploads/<uuid>.<ext>" }`. Next
+sirve rutas locales bajo `/uploads/*` sin configuración extra — a diferencia
+de imágenes remotas, no hace falta `remotePatterns`. Válido para 3 tipos
+(`jpeg/png/webp`) y hasta 5 MB; requiere sesión iniciada. La carpeta está en
+`.gitignore` (solo se versiona `.gitkeep`) porque son archivos subidos por
+usuarios, no parte del código. **Limitación conocida:** al ser disco local,
+esto no sobrevive a un deploy multi-instancia o efímero (ej. Vercel) — el
+día que haya un proveedor de storage real, solo cambia la implementación de
+`POST /api/uploads`, no los componentes que lo consumen (`ImageUploadField`
+ya habla en términos de "subí un archivo, recibís una URL").
+`ImageUploadField` (`components/ui/image-upload-field.tsx`) es el componente
+compartido que reemplazó los inputs de texto con URL tanto en el formulario
+de producto (`negocio/productos/nuevo` y `editar`) como en el perfil del
+negocio.
+
+**El negocio ahora controla su propia página pública.** Antes el
+banner/logo/teléfono de un negocio solo se podían fijar por seed o admin —
+no había forma de que el dueño los cambiara. `/negocio/perfil` (nuevo ítem
+en el sidebar) deja editar banner, logo, descripción, teléfono, WhatsApp,
+dirección y redes sociales (`GET/PATCH /api/negocio/perfil`,
+`business-settings-service.ts`). Se agregó `Business.phone` (distinto de
+`whatsapp`, que ya existía) porque un cliente puede querer llamar sin pasar
+por WhatsApp — se muestra como botón `tel:+503...` en `/negocios/[slug]`
+junto al de WhatsApp.
+
+**Distritos de San Salvador — la cobertura por municipio era demasiado
+gruesa.** El municipio "San Salvador" original mezclaba zonas muy distintas
+de la capital; un negocio en la zona norte no necesariamente llega a la sur.
+El seed ahora agrega `San Salvador Centro/Norte/Sur/Este/Oeste` como
+municipios propios (mismo departamento, además del "San Salvador" genérico
+que se mantiene) — aparecen como opciones separadas en cualquier selector de
+municipio (checkout, zonas de entrega del negocio, registro). Es un cambio
+de datos (seed), no de esquema: `Municipality` ya soportaba esto.
+
+**Cobertura de entrega real — sin zona configurada, no hay fee por
+defecto.** Antes, si un negocio no tenía una `DeliveryZone` para el
+municipio del comprador, igual se cobraba un delivery fee fijo (`$3.50`) —
+es decir, se fingía que todos los negocios entregaban a todas partes.
+Ahora `createOrder` (`order-service.ts`) rechaza el pedido con
+`409 NO_DELIVERY_COVERAGE` si algún negocio del carrito no tiene una zona
+activa para ese municipio — la cobertura es responsabilidad de cada negocio
+("eso queda a disponibilidad de la tienda"), no un valor por defecto del
+sistema. En el checkout, un `useEffect` consulta
+`POST /api/delivery/coverage` cada vez que cambia el municipio o los
+negocios del carrito y muestra, por negocio, si cubre la zona (con fee y
+tiempo estimado) o no — el botón de confirmar pedido queda deshabilitado
+mientras haya algún negocio sin cobertura, y el chequeo del servidor en
+`createOrder` es la validación real (el del frontend es solo UX, no se
+puede saltear).
+
+**"Solicitud al admin" cuando no hay cobertura.** Si un negocio no cubre la
+zona del comprador, en vez de solo bloquear se ofrece "Solicitar
+cobertura" — crea un `CoverageRequest` (`POST /api/delivery/coverage-requests`)
+con el negocio, municipio y datos de contacto del comprador. El admin los
+ve en `/admin/cobertura` (nuevo ítem del sidebar, con contador en el
+resumen) y puede marcarlos `RESOLVED` o `DISMISSED`. Es una señal de
+demanda para que el negocio decida si le conviene abrir una zona ahí — no
+crea cobertura automáticamente, ni promete nada al comprador.
+
 ## Diseño: paneles como app separada (post-Fase 6, rediseño)
 
 `/negocio` y `/admin` dejaron de ser páginas más del sitio con pestañas

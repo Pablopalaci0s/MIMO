@@ -1,4 +1,4 @@
-import { Building2, LayoutDashboard, MessageSquareWarning, Star, Tags, Users } from "lucide-react";
+import { Building2, LayoutDashboard, MapPin, MessageSquareWarning, Star, Tags, Users } from "lucide-react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@mimo/auth";
@@ -13,6 +13,7 @@ const NAV_ITEMS: DashboardNavItem[] = [
   { href: "/admin/categorias", label: "Categorías", icon: <Tags className="size-4" /> },
   { href: "/admin/reportes", label: "Reportes", icon: <MessageSquareWarning className="size-4" /> },
   { href: "/admin/resenas", label: "Reseñas", icon: <Star className="size-4" /> },
+  { href: "/admin/cobertura", label: "Cobertura", icon: <MapPin className="size-4" /> },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

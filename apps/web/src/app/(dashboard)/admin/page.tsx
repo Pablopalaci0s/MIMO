@@ -1,4 +1,4 @@
-import { AlertTriangle, Building2, DollarSign, MessageSquareWarning, Package, Users } from "lucide-react";
+import { AlertTriangle, Building2, DollarSign, MapPin, MessageSquareWarning, Package, Users } from "lucide-react";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { getAdminStats } from "@/lib/services/admin-service";
 
@@ -35,6 +35,12 @@ export default async function AdminDashboardPage() {
           label="Reseñas por moderar"
           value={String(stats.pendingReviews)}
           highlight={stats.pendingReviews > 0}
+        />
+        <StatCard
+          icon={<MapPin className="size-5" />}
+          label="Pedidos de cobertura"
+          value={String(stats.pendingCoverageRequests)}
+          highlight={stats.pendingCoverageRequests > 0}
         />
       </div>
     </div>

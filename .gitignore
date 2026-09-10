@@ -23,8 +23,9 @@ dist/
 .env.local
 .env.*.local
 
-# Testing
-coverage/
+# Testing (reportes de cobertura de tests, no confundir con la ruta
+# apps/web/src/app/api/delivery/coverage/ — por eso anclado a la raíz)
+/coverage/
 
 # Misc
 .DS_Store

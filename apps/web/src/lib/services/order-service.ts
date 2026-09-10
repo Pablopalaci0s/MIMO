@@ -4,8 +4,6 @@ import type { OrderDTO, OrderItemDTO, PersonalizationInput, ProductSummaryDTO } 
 import { AppError } from "@/lib/errors";
 import { PRODUCT_LIST_INCLUDE, toProductSummaryDTO } from "./product-service";
 
-const DEFAULT_DELIVERY_FEE = 3.5;
-
 const ORDER_INCLUDE = {
   items: { include: { product: { include: { business: true } } } },
 } satisfies Prisma.OrderInclude;
@@ -94,7 +92,27 @@ export async function createOrder(userId: string, input: CheckoutInputParsed): P
   const zones = await prisma.deliveryZone.findMany({
     where: { businessId: { in: businessIds }, municipalityId: input.address.municipalityId, isActive: true },
   });
-  const feeByBusiness = new Map(zones.map((zone) => [zone.businessId, Number(zone.deliveryFee)]));
+  const feeByBusiness = new Map<string, number>();
+  for (const zone of zones) {
+    if (!feeByBusiness.has(zone.businessId)) feeByBusiness.set(zone.businessId, Number(zone.deliveryFee));
+  }
+
+  // La cobertura es real, no un fee por defecto — si un negocio no
+  // configuró una zona activa para este municipio, no puede entregar ahí.
+  // El checkout ya chequea esto antes de dejar avanzar (/api/delivery/coverage),
+  // esta es la validación de respaldo del lado del servidor.
+  const uncoveredBusinessIds = businessIds.filter((id) => !feeByBusiness.has(id));
+  if (uncoveredBusinessIds.length > 0) {
+    const uncoveredBusinesses = await prisma.business.findMany({
+      where: { id: { in: uncoveredBusinessIds } },
+      select: { name: true },
+    });
+    throw new AppError(
+      "NO_DELIVERY_COVERAGE",
+      `${uncoveredBusinesses.map((b) => b.name).join(", ")} no tiene cobertura de entrega para tu zona.`,
+      409,
+    );
+  }
 
   let subtotal = 0;
   const itemsData = input.items.map((item) => {
@@ -110,10 +128,7 @@ export async function createOrder(userId: string, input: CheckoutInputParsed): P
     };
   });
 
-  const deliveryFee = businessIds.reduce(
-    (sum, businessId) => sum + (feeByBusiness.get(businessId) ?? DEFAULT_DELIVERY_FEE),
-    0,
-  );
+  const deliveryFee = businessIds.reduce((sum, businessId) => sum + feeByBusiness.get(businessId)!, 0);
   const total = subtotal + deliveryFee;
 
   const order = await prisma.$transaction(async (tx) => {
