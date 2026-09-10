@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import type { ApiResponse } from "@mimo/types";
 import { ForbiddenError, UnauthorizedError } from "@mimo/auth";
+import * as Sentry from "@sentry/nextjs";
 import { ZodError } from "zod";
 import { AppError } from "@/lib/errors";
+import { logger } from "@/lib/logger";
 
 export function apiSuccess<T>(data: T, init?: number): NextResponse<ApiResponse<T>> {
   return NextResponse.json({ success: true, data }, { status: init ?? 200 });
@@ -30,6 +32,12 @@ export function apiErrorFromException(error: unknown): NextResponse<ApiResponse<
   if (error instanceof AppError) {
     return apiError(error.code, error.message, error.status);
   }
-  console.error("[api] unhandled error:", error);
+  // Este es el único caso que representa un bug real (los de arriba son
+  // errores de dominio esperables) — se manda a Sentry además de loguearse,
+  // no fingir que "no pasó nada" solo porque ya devolvimos un 500 al cliente.
+  Sentry.captureException(error);
+  logger.error("Error inesperado en una ruta de /api", {
+    error: error instanceof Error ? { name: error.name, message: error.message, stack: error.stack } : error,
+  });
   return apiError("INTERNAL_ERROR", "Ocurrió un error inesperado", 500);
 }

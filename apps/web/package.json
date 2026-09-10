@@ -17,6 +17,7 @@
     "@mimo/types": "*",
     "@mimo/validation": "*",
     "@next/env": "16.3.4",
+    "@sentry/nextjs": "^10.74.0",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.2.6",
     "lucide-react": "^0.469.0",
