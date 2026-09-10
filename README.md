@@ -12,9 +12,9 @@ Completas hasta ahora: arquitectura del monorepo, base de datos y
 autenticación (Fase 1), home y navegación (Fase 2), catálogo de productos y
 negocios (Fase 3), carrito/checkout/pedidos (Fase 4), panel de negocio
 (Fase 5), panel administrativo (Fase 6), el asistente de IA "Ayúdame a
-elegir" (Fase 7), el asistente de dedicatorias (Fase 8), y favoritos/fechas
-importantes/notificaciones (Fase 9). Las fases siguientes (PWA, testing)
-se construyen en el orden descrito más abajo.
+elegir" (Fase 7), el asistente de dedicatorias (Fase 8), favoritos/fechas
+importantes/notificaciones (Fase 9), y PWA/optimización móvil (Fase 10).
+La fase siguiente (testing) se construye en el orden descrito más abajo.
 
 ## Arquitectura
 
@@ -152,7 +152,7 @@ un build completo), o simplemente correr `dev`/`build` una vez antes.
 - [x] **Fase 7** — IA de recomendaciones
 - [x] **Fase 8** — IA para dedicatorias
 - [x] **Fase 9** — Fechas importantes, favoritos, notificaciones
-- [ ] Fase 10 — PWA y optimización móvil
+- [x] **Fase 10** — PWA y optimización móvil
 - [ ] Fase 11 — Testing y revisión completa
 
 ## Diseño: pagos y seguimiento de pedidos (Fase 4)
@@ -252,6 +252,51 @@ dispara desde eventos reales que ya existían:
 No hay push real del navegador (Service Worker + `PushToken`) todavía —
 eso es explícitamente Fase 10 (PWA); por ahora las notificaciones solo viven
 dentro de la app mientras el usuario la tiene abierta.
+
+## Diseño: PWA y optimización móvil (Fase 10)
+
+**Instalable de verdad, no un ícono que promete algo que no hace.**
+`app/manifest.ts` (la convención de Next.js — se sirve solo en
+`/manifest.webmanifest`, no hace falta linkearlo a mano) define nombre,
+`theme_color` (`#cf3452`, el mismo `--brand`), `display: "standalone"` e
+íconos generados a mano en `public/icons/` (192/512 normales + un 512
+`maskable` con más padding, porque Android recorta esa versión a un
+círculo/squircle — si no le dejás margen, el contenido queda cortado). El
+botón "Instalar MIMO" (`components/pwa/install-prompt.tsx`) solo aparece
+cuando el navegador realmente dispara `beforeinstallprompt` — en iOS/Safari
+ese evento no existe, así que ahí simplemente no se muestra nada en vez de
+un botón que fallaría (sección 5: no fingir funcionalidad que no existe).
+
+**Service worker con alcance chico a propósito.** `public/sw.js` cachea el
+shell estático (JS/CSS con hash de Next, ícono, manifest) y usa
+network-first para navegación con un fallback a `/offline` cuando no hay
+red. **No** intenta que el catálogo/checkout funcionen offline — sería
+fingir que un marketplace con inventario y pagos reales funciona sin
+conexión al servidor, que es exactamente lo que la sección 5 de las reglas
+del usuario prohíbe. `/offline` vive en su propio route group `(offline)`
+con su propio root layout, sin `Header`/`Footer` ni `Providers` — esa
+página se sirve desde el cache del service worker cuando no hay red, así
+que no puede depender de nada que necesite llegar al servidor (`auth()`,
+sesión, etc.) o el fallback offline se rompería justo cuando más se
+necesita. El service worker solo se registra en producción
+(`NODE_ENV === "production"`) — en `next dev` cachear agresivamente pelea
+con el hot reload y termina sirviendo JS viejo. Para probarlo en local:
+`npm run build && npm --prefix apps/web start` (el `dev` normal no lo
+activa).
+
+**Gotcha real de Next.js 16 encontrado acá:** `appleWebApp.capable: true`
+ya renderiza el meta `mobile-web-app-capable` (sin el viejo prefijo
+`apple-`) — antes hacía falta agregar ambos a mano. Agregarlo de nuevo
+duplicaba el tag; se verificó inspeccionando el HTML servido, no asumiendo
+por la documentación (ver el aviso de `apps/web/AGENTS.md` sobre que esta
+versión de Next puede diferir de lo que un modelo entrenado "ya sabe").
+
+**Optimización móvil**: `viewport-fit: cover` + `env(safe-area-inset-bottom)`
+en la tab bar (para los celulares con isla/notch), `formatDetection`
+desactivado (si no, iOS convierte números de pedido tipo `MIMO-2026...` en
+links de teléfono por accidente), y `apple-mobile-web-app-status-bar-style:
+black-translucent` para que la barra de estado no rompa el blanco del
+header al abrir como app instalada.
 
 ## Diseño: fotos, perfil del negocio y cobertura real de entrega (post-Fase 8)
 

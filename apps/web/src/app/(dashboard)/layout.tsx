@@ -1,9 +1,12 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "../globals.css";
 import { geistSans, geistMono } from "@/lib/fonts";
+import { pwaMetadata, pwaViewport } from "@/lib/pwa-metadata";
 import { Providers } from "../providers";
 
-export const metadata: Metadata = { title: "MIMO" };
+export const viewport: Viewport = pwaViewport;
+
+export const metadata: Metadata = { ...pwaMetadata, title: "MIMO" };
 
 export default function DashboardRootLayout({ children }: { children: React.ReactNode }) {
   return (

@@ -1,12 +1,16 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "../globals.css";
 import { geistSans, geistMono } from "@/lib/fonts";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
+import { pwaMetadata, pwaViewport } from "@/lib/pwa-metadata";
 import { Providers } from "../providers";
 
+export const viewport: Viewport = pwaViewport;
+
 export const metadata: Metadata = {
+  ...pwaMetadata,
   title: "MIMO — Regalos para hacerle el día a alguien",
   description:
     "Decime qué querés transmitir y nosotros encontramos el detalle. MIMO es el marketplace salvadoreño de flores, regalos y experiencias.",

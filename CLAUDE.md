@@ -59,15 +59,18 @@ correcta", no logística de comida.
 - [x] Fase 2 — Home, diseño, navegación
 - [x] Fase 3 — Productos, categorías, negocios
 - [x] Fase 4 — Carrito, checkout, pedidos
-- [ ] **Fase 5 — Panel de negocio (siguiente)**: el negocio confirma/prepara/
-      marca en camino/entrega sus `OrderItem`, gestiona su catálogo (CRUD
-      de productos), horarios, zonas de entrega, y ve sus ventas.
-- [ ] Fase 6 — Panel administrativo
-- [ ] Fase 7 — IA de recomendaciones ("Ayúdame a elegir" — hoy es un stub)
-- [ ] Fase 8 — IA para dedicatorias
-- [ ] Fase 9 — Fechas importantes, favoritos, notificaciones
-- [ ] Fase 10 — PWA y optimización móvil
-- [ ] Fase 11 — Testing y revisión completa
+- [x] Fase 5 — Panel de negocio
+- [x] Fase 6 — Panel administrativo
+- [x] Fase 7 — IA de recomendaciones ("Ayúdame a elegir")
+- [x] Fase 8 — IA para dedicatorias
+- [x] Fase 9 — Fechas importantes, favoritos, notificaciones
+- [x] Fase 10 — PWA y optimización móvil
+- [ ] **Fase 11 — Testing y revisión completa (siguiente)**
+
+Además de las 11 fases originales hubo trabajo post-fase pedido directamente
+por el usuario (rediseño de paneles como app con sidebar, subida de fotos,
+perfil autoadministrable del negocio, cobertura de entrega real) — el
+detalle de cada uno vive en el README, sección "Diseño: ...".
 
 ## Decisiones de diseño de producto (documentadas también en el README)
 
@@ -127,6 +130,23 @@ Cuentas demo: `admin@mimo.sv` / `Admin123!` (admin), `cliente@mimo.sv` /
   `getServerSnapshot` debe devolver siempre la MISMA referencia (no un
   `[]` nuevo cada vez) o React tira "should be cached to avoid an infinite
   loop".
+- **`react-hooks/set-state-in-effect` (React Compiler)**: no tolera un
+  `setState` síncrono en el cuerpo del efecto, ni siquiera el típico
+  "activar loading antes del fetch". Fix: mover TODO el cuerpo (el
+  `setLoading(true)` incluido) adentro de una función async declarada
+  dentro del efecto y llamarla — un `setState` dentro de esa función anidada
+  no cuenta como "síncrono en el efecto" para la regla.
+- **Metadata de Next 16**: `appleWebApp.capable: true` ya renderiza el meta
+  `mobile-web-app-capable` sin el viejo prefijo `apple-` — agregarlo de
+  nuevo a mano (`metadata.other`) duplica el tag. Verificado inspeccionando
+  el HTML servido, no asumiendo por la documentación vieja (ver
+  `apps/web/AGENTS.md`: esta versión de Next puede diferir de lo que un
+  modelo entrenado "ya sabe").
+- **`npm run clean:cache` borra los tipos de rutas de Next**
+  (`apps/web/.next/types`, de donde sale `PageProps<...>`) junto con la
+  caché — si corrés `typecheck` después de limpiar sin antes levantar
+  `dev`/`build`, falla con "Cannot find name 'PageProps'". Fix rápido:
+  `npx next typegen` dentro de `apps/web`.
 
 ## Estructura de servicios (para mantener el patrón en fases futuras)
 
