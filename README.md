@@ -125,7 +125,16 @@ npm run typecheck
 ```bash
 npm run db:studio          # explorador visual de la base de datos
 npm run db:migrate:deploy  # aplicar migraciones en producción (sin prompts)
+npm run clean:cache        # borra .turbo/cache y apps/web/.next (ver nota abajo)
 ```
+
+**Sobre `clean:cache`:** Turborepo (`.turbo/cache`) y Turbopack (`apps/web/.next`)
+guardan caché de cada `dev`/`build`/`lint` para acelerar la siguiente corrida,
+pero nunca la borran solas — en una sesión de desarrollo larga esto puede
+crecer a varios GB sin que se note (nos pasó: ~16 GB acumulados). Correr
+`npm run clean:cache` de vez en cuando es seguro — no borra código ni datos,
+solo hace que la próxima `dev`/`build` tarde un poco más en arrancar mientras
+reconstruye la caché.
 
 ## Estado del proyecto — orden de desarrollo
 
