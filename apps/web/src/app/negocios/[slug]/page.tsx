@@ -2,7 +2,10 @@ import { MapPin, MessageCircle, ShieldCheck, Star, Truck } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/catalog/product-card";
+import { ReportButton } from "@/components/reports/report-button";
+import { ReviewList } from "@/components/reviews/review-list";
 import { getBusinessBySlug } from "@/lib/services/business-service";
+import { listApprovedReviews } from "@/lib/services/review-service";
 
 export async function generateMetadata({
   params,
@@ -25,6 +28,8 @@ export default async function BusinessPage({ params }: PageProps<"/negocios/[slu
   const { slug } = await params;
   const business = await getBusinessBySlug(slug);
   if (!business) notFound();
+
+  const reviews = await listApprovedReviews({ businessId: business.id });
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
@@ -51,17 +56,20 @@ export default async function BusinessPage({ params }: PageProps<"/negocios/[slu
           </div>
         </div>
 
-        {business.whatsapp && (
-          <a
-            href={whatsappHref(business.whatsapp)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 rounded-full bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-neutral-700"
-          >
-            <MessageCircle className="size-4" />
-            Escribir por WhatsApp
-          </a>
-        )}
+        <div className="flex items-center gap-2">
+          {business.whatsapp && (
+            <a
+              href={whatsappHref(business.whatsapp)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 rounded-full bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-neutral-700"
+            >
+              <MessageCircle className="size-4" />
+              Escribir por WhatsApp
+            </a>
+          )}
+          <ReportButton targetType="BUSINESS" targetId={business.id} />
+        </div>
       </div>
 
       <div className="mt-6 flex flex-wrap items-center gap-4 px-2 text-sm text-neutral-600">
@@ -97,6 +105,11 @@ export default async function BusinessPage({ params }: PageProps<"/negocios/[slu
             ))}
           </div>
         )}
+      </div>
+
+      <div className="mt-10 max-w-2xl px-2">
+        <h2 className="mb-4 text-lg font-semibold tracking-tight text-neutral-900">Reseñas</h2>
+        <ReviewList reviews={reviews} ratingKey="businessRating" />
       </div>
     </div>
   );

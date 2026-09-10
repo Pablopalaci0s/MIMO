@@ -19,6 +19,9 @@ export function Footer() {
             <Link href="/regalos" className="transition-colors hover:text-neutral-900">
               Regalos
             </Link>
+            <Link href="/ayuda" className="transition-colors hover:text-neutral-900">
+              Ayuda
+            </Link>
           </div>
           <div className="flex flex-col gap-2.5">
             <span className="text-xs font-medium tracking-wide text-neutral-400 uppercase">

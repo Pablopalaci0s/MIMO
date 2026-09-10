@@ -5,8 +5,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AddToCart } from "@/components/catalog/add-to-cart";
 import { ProductCard } from "@/components/catalog/product-card";
+import { ReportButton } from "@/components/reports/report-button";
+import { ReviewList } from "@/components/reviews/review-list";
 import { formatPreparationTime } from "@/lib/format";
 import { getProductBySlug, listRelatedProducts } from "@/lib/services/product-service";
+import { listApprovedReviews } from "@/lib/services/review-service";
 
 export async function generateMetadata({
   params,
@@ -25,7 +28,10 @@ export default async function ProductPage({ params }: PageProps<"/productos/[slu
   const product = await getProductBySlug(slug);
   if (!product) notFound();
 
-  const related = await listRelatedProducts(product.id, product.categorySlug);
+  const [related, reviews] = await Promise.all([
+    listRelatedProducts(product.id, product.categorySlug),
+    listApprovedReviews({ productId: product.id }),
+  ]);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
@@ -83,7 +89,16 @@ export default async function ProductPage({ params }: PageProps<"/productos/[slu
           <p className="text-neutral-600">{product.description}</p>
 
           <AddToCart product={product} />
+
+          <div>
+            <ReportButton targetType="PRODUCT" targetId={product.id} />
+          </div>
         </div>
+      </div>
+
+      <div className="mt-16 max-w-2xl">
+        <h2 className="mb-4 text-lg font-semibold tracking-tight text-neutral-900">Reseñas</h2>
+        <ReviewList reviews={reviews} ratingKey="productRating" />
       </div>
 
       {related.length > 0 && (

@@ -3,7 +3,9 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@mimo/auth";
 import { OrderStatusTimeline } from "@/components/orders/order-status-timeline";
+import { ReviewPrompt } from "@/components/reviews/review-prompt";
 import { getOrderByNumber } from "@/lib/services/order-service";
+import { listReviewableOrderItems } from "@/lib/services/review-service";
 
 export const metadata: Metadata = { title: "Tu pedido — MIMO" };
 
@@ -16,6 +18,11 @@ export default async function OrderDetailPage({
   const { orderNumber } = await params;
   const order = await getOrderByNumber(orderNumber, session.user.id);
   if (!order) notFound();
+
+  const reviewableItems =
+    order.status === "DELIVERED"
+      ? (await listReviewableOrderItems(session.user.id)).filter((item) => item.orderId === order.id)
+      : [];
 
   const groupedByBusiness = order.items.reduce<Record<string, typeof order.items>>((groups, item) => {
     (groups[item.businessName] ??= []).push(item);
@@ -51,6 +58,17 @@ export default async function OrderDetailPage({
           </div>
         ))}
       </div>
+
+      {reviewableItems.length > 0 && (
+        <div className="mt-6 flex flex-col gap-3">
+          <h2 className="text-sm font-semibold tracking-wide text-neutral-400 uppercase">
+            ¿Cómo te fue con tu pedido?
+          </h2>
+          {reviewableItems.map((item) => (
+            <ReviewPrompt key={item.productId} item={item} />
+          ))}
+        </div>
+      )}
 
       <div className="mt-6 rounded-2xl border border-neutral-200 p-4">
         <div className="flex justify-between text-sm text-neutral-600">

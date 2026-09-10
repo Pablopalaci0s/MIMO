@@ -171,6 +171,33 @@ Tarjeta y PayPal se muestran en la UI como "Próximamente" — el modelo
 confirmación del negocio (Fase 5) ya están pensados para que integrar
 Stripe después sea un cambio localizado, no un rediseño.
 
+## Diseño: reseñas, reportes y ayuda (post-Fase 6)
+
+Cierra el loop que había quedado documentado como pendiente en la Fase 6:
+ahora sí hay un flujo real para generar reseñas y reportes, no solo para
+moderarlos.
+
+- **Reseñas**: solo se puede reseñar un producto/negocio de un pedido
+  propio con al menos un `OrderItem` en estado `DELIVERED` (sección 26 del
+  spec) — `review-service.ts` lo valida server-side, no solo en la UI. El
+  prompt aparece en `/pedidos/[orderNumber]` para cada ítem entregado sin
+  reseña todavía. Toda reseña nace `PENDING`; recién se ve públicamente (y
+  cuenta para el rating) cuando un admin la aprueba (Fase 6).
+- **`ratingAvg`/`ratingCount` ahora son reales, no simulados.** El seed les
+  ponía un número aleatorio a modo de placeholder visual. En cuanto se
+  aprueba la primera reseña real de un producto o negocio, ese número se
+  reemplaza por el promedio calculado de reseñas `APPROVED` de verdad — es
+  intencional que el conteo "baje" al principio: es más honesto mostrar 1
+  reseña real que 41 simuladas.
+- **Reportes**: botón "Reportar" en producto, negocio y cada reseña
+  publicada, para los 4 `targetType` que ya soporta el modelo (`PRODUCT`,
+  `BUSINESS`, `REVIEW`, `USER`). Cualquier usuario logueado puede reportar;
+  el objetivo se valida server-side antes de crear el reporte.
+- **`/ayuda`**: FAQ estática agrupada por tema (pedidos, pagos, reseñas,
+  negocios) — las respuestas reflejan el estado real del producto (ej. dice
+  explícitamente que solo se acepta efectivo, y que el alta de negocios
+  todavía es manual) en vez de prometer funciones que no existen.
+
 ## Diseño: panel administrativo (Fase 6)
 
 `/admin` es el dashboard para el rol `ADMIN`: resumen de la plataforma
