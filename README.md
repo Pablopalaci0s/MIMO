@@ -409,6 +409,87 @@ resumen) y puede marcarlos `RESOLVED` o `DISMISSED`. Es una señal de
 demanda para que el negocio decida si le conviene abrir una zona ahí — no
 crea cobertura automáticamente, ni promete nada al comprador.
 
+## Diseño: preparación para producción (post-Fase 11)
+
+Las 11 fases del roadmap cubren el producto; esto cubre lo que hace falta
+para exponerlo de verdad en internet — pedido explícito del usuario después
+de preguntar "¿ya puede salir a producción?" y recibir un no honesto con
+la lista de lo que faltaba. **Sigue sin ser suficiente por sí solo** — ver
+"Qué falta para lanzar de verdad" más abajo (pago con tarjeta, storage de
+fotos, secrets de producción, limpiar datos de demo).
+
+**Recuperar contraseña y verificar correo.** Antes no existía ninguna de
+las dos — un usuario que se olvidaba la contraseña no tenía salida. Ahora
+hay un modelo `AuthToken` propio (no se reusó `VerificationToken`, la tabla
+del adapter de Auth.js, porque hoy no hay un provider de Email configurado
+y mezclar responsabilidades iba a doler después) que guarda el **hash**
+del token, nunca el valor — igual que las contraseñas. El envío de correos
+va por Resend (`lib/services/email-service.ts`) con el mismo patrón que
+`AIService` en `packages/ai`: sin `RESEND_API_KEY`, en vez de fallar o
+fingir que se mandó un correo, se loguea el link a consola — así todo el
+flujo (pedir reset, confirmar correo) se puede probar en desarrollo sin
+cuenta en Resend. La verificación de correo es informativa (un banner en
+"Mi perfil" con botón de reenviar), **no bloquea el login** — agregar un
+gate duro hubiera sido un cambio de alcance mayor y más riesgoso que lo
+que pedía el problema real (recuperar acceso a la cuenta).
+
+**Rate limiting en memoria.** `lib/rate-limit.ts` (lógica pura, testeada)
++ `lib/rate-limit-response.ts` (el wrapper que arma la respuesta 429) —
+separados en dos archivos a propósito: el wrapper necesita `apiError`, que
+arrastra `@mimo/auth` → `next-auth`, y eso rompía los tests si vivía en el
+mismo archivo que la lógica pura. Protege registro, registro de negocio,
+login, reportes, solicitudes de cobertura, y pedir/usar reset de
+contraseña. **Limitación real, no un secreto**: es un `Map` en memoria del
+proceso — funciona bien en una sola instancia (que de todos modos es un
+requisito hoy por las fotos en disco local) pero cada instancia adicional
+tendría su propio contador. Si en algún momento hay más de un servidor
+corriendo, esto necesita moverse a Redis o similar.
+
+**Sentry + logging estructurado.** `instrumentation.ts` /
+`instrumentation-client.ts` (los hooks nativos de Next.js — no hace falta
+el wizard interactivo de Sentry, que no se puede correr en este entorno)
+inicializan Sentry solo si `SENTRY_DSN`/`NEXT_PUBLIC_SENTRY_DSN` están
+configuradas; sin cuenta en sentry.io, `Sentry.init()` nunca se llama y el
+resto del código (`Sentry.captureException`, etc.) no hace nada — no
+truena, simplemente no manda nada. `lib/logger.ts` loguea JSON estructurado
+(`level`, `timestamp`, contexto) en vez de `console.log` suelto, para que
+un servicio de logs real pueda filtrar por campo. `apiErrorFromException`
+(el manejador central de errores de cada ruta `/api/*`) es el único punto
+que manda a Sentry y loguea estructurado — los errores de dominio
+esperables (`AppError`, Zod, auth) no cuentan como bug y no se mandan.
+
+**Páginas legales.** `/terminos` y `/privacidad`, linkeadas desde el
+footer y desde los formularios de registro (usuario y negocio). **Importante:
+son un punto de partida razonable, no asesoría legal** — cubren los temas
+esperables de un marketplace (qué es MIMO, pago contra entrega, cobertura
+de entrega, moderación, límite de responsabilidad, qué datos se recolectan
+y para qué) pero deberían pasar por alguien con matrícula antes de
+depender de ellas para algo serio.
+
+**CI en GitHub Actions.** `.github/workflows/ci.yml` corre typecheck, lint,
+tests y build en cada push/PR a `main` — sin Postgres real: como casi todas
+las rutas son dinámicas (no estáticas), ninguno de estos pasos necesita una
+base de datos corriendo, solo que `DATABASE_URL` exista como variable para
+que `PrismaClient` no explote al construirse (se usa un valor dummy en el
+workflow). Es CI (verificación), no CD — no hay un paso de deploy porque
+todavía no hay un hosting elegido, y las fotos en disco local (ver
+"Almacenamiento de imágenes") condicionan esa elección: hay que resolverla
+antes de automatizar un deploy, no al revés.
+
+### Qué falta para lanzar de verdad
+
+Esto resuelve monitoreo, spam, recuperación de cuenta y CI — pero **no** los
+bloqueantes de infraestructura que ya estaban identificados y siguen
+pendientes:
+- **Pago con tarjeta** no existe — solo efectivo contra entrega.
+- **Fotos en disco local** — no sobreviven un deploy en hosting efímero
+  (Vercel, etc.); necesitan un storage real (S3, Cloudinary) antes de
+  desplegar ahí.
+- **Secrets y base de datos de producción** — hoy todo corre con valores
+  de desarrollo.
+- **Datos de demo** (`admin@mimo.sv` con contraseña conocida, negocios
+  `isDemo`) no pueden quedar en un ambiente real.
+
 ## Diseño: paneles como app separada (post-Fase 6, rediseño)
 
 `/negocio` y `/admin` dejaron de ser páginas más del sitio con pestañas

@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Ninguno de estos pasos toca una base de datos real — typecheck/lint/test/
+# build no necesitan Postgres corriendo (casi todas las rutas son dinámicas,
+# ver README "Diseño: testing y revisión completa"), solo que DATABASE_URL
+# exista como variable para que `PrismaClient` no explote al construirse.
+env:
+  DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci_placeholder"
+  AUTH_SECRET: "ci-placeholder-secret-nunca-usar-en-produccion"
+  NEXTAUTH_URL: "http://localhost:3000"
+  NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+
+jobs:
+  build:
+    name: Typecheck, lint, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Generar cliente de Prisma
+        run: npx prisma generate --schema=packages/database/prisma/schema.prisma
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tests unitarios
+        run: npm run test
+
+      - name: Build de producción
+        run: npm run build
