@@ -27,7 +27,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Instalar dependencias
@@ -35,6 +35,15 @@ jobs:
 
       - name: Generar cliente de Prisma
         run: npx prisma generate --schema=packages/database/prisma/schema.prisma
+
+      # `PageProps<"/ruta">` (usado en las páginas dinámicas) sale de acá,
+      # no de Prisma ni de las dependencias — sin este paso, un checkout
+      # limpio (sin apps/web/.next/types de una corrida anterior) falla el
+      # typecheck con "Cannot find name 'PageProps'". Mismo gotcha que
+      # `npm run clean:cache` documentado en el README.
+      - name: Generar tipos de rutas de Next.js
+        run: npx next typegen
+        working-directory: apps/web
 
       - name: Typecheck
         run: npm run typecheck
