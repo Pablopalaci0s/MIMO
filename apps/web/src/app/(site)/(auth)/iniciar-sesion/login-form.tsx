@@ -53,7 +53,12 @@ export function LoginForm() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="password">Contraseña</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password">Contraseña</Label>
+            <Link href="/olvide-mi-contrasena" className="text-xs font-medium text-neutral-500 hover:text-neutral-900">
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </div>
           <Input
             id="password"
             type="password"

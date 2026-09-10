@@ -4,6 +4,7 @@ export interface UserDTO {
   id: string;
   name: string;
   email: string;
+  emailVerified: boolean;
   phone: string | null;
   image: string | null;
   role: UserRole;

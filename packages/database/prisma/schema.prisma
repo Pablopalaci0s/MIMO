@@ -211,6 +211,7 @@ model User {
   reports             Report[]
   pushTokens          PushToken[]
   coverageRequests    CoverageRequest[]
+  authTokens          AuthToken[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -260,6 +261,32 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_tokens")
+}
+
+enum AuthTokenPurpose {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+/**
+ * Tokens de un solo uso para verificar correo y restablecer contraseña —
+ * separado de `VerificationToken` (que es la tabla del adapter de Auth.js,
+ * hoy sin usar porque no hay un provider de Email/magic-link configurado)
+ * para no mezclar responsabilidades. Se guarda el hash del token, nunca el
+ * valor en texto plano — igual que `passwordHash` en `User`.
+ */
+model AuthToken {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @db.Uuid
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  purpose   AuthTokenPurpose
+  tokenHash String           @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, purpose])
+  @@map("auth_tokens")
 }
 
 // Tokens de push notification para la futura app React Native / Expo.

@@ -81,6 +81,18 @@ export default function RegisterPage() {
         <Button type="submit" disabled={loading} className="h-10">
           {loading ? "Creando cuenta..." : "Crear cuenta"}
         </Button>
+
+        <p className="text-xs text-neutral-400">
+          Al crear tu cuenta aceptás nuestros{" "}
+          <Link href="/terminos" className="underline hover:text-neutral-600">
+            Términos
+          </Link>{" "}
+          y nuestra{" "}
+          <Link href="/privacidad" className="underline hover:text-neutral-600">
+            Política de privacidad
+          </Link>
+          .
+        </p>
       </form>
 
       <p className="text-sm text-neutral-500">

@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { loginSchema, passwordChangeSchema, registerBusinessSchema, registerSchema, userUpdateSchema } from "./auth";
+import {
+  forgotPasswordSchema,
+  loginSchema,
+  passwordChangeSchema,
+  registerBusinessSchema,
+  registerSchema,
+  resetPasswordSchema,
+  userUpdateSchema,
+} from "./auth";
 
 describe("registerSchema", () => {
   const valid = { name: "María López", email: "Maria@Correo.com", phone: "78991234", password: "Abcdef12" };
@@ -80,6 +88,30 @@ describe("userUpdateSchema", () => {
 
   it("sigue validando el formato si se manda un teléfono no vacío", () => {
     expect(() => userUpdateSchema.parse({ name: "Ana", phone: "123" })).toThrow();
+  });
+});
+
+describe("forgotPasswordSchema", () => {
+  it("normaliza el correo a minúsculas", () => {
+    expect(forgotPasswordSchema.parse({ email: "Ana@Correo.COM" }).email).toBe("ana@correo.com");
+  });
+
+  it("rechaza un correo con formato inválido", () => {
+    expect(() => forgotPasswordSchema.parse({ email: "no-es-correo" })).toThrow();
+  });
+});
+
+describe("resetPasswordSchema", () => {
+  it("acepta un token y una contraseña que cumple el formato", () => {
+    expect(() => resetPasswordSchema.parse({ token: "abc123", password: "Abcdef12" })).not.toThrow();
+  });
+
+  it("rechaza un token vacío", () => {
+    expect(() => resetPasswordSchema.parse({ token: "", password: "Abcdef12" })).toThrow();
+  });
+
+  it("exige el mismo formato de contraseña que el registro", () => {
+    expect(() => resetPasswordSchema.parse({ token: "abc123", password: "debil" })).toThrow();
   });
 });
 
