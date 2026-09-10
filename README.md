@@ -10,9 +10,9 @@ asistente de IA que ayuda a elegir el regalo correcto.
 El proyecto se construye por fases (ver **Estado del proyecto** más abajo).
 Completas hasta ahora: arquitectura del monorepo, base de datos y
 autenticación (Fase 1), home y navegación (Fase 2), catálogo de productos y
-negocios (Fase 3), carrito/checkout/pedidos (Fase 4), y el panel de negocio
-(Fase 5). Las fases siguientes (panel admin, IA de recomendaciones, PWA,
-etc.) se construyen en el orden descrito más abajo.
+negocios (Fase 3), carrito/checkout/pedidos (Fase 4), panel de negocio
+(Fase 5), y panel administrativo (Fase 6). Las fases siguientes (IA de
+recomendaciones, PWA, etc.) se construyen en el orden descrito más abajo.
 
 ## Arquitectura
 
@@ -132,7 +132,7 @@ npm run db:migrate:deploy  # aplicar migraciones en producción (sin prompts)
 - [x] **Fase 3** — Productos, categorías, negocios
 - [x] **Fase 4** — Carrito, checkout, pedidos
 - [x] **Fase 5** — Panel de negocio
-- [ ] Fase 6 — Panel administrativo
+- [x] **Fase 6** — Panel administrativo
 - [ ] Fase 7 — IA de recomendaciones
 - [ ] Fase 8 — IA para dedicatorias
 - [ ] Fase 9 — Fechas importantes, favoritos, notificaciones
@@ -170,6 +170,24 @@ Tarjeta y PayPal se muestran en la UI como "Próximamente" — el modelo
 `Payment` (`status`: `PENDING/PAID/FAILED/REFUNDED`) y el flujo de
 confirmación del negocio (Fase 5) ya están pensados para que integrar
 Stripe después sea un cambio localizado, no un rediseño.
+
+## Diseño: panel administrativo (Fase 6)
+
+`/admin` es el dashboard para el rol `ADMIN`: resumen de la plataforma
+(usuarios, negocios por estado, pedidos, ventas totales, reportes/reseñas
+pendientes), moderación de negocios (aprobar/rechazar/suspender/verificar),
+gestión de usuarios (cambiar rol, suspender — usa el mismo campo
+`deletedAt` que ya revisa el login, así que suspender bloquea el acceso de
+verdad), CRUD de categorías, y moderación de reportes y reseñas.
+
+**Reportes y reseñas parten vacíos a propósito.** Todavía no existe en la
+app ningún flujo para que un usuario reporte contenido o deje una reseña
+(no está asignado a una fase específica en el plan original) — el panel de
+moderación ya está construido y funcional sobre las tablas `Report` y
+`Review` reales, listo para cuando ese flujo se agregue, en vez de
+construirlo después como un cambio grande. Aprobar/rechazar una reseña
+recalcula el `ratingAvg`/`ratingCount` del producto y del negocio desde las
+reseñas `APPROVED`, nunca con un promedio incremental.
 
 ## Diseño: home (post-Fase 5, polish)
 
