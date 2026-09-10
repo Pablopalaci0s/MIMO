@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Home, LifeBuoy, LogOut, Package, Store, User as UserIcon } from "lucide-react";
+import { Bell, ChevronDown, Heart, Home, LifeBuoy, LogOut, Package, Store, User as UserIcon } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -78,6 +78,16 @@ export function UserMenu({ user, variant = "icon" }: { user: AuthSessionUser; va
         <DropdownMenuItem asChild>
           <Link href="/mis-pedidos">
             <Package /> Mis pedidos
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/notificaciones">
+            <Bell /> Notificaciones
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/favoritos">
+            <Heart /> Mis favoritos
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>

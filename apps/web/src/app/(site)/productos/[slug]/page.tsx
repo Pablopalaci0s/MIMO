@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AddToCart } from "@/components/catalog/add-to-cart";
+import { FavoriteButton } from "@/components/catalog/favorite-button";
 import { ProductCard } from "@/components/catalog/product-card";
 import { ReportButton } from "@/components/reports/report-button";
 import { ReviewList } from "@/components/reviews/review-list";
@@ -47,6 +48,7 @@ export default async function ProductPage({ params }: PageProps<"/productos/[slu
               priority
             />
           ) : null}
+          <FavoriteButton targetType="PRODUCT" targetId={product.id} size="lg" className="absolute top-3 right-3" />
         </div>
 
         <div className="flex flex-col gap-5">

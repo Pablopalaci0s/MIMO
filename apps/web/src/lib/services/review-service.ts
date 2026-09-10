@@ -1,6 +1,7 @@
 import { Prisma, prisma } from "@mimo/database";
 import type { ReviewableItemDTO, ReviewDTO, ReviewInput } from "@mimo/types";
 import { AppError } from "@/lib/errors";
+import { createNotification } from "./notification-service";
 
 function toReviewDTO(review: Prisma.ReviewGetPayload<{ include: { user: true } }>): ReviewDTO {
   return {
@@ -118,5 +119,24 @@ export async function createReview(userId: string, input: ReviewInput): Promise<
     },
     include: { user: true },
   });
+
+  const targetBusinessId =
+    input.businessId ?? order.items.find((item) => item.productId === input.productId)?.businessId;
+  if (targetBusinessId) {
+    const owner = await prisma.businessUser.findFirst({
+      where: { businessId: targetBusinessId, role: "OWNER" },
+      select: { userId: true, business: { select: { name: true } } },
+    });
+    if (owner) {
+      await createNotification({
+        userId: owner.userId,
+        type: "REVIEW_RECEIVED",
+        title: "Recibiste una reseña nueva",
+        body: `${review.user.name} dejó una reseña para ${owner.business.name}.`,
+        linkHref: "/negocio",
+      });
+    }
+  }
+
   return toReviewDTO(review);
 }

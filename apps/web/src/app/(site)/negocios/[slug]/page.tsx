@@ -2,6 +2,7 @@ import { MapPin, MessageCircle, Phone, ShieldCheck, Star, Truck } from "lucide-r
 import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { FavoriteButton } from "@/components/catalog/favorite-button";
 import { ProductCard } from "@/components/catalog/product-card";
 import { ReportButton } from "@/components/reports/report-button";
 import { ReviewList } from "@/components/reviews/review-list";
@@ -88,6 +89,11 @@ export default async function BusinessPage({ params }: PageProps<"/negocios/[slu
               Escribir por WhatsApp
             </a>
           )}
+          <FavoriteButton
+            targetType="BUSINESS"
+            targetId={business.id}
+            className="border border-neutral-200 shadow-none hover:border-neutral-300"
+          />
           <ReportButton targetType="BUSINESS" targetId={business.id} />
         </div>
       </div>

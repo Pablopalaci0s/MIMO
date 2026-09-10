@@ -1,6 +1,7 @@
 import { Prisma, prisma, type OrderItemStatus, type OrderStatus } from "@mimo/database";
-import type { BusinessOrderItemDTO, PersonalizationInput } from "@mimo/types";
+import type { BusinessOrderItemDTO, NotificationType, PersonalizationInput } from "@mimo/types";
 import { AppError } from "@/lib/errors";
+import { createNotification } from "./notification-service";
 
 const BUSINESS_ORDER_ITEM_INCLUDE = {
   product: { include: { images: { orderBy: { position: "asc" as const }, take: 1 } } },
@@ -61,6 +62,16 @@ const STATUS_RANK: Record<Exclude<OrderItemStatus, "CANCELLED">, number> = {
   PREPARING: 2,
   OUT_FOR_DELIVERY: 3,
   DELIVERED: 4,
+};
+
+// PENDING no dispara nada (es el estado inicial, no una transición). El resto
+// avisa al comprador — es su pedido el que cambió, no el del negocio.
+const ORDER_STATUS_NOTIFICATION: Partial<Record<OrderItemStatus, { type: NotificationType; title: string }>> = {
+  CONFIRMED: { type: "ORDER_CONFIRMED", title: "Tu pedido fue confirmado" },
+  PREPARING: { type: "ORDER_IN_PROGRESS", title: "Tu pedido está en preparación" },
+  OUT_FOR_DELIVERY: { type: "ORDER_OUT_FOR_DELIVERY", title: "Tu pedido salió a entrega" },
+  DELIVERED: { type: "ORDER_DELIVERED", title: "Tu pedido fue entregado" },
+  CANCELLED: { type: "ORDER_CANCELLED", title: "Tu pedido fue cancelado" },
 };
 
 function computeOrderStatus(itemStatuses: OrderItemStatus[]): OrderStatus {
@@ -124,6 +135,17 @@ export async function updateBusinessOrderItemStatus(
 
     return updatedItem;
   });
+
+  const notification = ORDER_STATUS_NOTIFICATION[nextStatus];
+  if (notification) {
+    await createNotification({
+      userId: updated.order.buyerId,
+      type: notification.type,
+      title: notification.title,
+      body: `${updated.product.name} · Pedido #${updated.order.orderNumber}`,
+      linkHref: `/pedidos/${updated.order.orderNumber}`,
+    });
+  }
 
   return toBusinessOrderItemDTO(updated);
 }

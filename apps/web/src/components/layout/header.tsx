@@ -2,6 +2,7 @@ import Link from "next/link";
 import { auth } from "@mimo/auth";
 import { Button } from "@/components/ui/button";
 import { CartSheet } from "./cart-sheet";
+import { NotificationBell } from "./notification-bell";
 import { UserMenu } from "./user-menu";
 
 const NAV_LINKS = [
@@ -34,6 +35,7 @@ export async function Header() {
         </nav>
 
         <div className="hidden items-center gap-1 sm:flex">
+          {user && <NotificationBell />}
           <CartSheet />
           {user ? (
             <UserMenu user={user} />

@@ -1,6 +1,7 @@
 import { Prisma, prisma } from "@mimo/database";
 import type { AdminBusinessDTO, AdminBusinessUpdateInput } from "@mimo/types";
 import { AppError } from "@/lib/errors";
+import { createNotification } from "./notification-service";
 
 const ADMIN_BUSINESS_INCLUDE = {
   municipality: true,
@@ -51,5 +52,27 @@ export async function updateAdminBusiness(
     },
     include: ADMIN_BUSINESS_INCLUDE,
   });
+
+  const ownerId = business.members[0]?.user.id;
+  if (ownerId && input.status && input.status !== existing.status) {
+    if (input.status === "APPROVED") {
+      await createNotification({
+        userId: ownerId,
+        type: "BUSINESS_APPROVED",
+        title: "Tu negocio fue aprobado",
+        body: `${business.name} ya está visible en MIMO.`,
+        linkHref: "/negocio",
+      });
+    } else if (input.status === "SUSPENDED") {
+      await createNotification({
+        userId: ownerId,
+        type: "BUSINESS_SUSPENDED",
+        title: "Tu negocio fue suspendido",
+        body: `${business.name} ya no aparece en el catálogo. Contactá a soporte si creés que es un error.`,
+        linkHref: "/negocio",
+      });
+    }
+  }
+
   return toAdminBusinessDTO(business);
 }

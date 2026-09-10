@@ -12,9 +12,9 @@ Completas hasta ahora: arquitectura del monorepo, base de datos y
 autenticación (Fase 1), home y navegación (Fase 2), catálogo de productos y
 negocios (Fase 3), carrito/checkout/pedidos (Fase 4), panel de negocio
 (Fase 5), panel administrativo (Fase 6), el asistente de IA "Ayúdame a
-elegir" (Fase 7), y el asistente de dedicatorias (Fase 8). Las fases
-siguientes (fechas importantes/favoritos, PWA, etc.) se construyen en el
-orden descrito más abajo.
+elegir" (Fase 7), el asistente de dedicatorias (Fase 8), y favoritos/fechas
+importantes/notificaciones (Fase 9). Las fases siguientes (PWA, testing)
+se construyen en el orden descrito más abajo.
 
 ## Arquitectura
 
@@ -134,7 +134,12 @@ pero nunca la borran solas — en una sesión de desarrollo larga esto puede
 crecer a varios GB sin que se note (nos pasó: ~16 GB acumulados). Correr
 `npm run clean:cache` de vez en cuando es seguro — no borra código ni datos,
 solo hace que la próxima `dev`/`build` tarde un poco más en arrancar mientras
-reconstruye la caché.
+reconstruye la caché. Un efecto secundario: borra también los tipos de rutas
+que Next genera en `apps/web/.next/types` (el `PageProps<...>` que usan las
+páginas dinámicas) — si corrés `npm run typecheck` justo después de limpiar,
+sin haber levantado `dev`/`build` primero, va a fallar con "Cannot find name
+'PageProps'". Arreglo: `npx next typegen` dentro de `apps/web` (no hace falta
+un build completo), o simplemente correr `dev`/`build` una vez antes.
 
 ## Estado del proyecto — orden de desarrollo
 
@@ -146,7 +151,7 @@ reconstruye la caché.
 - [x] **Fase 6** — Panel administrativo
 - [x] **Fase 7** — IA de recomendaciones
 - [x] **Fase 8** — IA para dedicatorias
-- [ ] Fase 9 — Fechas importantes, favoritos, notificaciones
+- [x] **Fase 9** — Fechas importantes, favoritos, notificaciones
 - [ ] Fase 10 — PWA y optimización móvil
 - [ ] Fase 11 — Testing y revisión completa
 
@@ -198,6 +203,55 @@ Fase 1 — mismo patrón que la Fase 7: solo faltaba conectarlo a la UI.
   plantillas fijas por tono (`FALLBACK_DEDICATIONS` en `ai-service.ts`) en
   vez de fallar — el usuario ve el mismo flujo, solo cambia el texto
   generado.
+
+## Diseño: favoritos, fechas importantes y notificaciones (Fase 9)
+
+Los modelos (`Favorite`, `ImportantDate`, `Notification`, `PushToken`) ya
+estaban en el schema desde la Fase 1 — mismo patrón que la IA de las Fases
+7/8: faltaba conectarlos a servicios/API/UI, no diseñarlos de cero.
+
+**Favoritos.** `FavoritesProvider` (`lib/favorites/favorites-context.tsx`)
+cachea en memoria del cliente los ids favoritos de la sesión actual — a
+diferencia del carrito (que vive enteramente en `localStorage` porque no
+requiere login), los favoritos son del usuario en el servidor, así que el
+provider solo evita que cada corazón de cada card tenga que pedir su propio
+estado (N+1 en listas de catálogo). El toggle (`POST /api/favoritos`) es
+optimista: cambia el ícono al toque y revierte si el request falla. Un
+visitante sin sesión que toca el corazón va a `/iniciar-sesion` en vez de
+fallar en silencio.
+
+**Fechas importantes.** CRUD simple en `/perfil/fechas-importantes`
+(cumpleaños, aniversarios, etc. con `remindDaysBefore`). Lo interesante es
+cómo se avisa: **no hay un cron real** detrás (sección 5 de las reglas del
+usuario prohíbe fingir funcionalidad que no existe, y este proyecto no tiene
+infraestructura de jobs programados todavía). En vez de simular un push a
+medianoche, `checkImportantDateReminders` revisa las fechas del usuario de
+forma perezosa cada vez que visita el home o abre notificaciones, y crea el
+aviso (`Notification` con `metadata.importantDateId`) la primera vez que la
+fecha entra en su ventana — con esa marca se evita reenviarlo. El home
+también muestra un banner compacto ("Cumpleaños de mamá es en 3 días") que
+linkea a "Ayúdame a elegir". Limitación conocida: es un recordatorio único
+para la fecha guardada, no una recurrencia anual automática — habría que
+reprogramar la fecha a mano el año que viene, o resolverlo en una fase
+futura con un job real.
+
+**Notificaciones.** Centro de notificaciones in-app (campana en el header de
+escritorio + ítem en el menú de usuario para mobile, ambos abren un
+`Sheet` con la lista y "marcar todas como leídas"; `/notificaciones` es la
+versión de página completa). Todo pasa por `createNotification` en
+`notification-service.ts` para que el modelo de datos sea consistente, y se
+dispara desde eventos reales que ya existían:
+- Cambio de estado de un `OrderItem` (`business-order-service.ts`) → avisa
+  al comprador (`ORDER_CONFIRMED` → `ORDER_DELIVERED`/`CANCELLED`).
+- Un negocio pasa a `APPROVED`/`SUSPENDED` (`admin-business-service.ts`) →
+  avisa al dueño.
+- Se recibe una reseña nueva (`review-service.ts`) → avisa al dueño del
+  negocio reseñado.
+- Fecha importante próxima (ver arriba).
+
+No hay push real del navegador (Service Worker + `PushToken`) todavía —
+eso es explícitamente Fase 10 (PWA); por ahora las notificaciones solo viven
+dentro de la app mientras el usuario la tiene abierta.
 
 ## Diseño: fotos, perfil del negocio y cobertura real de entrega (post-Fase 8)
 

@@ -1,4 +1,6 @@
+import { Calendar, ChevronRight, Heart } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@mimo/auth";
 import { prisma } from "@mimo/database";
@@ -28,6 +30,31 @@ export default async function ProfilePage() {
 
       <div className="mt-8">
         <ProfileForm user={userDto} />
+      </div>
+
+      <Separator className="my-8" />
+
+      <div className="flex flex-col gap-2">
+        <Link
+          href="/perfil/fechas-importantes"
+          className="flex items-center justify-between rounded-xl border border-neutral-200 px-4 py-3 transition-colors hover:border-neutral-300"
+        >
+          <span className="flex items-center gap-3 text-sm font-medium text-neutral-900">
+            <Calendar className="size-4 text-neutral-500" />
+            Fechas importantes
+          </span>
+          <ChevronRight className="size-4 text-neutral-400" />
+        </Link>
+        <Link
+          href="/favoritos"
+          className="flex items-center justify-between rounded-xl border border-neutral-200 px-4 py-3 transition-colors hover:border-neutral-300"
+        >
+          <span className="flex items-center gap-3 text-sm font-medium text-neutral-900">
+            <Heart className="size-4 text-neutral-500" />
+            Mis favoritos
+          </span>
+          <ChevronRight className="size-4 text-neutral-400" />
+        </Link>
       </div>
 
       <Separator className="my-8" />

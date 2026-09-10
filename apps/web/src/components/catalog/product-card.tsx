@@ -2,6 +2,7 @@ import { Star, Zap } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import type { ProductSummaryDTO } from "@mimo/types";
+import { FavoriteButton } from "./favorite-button";
 
 export function ProductCard({ product }: { product: ProductSummaryDTO }) {
   return (
@@ -26,10 +27,11 @@ export function ProductCard({ product }: { product: ProductSummaryDTO }) {
           </span>
         )}
         {product.compareAtPrice && (
-          <span className="absolute top-2 right-2 rounded-full bg-brand px-2 py-1 text-[11px] font-medium text-brand-foreground shadow-sm">
+          <span className="absolute bottom-2 left-2 rounded-full bg-brand px-2 py-1 text-[11px] font-medium text-brand-foreground shadow-sm">
             -{Math.round((1 - product.price / product.compareAtPrice) * 100)}%
           </span>
         )}
+        <FavoriteButton targetType="PRODUCT" targetId={product.id} className="absolute top-2 right-2" />
       </div>
 
       <div className="flex flex-1 flex-col gap-1 px-3.5 py-3">
