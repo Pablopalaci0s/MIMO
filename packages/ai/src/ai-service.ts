@@ -81,7 +81,8 @@ export class AIService {
       intent.personality = Array.from(new Set([...intent.personality, ...request.personality]));
     }
 
-    const scored = await scoreProductsForIntent(intent);
+    const personalizedIntent = userId ? await this.personalizeRecommendations(userId, intent) : intent;
+    const scored = await scoreProductsForIntent(personalizedIntent);
     const recommendations: GiftRecommendation[] = scored.map((entry) => ({
       product: toProductSummaryDTO(entry.product),
       explanation: this.explainRecommendation(entry, intent),

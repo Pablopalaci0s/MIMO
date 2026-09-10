@@ -11,8 +11,9 @@ El proyecto se construye por fases (ver **Estado del proyecto** más abajo).
 Completas hasta ahora: arquitectura del monorepo, base de datos y
 autenticación (Fase 1), home y navegación (Fase 2), catálogo de productos y
 negocios (Fase 3), carrito/checkout/pedidos (Fase 4), panel de negocio
-(Fase 5), y panel administrativo (Fase 6). Las fases siguientes (IA de
-recomendaciones, PWA, etc.) se construyen en el orden descrito más abajo.
+(Fase 5), panel administrativo (Fase 6), y el asistente de IA "Ayúdame a
+elegir" (Fase 7). Las fases siguientes (IA para dedicatorias, PWA, etc.)
+se construyen en el orden descrito más abajo.
 
 ## Arquitectura
 
@@ -133,7 +134,7 @@ npm run db:migrate:deploy  # aplicar migraciones en producción (sin prompts)
 - [x] **Fase 4** — Carrito, checkout, pedidos
 - [x] **Fase 5** — Panel de negocio
 - [x] **Fase 6** — Panel administrativo
-- [ ] Fase 7 — IA de recomendaciones
+- [x] **Fase 7** — IA de recomendaciones
 - [ ] Fase 8 — IA para dedicatorias
 - [ ] Fase 9 — Fechas importantes, favoritos, notificaciones
 - [ ] Fase 10 — PWA y optimización móvil
@@ -170,6 +171,38 @@ Tarjeta y PayPal se muestran en la UI como "Próximamente" — el modelo
 `Payment` (`status`: `PENDING/PAID/FAILED/REFUNDED`) y el flujo de
 confirmación del negocio (Fase 5) ya están pensados para que integrar
 Stripe después sea un cambio localizado, no un rediseño.
+
+## Diseño: IA de recomendaciones (Fase 7)
+
+`packages/ai` (`AIService`) ya estaba completamente construido desde la
+Fase 1 — solo faltaba una página real que lo usara. `/ayudame-a-elegir`
+conecta ese paquete a la web:
+
+- **La IA nunca inventa productos.** `AIService.analyzeUserRequest` solo
+  extrae intención (destinatario, ocasión, presupuesto, gustos,
+  personalidad) del texto libre — ni con Claude ni con el fallback
+  heurístico devuelve productos. `scoreProductsForIntent` (en
+  `packages/ai/src/scoring.ts`) es el único lugar que consulta Postgres y
+  arma las 3 recomendaciones, con la explicación de cada una generada a
+  partir de por qué matcheó (presupuesto, gustos, ocasión, disponibilidad,
+  rating) — nunca texto libre de la IA.
+- **Sin `ANTHROPIC_API_KEY` funciona igual** (sección 33): `AIService` cae
+  a `parseIntentHeuristically` (reglas + keywords) sin que el usuario note
+  la diferencia — la respuesta tiene la misma forma en ambos casos. Así es
+  como está configurado hoy (`.env` trae la key vacía); agregarla más
+  adelante no requiere tocar la página ni la API route.
+- **Personalización responsable** (sección 25): si hay sesión, se llama
+  `personalizeRecommendations` para sesgar el *scoring* con categorías de
+  compras/favoritos previos — pero la explicación mostrada al usuario y el
+  `parsedIntent` que se guarda siguen reflejando solo lo que la persona
+  escribió, nunca lo inferido de su historial (evita explicaciones
+  confusas tipo "combina algo que nunca mencionaste").
+- Cada búsqueda se guarda en `AIRecommendation` +
+  `AIRecommendationProduct` (`requestText`, `parsedIntent`, y qué
+  productos se mostraron con qué explicación) — la razón original de este
+  modelo en el schema de la Fase 1.
+- El buscador del hero (`/` → `/ayudame-a-elegir?q=...`) auto-envía la
+  búsqueda al cargar la página.
 
 ## Diseño: cuenta de usuario y alta de negocios (post-Fase 6)
 
