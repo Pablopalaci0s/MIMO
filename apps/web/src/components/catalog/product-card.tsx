@@ -25,6 +25,11 @@ export function ProductCard({ product }: { product: ProductSummaryDTO }) {
             Hoy
           </span>
         )}
+        {product.compareAtPrice && (
+          <span className="absolute top-2 right-2 rounded-full bg-brand px-2 py-1 text-[11px] font-medium text-brand-foreground shadow-sm">
+            -{Math.round((1 - product.price / product.compareAtPrice) * 100)}%
+          </span>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col gap-1 px-3.5 py-3">
@@ -32,8 +37,11 @@ export function ProductCard({ product }: { product: ProductSummaryDTO }) {
         <p className="line-clamp-1 text-xs text-neutral-500">{product.business.name}</p>
 
         <div className="mt-1 flex items-center justify-between">
-          <span className="text-sm font-semibold text-neutral-900">
-            ${product.price.toFixed(2)}
+          <span className="flex items-baseline gap-1.5">
+            <span className="text-sm font-semibold text-neutral-900">${product.price.toFixed(2)}</span>
+            {product.compareAtPrice && (
+              <span className="text-xs text-neutral-400 line-through">${product.compareAtPrice.toFixed(2)}</span>
+            )}
           </span>
           {product.ratingCount > 0 && (
             <span className="flex items-center gap-0.5 text-xs text-neutral-500">

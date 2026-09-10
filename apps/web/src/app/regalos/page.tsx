@@ -39,6 +39,7 @@ export default async function RegalosPage({ searchParams }: PageProps<"/regalos"
         maxPrice: parsed.precioMax,
         municipalitySlug: parsed.ubicacion,
         availableToday: parsed.disponibleHoy,
+        onSale: parsed.oferta,
         sort: parsed.orden,
         query: parsed.q,
       },

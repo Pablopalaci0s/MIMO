@@ -28,6 +28,14 @@ export interface BusinessSummaryDTO {
   municipalityName: string | null;
 }
 
+export interface FeaturedBusinessDTO extends BusinessSummaryDTO {
+  coverUrl: string | null;
+  previewImageUrl: string | null;
+  description: string | null;
+  deliveryFee: number | null;
+  estimatedMinutes: number | null;
+}
+
 export interface BusinessDTO extends BusinessSummaryDTO {
   description: string | null;
   coverUrl: string | null;
@@ -79,6 +87,7 @@ export interface ProductFilters {
   maxPrice?: number;
   municipalitySlug?: string;
   availableToday?: boolean;
+  onSale?: boolean;
   sort?: "relevance" | "price_asc" | "price_desc" | "rating" | "sales";
   query?: string;
 }

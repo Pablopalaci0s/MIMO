@@ -108,7 +108,9 @@ export function CheckoutForm({
 
     if (!body.success) {
       setLoading(false);
-      setError(body.error?.message ?? "No pudimos procesar tu pedido.");
+      const fieldErrors = body.error?.fieldErrors as Record<string, string[]> | undefined;
+      const detail = fieldErrors ? Object.values(fieldErrors).flat()[0] : undefined;
+      setError(detail ?? body.error?.message ?? "No pudimos procesar tu pedido.");
       return;
     }
 
@@ -131,10 +133,12 @@ export function CheckoutForm({
               <Input
                 id="buyer-phone"
                 required
+                maxLength={8}
                 placeholder="7000-0000"
                 value={buyerPhone}
                 onChange={(e) => setBuyerPhone(e.target.value.replace(/[^\d]/g, ""))}
               />
+              <p className="text-xs text-neutral-400">8 dígitos, empieza con 2, 6 o 7</p>
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
@@ -166,10 +170,12 @@ export function CheckoutForm({
               <Input
                 id="recipient-phone"
                 required
+                maxLength={8}
                 placeholder="7000-0000"
                 value={recipientPhone}
                 onChange={(e) => setRecipientPhone(e.target.value.replace(/[^\d]/g, ""))}
               />
+              <p className="text-xs text-neutral-400">8 dígitos, empieza con 2, 6 o 7</p>
             </div>
           </div>
           <div className="flex flex-col gap-1.5">

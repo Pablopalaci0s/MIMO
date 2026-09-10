@@ -1,7 +1,8 @@
 import { Prisma, prisma } from "@mimo/database";
 import type { CheckoutInputParsed } from "@mimo/validation";
-import type { OrderDTO, OrderItemDTO, PersonalizationInput } from "@mimo/types";
+import type { OrderDTO, OrderItemDTO, PersonalizationInput, ProductSummaryDTO } from "@mimo/types";
 import { AppError } from "@/lib/errors";
+import { PRODUCT_LIST_INCLUDE, toProductSummaryDTO } from "./product-service";
 
 const DEFAULT_DELIVERY_FEE = 3.5;
 
@@ -184,4 +185,31 @@ export async function listMyOrders(userId: string): Promise<OrderDTO[]> {
     orderBy: { createdAt: "desc" },
   });
   return orders.map(toOrderDTO);
+}
+
+/**
+ * Productos distintos de compras anteriores del usuario, para la sección
+ * "Volver a pedir" del home — nunca se muestra si el usuario no tiene
+ * pedidos reales (sección 5 de las reglas del usuario: nada de datos falsos).
+ */
+export async function listRecentlyOrderedProducts(
+  userId: string,
+  limit = 6,
+): Promise<ProductSummaryDTO[]> {
+  const items = await prisma.orderItem.findMany({
+    where: { order: { buyerId: userId }, product: { status: "ACTIVE", deletedAt: null } },
+    include: { product: { include: PRODUCT_LIST_INCLUDE } },
+    orderBy: { createdAt: "desc" },
+    take: limit * 3,
+  });
+
+  const seen = new Set<string>();
+  const products: ProductSummaryDTO[] = [];
+  for (const item of items) {
+    if (seen.has(item.productId)) continue;
+    seen.add(item.productId);
+    products.push(toProductSummaryDTO(item.product));
+    if (products.length >= limit) break;
+  }
+  return products;
 }

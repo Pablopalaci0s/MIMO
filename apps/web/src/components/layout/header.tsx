@@ -2,7 +2,6 @@ import Link from "next/link";
 import { auth } from "@mimo/auth";
 import { Button } from "@/components/ui/button";
 import { CartSheet } from "./cart-sheet";
-import { MobileNav } from "./mobile-nav";
 import { UserMenu } from "./user-menu";
 
 const NAV_LINKS = [{ href: "/regalos", label: "Regalos" }];
@@ -31,12 +30,12 @@ export async function Header() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-1">
+        <div className="hidden items-center gap-1 sm:flex">
           <CartSheet />
           {user ? (
             <UserMenu user={user} />
           ) : (
-            <div className="hidden items-center gap-2 sm:flex">
+            <div className="flex items-center gap-2">
               <Button variant="ghost" className="transition-transform active:scale-[0.98]" asChild>
                 <Link href="/iniciar-sesion">Iniciar sesión</Link>
               </Button>
@@ -45,7 +44,6 @@ export async function Header() {
               </Button>
             </div>
           )}
-          <MobileNav user={user} />
         </div>
       </div>
     </header>

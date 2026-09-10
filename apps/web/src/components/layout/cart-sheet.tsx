@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/sheet";
 import { useCart } from "@/lib/cart/cart-context";
 
-export function CartSheet() {
+export function CartSheet({ variant = "icon" }: { variant?: "icon" | "tab" }) {
   const { items, count, subtotal, updateQuantity, removeItem, isHydrated } = useCart();
   const [open, setOpen] = useState(false);
 
@@ -26,17 +26,32 @@ export function CartSheet() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <button
-          className="relative flex size-9 items-center justify-center rounded-full text-neutral-700 hover:bg-neutral-100"
-          aria-label="Ver carrito"
-        >
-          <ShoppingBag className="size-5" strokeWidth={1.75} />
-          {isHydrated && count > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-brand text-[10px] font-medium text-white">
-              {count > 9 ? "9+" : count}
-            </span>
-          )}
-        </button>
+        {variant === "tab" ? (
+          <button
+            className="relative flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium text-neutral-400 aria-expanded:text-neutral-900"
+            aria-label="Ver carrito"
+          >
+            <ShoppingBag className="size-5" strokeWidth={1.75} />
+            Carrito
+            {isHydrated && count > 0 && (
+              <span className="absolute top-1 right-[calc(50%-18px)] flex size-4 items-center justify-center rounded-full bg-brand text-[10px] font-medium text-white">
+                {count > 9 ? "9+" : count}
+              </span>
+            )}
+          </button>
+        ) : (
+          <button
+            className="relative flex size-9 items-center justify-center rounded-full text-neutral-700 hover:bg-neutral-100"
+            aria-label="Ver carrito"
+          >
+            <ShoppingBag className="size-5" strokeWidth={1.75} />
+            {isHydrated && count > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-brand text-[10px] font-medium text-white">
+                {count > 9 ? "9+" : count}
+              </span>
+            )}
+          </button>
+        )}
       </SheetTrigger>
       <SheetContent side="right" className="flex w-full flex-col sm:max-w-md">
         <SheetHeader>

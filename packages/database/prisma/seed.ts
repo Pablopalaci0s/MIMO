@@ -264,6 +264,7 @@ async function main() {
           slug: productSlug,
           description: demoProduct.description,
           price: demoProduct.price,
+          compareAtPrice: demoProduct.compareAtPrice ?? null,
           isPersonalizable: demoProduct.personalizable ?? false,
           availableToday,
           preparationTimeMinutes: demoProduct.prepMinutes ?? demoBusiness.prepMinutes,

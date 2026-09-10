@@ -29,15 +29,32 @@ function initials(user: AuthSessionUser) {
     .join("");
 }
 
-export function UserMenu({ user }: { user: AuthSessionUser }) {
+export function UserMenu({ user, variant = "icon" }: { user: AuthSessionUser; variant?: "icon" | "tab" }) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="flex items-center gap-2 rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
-        <Avatar size="sm">
-          <AvatarFallback className="bg-neutral-900 text-xs text-white">
-            {initials(user)}
-          </AvatarFallback>
-        </Avatar>
+      <DropdownMenuTrigger
+        className={
+          variant === "tab"
+            ? "flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium text-neutral-400 outline-none aria-expanded:text-neutral-900"
+            : "flex items-center gap-2 rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+        }
+      >
+        {variant === "tab" ? (
+          <>
+            <Avatar size="sm" className="size-5">
+              <AvatarFallback className="bg-neutral-900 text-[9px] text-white">
+                {initials(user)}
+              </AvatarFallback>
+            </Avatar>
+            Perfil
+          </>
+        ) : (
+          <Avatar size="sm">
+            <AvatarFallback className="bg-neutral-900 text-xs text-white">
+              {initials(user)}
+            </AvatarFallback>
+          </Avatar>
+        )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>

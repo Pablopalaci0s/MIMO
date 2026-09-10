@@ -1,6 +1,7 @@
 export interface DemoProduct {
   name: string;
   price: number;
+  compareAtPrice?: number;
   categorySlug: string;
   occasionSlugs: string[];
   description: string;
@@ -42,6 +43,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
       {
         name: "Caja Romántica con Rosas y Chocolates",
         price: 34.99,
+        compareAtPrice: 44.99,
         categorySlug: "cajas-de-regalo",
         occasionSlugs: ["aniversario", "te-amo"],
         description: "Seis rosas, chocolates surtidos y una tarjeta personalizada en una caja elegante.",
@@ -89,6 +91,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
       {
         name: "Caja de Chocolates Belgas x12",
         price: 18.5,
+        compareAtPrice: 24.99,
         categorySlug: "chocolates",
         occasionSlugs: ["te-amo", "aniversario"],
         description: "Selección de chocolates belgas rellenos, en caja de regalo.",
@@ -150,6 +153,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
       {
         name: "Caja Spa en Casa",
         price: 45,
+        compareAtPrice: 55,
         categorySlug: "cajas-de-regalo",
         occasionSlugs: ["gracias", "felicidades"],
         description: "Mascarillas, sales de baño y velas para una tarde de relajación.",
@@ -196,6 +200,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
       {
         name: "Pastel de Chocolate Personalizado",
         price: 35,
+        compareAtPrice: 42,
         categorySlug: "pasteles",
         occasionSlugs: ["cumpleanos"],
         description: "Pastel de chocolate húmedo con el mensaje que elijas en la cobertura.",
@@ -257,6 +262,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
       {
         name: "Arco de Globos para Fiesta",
         price: 55,
+        compareAtPrice: 65,
         categorySlug: "globos",
         occasionSlugs: ["celebraciones"],
         description: "Arco de globos personalizado por colores para tu evento.",
@@ -303,6 +309,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
       {
         name: "Oso de Peluche Gigante",
         price: 29.99,
+        compareAtPrice: 36.99,
         categorySlug: "peluches",
         occasionSlugs: ["te-amo", "aniversario"],
         description: "Oso de peluche de 80cm, suave y de alta calidad.",

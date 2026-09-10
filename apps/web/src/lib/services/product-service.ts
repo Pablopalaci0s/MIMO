@@ -2,7 +2,7 @@ import { Prisma, prisma } from "@mimo/database";
 import type { OccasionDTO, Paginated, PaginationParams, ProductDTO, ProductFilters, ProductSummaryDTO } from "@mimo/types";
 import { toBusinessSummaryDTO } from "./business-service";
 
-const PRODUCT_LIST_INCLUDE = {
+export const PRODUCT_LIST_INCLUDE = {
   images: { orderBy: { position: "asc" as const }, take: 1 },
   business: { include: { municipality: true } },
   category: true,
@@ -10,7 +10,7 @@ const PRODUCT_LIST_INCLUDE = {
 
 type ProductListRow = Prisma.ProductGetPayload<{ include: typeof PRODUCT_LIST_INCLUDE }>;
 
-function toProductSummaryDTO(product: ProductListRow): ProductSummaryDTO {
+export function toProductSummaryDTO(product: ProductListRow): ProductSummaryDTO {
   return {
     id: product.id,
     slug: product.slug,
@@ -43,6 +43,9 @@ function buildWhere(filters: ProductFilters): Prisma.ProductWhereInput {
   }
   if (filters.availableToday) {
     where.availableToday = true;
+  }
+  if (filters.onSale) {
+    where.compareAtPrice = { not: null };
   }
   if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
     where.price = {

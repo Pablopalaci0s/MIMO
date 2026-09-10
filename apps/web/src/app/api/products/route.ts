@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
         maxPrice: parsed.precioMax,
         municipalitySlug: parsed.ubicacion,
         availableToday: parsed.disponibleHoy,
+        onSale: parsed.oferta,
         sort: parsed.orden,
         query: parsed.q,
       },

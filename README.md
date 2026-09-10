@@ -10,9 +10,9 @@ asistente de IA que ayuda a elegir el regalo correcto.
 El proyecto se construye por fases (ver **Estado del proyecto** más abajo).
 Completas hasta ahora: arquitectura del monorepo, base de datos y
 autenticación (Fase 1), home y navegación (Fase 2), catálogo de productos y
-negocios (Fase 3), y carrito/checkout/pedidos (Fase 4). Las fases siguientes
-(paneles de negocio/admin, IA de recomendaciones, PWA, etc.) se construyen
-en el orden descrito más abajo.
+negocios (Fase 3), carrito/checkout/pedidos (Fase 4), y el panel de negocio
+(Fase 5). Las fases siguientes (panel admin, IA de recomendaciones, PWA,
+etc.) se construyen en el orden descrito más abajo.
 
 ## Arquitectura
 
@@ -131,7 +131,7 @@ npm run db:migrate:deploy  # aplicar migraciones en producción (sin prompts)
 - [x] **Fase 2** — Home, diseño, navegación
 - [x] **Fase 3** — Productos, categorías, negocios
 - [x] **Fase 4** — Carrito, checkout, pedidos
-- [ ] Fase 5 — Panel de negocio
+- [x] **Fase 5** — Panel de negocio
 - [ ] Fase 6 — Panel administrativo
 - [ ] Fase 7 — IA de recomendaciones
 - [ ] Fase 8 — IA para dedicatorias
@@ -170,6 +170,53 @@ Tarjeta y PayPal se muestran en la UI como "Próximamente" — el modelo
 `Payment` (`status`: `PENDING/PAID/FAILED/REFUNDED`) y el flujo de
 confirmación del negocio (Fase 5) ya están pensados para que integrar
 Stripe después sea un cambio localizado, no un rediseño.
+
+## Diseño: home (post-Fase 5, polish)
+
+Ajustes al home inspirados en el patrón de apps de delivery (Uber Eats/
+PedidosYa), pero sin adoptar su identidad visual — solo el patrón de
+interacción, con datos reales en todos los casos:
+
+- **Barra de navegación inferior (móvil)**: reemplaza el menú hamburgués.
+  Inicio / Buscar / Carrito / Perfil, siempre visible en `sm:hidden`. El
+  ícono de Perfil reutiliza el mismo `UserMenu` con rol (negocio/admin) que
+  ya existía en el header — no es un componente nuevo con lógica duplicada.
+- **Negocios destacados**: los negocios mejor calificados del catálogo
+  (`listFeaturedBusinesses`), con la imagen de su producto más vendido, no
+  una foto de portada inventada.
+- **Filtros rápidos** (Entrega hoy / Ofertas / Mejor valorados): enlazan a
+  filtros reales de `/regalos`. "Ofertas" es un filtro nuevo
+  (`onSale`/`compareAtPrice IS NOT NULL`) — el `ProductCard` ahora muestra
+  el precio tachado y el % de descuento cuando aplica.
+- **Volver a pedir**: solo se muestra si el usuario logueado ya tiene
+  pedidos reales (`listRecentlyOrderedProducts`); no aparece para cuentas
+  nuevas.
+
+## Diseño: panel de negocio (Fase 5)
+
+`/negocio` es el dashboard para el rol `BUSINESS`: resumen (pedidos
+pendientes, ventas de hoy/mes, productos activos, rating), gestión de
+pedidos (`OrderItem`), CRUD de productos, horarios/tiempo de preparación y
+zonas de entrega. El `businessId` nunca viaja desde el cliente — cada
+request lo resuelve desde la sesión vía `BusinessUser` (`requireBusinessId`
+en `business-service.ts`), así que un negocio no puede leer ni modificar
+datos de otro aunque adivine un id.
+
+**Progreso del `Order` = el ítem menos avanzado.** Como el carrito es
+multi-tienda, cada negocio solo controla sus propios `OrderItem`. El
+`Order.status` general se recalcula automáticamente después de cada cambio
+como el estado menos avanzado entre los ítems que siguen activos (no
+cancelados) — un negocio no puede "adelantar" el pedido completo mientras
+otro todavía no confirma el suyo. Si todos los ítems terminan cancelados,
+el pedido completo queda `CANCELLED`. Las transiciones válidas son
+`PENDING → CONFIRMED → PREPARING → OUT_FOR_DELIVERY → DELIVERED`, con
+`CANCELLED` disponible hasta antes de `OUT_FOR_DELIVERY` — la API rechaza
+cualquier salto (ver `business-order-service.ts`).
+
+**Sin backend de subida de archivos.** Las imágenes de producto se cargan
+por URL (igual que el seed, que usa `placehold.co`) — no hay integración de
+storage todavía, así que pedir una URL en vez de simular un upload es la
+opción honesta para el MVP.
 
 ## Notas técnicas
 

@@ -11,6 +11,10 @@ export const productFiltersSchema = z.object({
     .union([z.literal("true"), z.literal("false")])
     .transform((value) => value === "true")
     .optional(),
+  oferta: z
+    .union([z.literal("true"), z.literal("false")])
+    .transform((value) => value === "true")
+    .optional(),
   orden: z.enum(["relevance", "price_asc", "price_desc", "rating", "sales"]).optional(),
   q: z.string().trim().min(1).max(120).optional(),
   page: z.coerce.number().int().min(1).optional(),
