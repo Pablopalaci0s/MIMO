@@ -11,9 +11,10 @@ El proyecto se construye por fases (ver **Estado del proyecto** más abajo).
 Completas hasta ahora: arquitectura del monorepo, base de datos y
 autenticación (Fase 1), home y navegación (Fase 2), catálogo de productos y
 negocios (Fase 3), carrito/checkout/pedidos (Fase 4), panel de negocio
-(Fase 5), panel administrativo (Fase 6), y el asistente de IA "Ayúdame a
-elegir" (Fase 7). Las fases siguientes (IA para dedicatorias, PWA, etc.)
-se construyen en el orden descrito más abajo.
+(Fase 5), panel administrativo (Fase 6), el asistente de IA "Ayúdame a
+elegir" (Fase 7), y el asistente de dedicatorias (Fase 8). Las fases
+siguientes (fechas importantes/favoritos, PWA, etc.) se construyen en el
+orden descrito más abajo.
 
 ## Arquitectura
 
@@ -135,7 +136,7 @@ npm run db:migrate:deploy  # aplicar migraciones en producción (sin prompts)
 - [x] **Fase 5** — Panel de negocio
 - [x] **Fase 6** — Panel administrativo
 - [x] **Fase 7** — IA de recomendaciones
-- [ ] Fase 8 — IA para dedicatorias
+- [x] **Fase 8** — IA para dedicatorias
 - [ ] Fase 9 — Fechas importantes, favoritos, notificaciones
 - [ ] Fase 10 — PWA y optimización móvil
 - [ ] Fase 11 — Testing y revisión completa
@@ -171,6 +172,23 @@ Tarjeta y PayPal se muestran en la UI como "Próximamente" — el modelo
 `Payment` (`status`: `PENDING/PAID/FAILED/REFUNDED`) y el flujo de
 confirmación del negocio (Fase 5) ya están pensados para que integrar
 Stripe después sea un cambio localizado, no un rediseño.
+
+## Diseño: IA para dedicatorias (Fase 8)
+
+Botón "Escribime la dedicatoria" junto al campo de dedicatoria en
+`/productos/[slug]` (`components/catalog/dedication-assistant.tsx`). Usa
+`AIService.generateDedication`, que también ya estaba construido desde la
+Fase 1 — mismo patrón que la Fase 7: solo faltaba conectarlo a la UI.
+
+- 5 tonos (sincero, romántico, divertido, formal, corto) + instrucciones
+  libres opcionales (ej. "quiero algo romántico pero no demasiado cursi").
+- Cada opción generada permite **usar** (rellena el textarea principal),
+  **copiar**, o regenerar con un tono distinto — los tres accesos rápidos
+  "Más romántico / Más corto / Más divertido" del spec.
+- Mismo fallback sin IA que la Fase 7: sin `ANTHROPIC_API_KEY`, usa
+  plantillas fijas por tono (`FALLBACK_DEDICATIONS` en `ai-service.ts`) en
+  vez de fallar — el usuario ve el mismo flujo, solo cambia el texto
+  generado.
 
 ## Diseño: paneles como app separada (post-Fase 6, rediseño)
 

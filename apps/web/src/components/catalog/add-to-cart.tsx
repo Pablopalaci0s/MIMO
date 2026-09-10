@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { DedicationAssistant } from "@/components/catalog/dedication-assistant";
 import { useCart } from "@/lib/cart/cart-context";
 import type { ProductDTO } from "@mimo/types";
 
@@ -60,6 +61,8 @@ export function AddToCart({ product }: { product: ProductDTO }) {
               rows={3}
             />
           </div>
+
+          <DedicationAssistant recipientName={recipientName} onSelect={setDedication} />
         </>
       )}
 
