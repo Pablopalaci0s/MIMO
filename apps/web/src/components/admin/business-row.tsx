@@ -49,42 +49,45 @@ export function BusinessRow({ business }: { business: AdminBusinessDTO }) {
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded-2xl border border-neutral-200 p-4 sm:flex-row sm:items-center sm:justify-between">
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <Link href={`/negocios/${business.slug}`} className="font-medium text-neutral-900 hover:underline">
-            {business.name}
-          </Link>
-          <Badge variant={STATUS_VARIANT[business.status]}>{STATUS_LABEL[business.status]}</Badge>
-          {business.isDemo && <Badge variant="outline">Demo</Badge>}
+    <tr className="border-b border-neutral-100 last:border-0 hover:bg-neutral-50">
+      <td className="py-3 pl-4">
+        <Link href={`/negocios/${business.slug}`} className="font-medium text-neutral-900 hover:underline">
+          {business.name}
+        </Link>
+        {business.isDemo && (
+          <Badge variant="outline" className="ml-2">
+            Demo
+          </Badge>
+        )}
+      </td>
+      <td className="py-3">
+        <Badge variant={STATUS_VARIANT[business.status]}>{STATUS_LABEL[business.status]}</Badge>
+      </td>
+      <td className="py-3 text-neutral-500">{business.ownerEmail ?? "—"}</td>
+      <td className="py-3 text-neutral-500">{business.municipalityName ?? "—"}</td>
+      <td className="py-3 text-neutral-500">{business.productCount}</td>
+      <td className="py-3">
+        <Switch
+          checked={business.verified}
+          disabled={loading !== null}
+          onCheckedChange={(checked) => update({ verified: checked }, "verified")}
+        />
+      </td>
+      <td className="py-3 pr-4">
+        <div className="flex justify-end gap-2">
+          {NEXT_ACTIONS[business.status].map((action) => (
+            <Button
+              key={action.status}
+              size="sm"
+              variant={action.variant ?? "default"}
+              disabled={loading !== null}
+              onClick={() => update({ status: action.status }, action.status)}
+            >
+              {loading === action.status ? <Loader2 className="size-3.5 animate-spin" /> : action.label}
+            </Button>
+          ))}
         </div>
-        <p className="text-sm text-neutral-500">
-          {business.ownerEmail ?? "Sin dueño vinculado"} · {business.productCount} productos ·{" "}
-          {business.municipalityName ?? "Sin ubicación"}
-        </p>
-      </div>
-
-      <div className="flex shrink-0 items-center gap-2">
-        <label className="flex items-center gap-1.5 text-xs text-neutral-500">
-          <Switch
-            checked={business.verified}
-            disabled={loading !== null}
-            onCheckedChange={(checked) => update({ verified: checked }, "verified")}
-          />
-          Verificado
-        </label>
-        {NEXT_ACTIONS[business.status].map((action) => (
-          <Button
-            key={action.status}
-            size="sm"
-            variant={action.variant ?? "default"}
-            disabled={loading !== null}
-            onClick={() => update({ status: action.status }, action.status)}
-          >
-            {loading === action.status ? <Loader2 className="size-3.5 animate-spin" /> : action.label}
-          </Button>
-        ))}
-      </div>
-    </div>
+      </td>
+    </tr>
   );
 }

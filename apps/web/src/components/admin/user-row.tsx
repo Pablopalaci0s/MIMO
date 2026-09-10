@@ -37,20 +37,18 @@ export function UserRow({ user, isSelf }: { user: AdminUserDTO; isSelf: boolean 
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded-2xl border border-neutral-200 p-4 sm:flex-row sm:items-center sm:justify-between">
-      <div className="min-w-0 flex-1">
+    <tr className="border-b border-neutral-100 last:border-0 hover:bg-neutral-50">
+      <td className="py-3 pl-4">
         <div className="flex items-center gap-2">
           <p className="font-medium text-neutral-900">{user.name}</p>
           {user.isSuspended && <Badge variant="destructive">Suspendido</Badge>}
           {isSelf && <Badge variant="outline">Vos</Badge>}
         </div>
-        <p className="text-sm text-neutral-500">
-          {user.email} · {user.businessCount > 0 ? `${user.businessCount} negocio(s) · ` : ""}
-          {user.orderCount} pedido(s)
-        </p>
-      </div>
-
-      <div className="flex shrink-0 items-center gap-2">
+      </td>
+      <td className="py-3 text-neutral-500">{user.email}</td>
+      <td className="py-3 text-neutral-500">{user.businessCount > 0 ? user.businessCount : "—"}</td>
+      <td className="py-3 text-neutral-500">{user.orderCount}</td>
+      <td className="py-3">
         <Select
           value={user.role}
           disabled={isSelf || loading}
@@ -67,15 +65,19 @@ export function UserRow({ user, isSelf }: { user: AdminUserDTO; isSelf: boolean 
             ))}
           </SelectContent>
         </Select>
-        <Button
-          size="sm"
-          variant={user.isSuspended ? "outline" : "destructive"}
-          disabled={isSelf || loading}
-          onClick={() => update({ isSuspended: !user.isSuspended })}
-        >
-          {loading ? <Loader2 className="size-3.5 animate-spin" /> : user.isSuspended ? "Reactivar" : "Suspender"}
-        </Button>
-      </div>
-    </div>
+      </td>
+      <td className="py-3 pr-4">
+        <div className="flex justify-end">
+          <Button
+            size="sm"
+            variant={user.isSuspended ? "outline" : "destructive"}
+            disabled={isSelf || loading}
+            onClick={() => update({ isSuspended: !user.isSuspended })}
+          >
+            {loading ? <Loader2 className="size-3.5 animate-spin" /> : user.isSuspended ? "Reactivar" : "Suspender"}
+          </Button>
+        </div>
+      </td>
+    </tr>
   );
 }

@@ -172,6 +172,37 @@ Tarjeta y PayPal se muestran en la UI como "Próximamente" — el modelo
 confirmación del negocio (Fase 5) ya están pensados para que integrar
 Stripe después sea un cambio localizado, no un rediseño.
 
+## Diseño: paneles como app separada (post-Fase 6, rediseño)
+
+`/negocio` y `/admin` dejaron de ser páginas más del sitio con pestañas
+arriba — ahora son su propia "app" con sidebar fijo, sin el header/footer
+de marketing (pedido explícito: que se sientan "pro", como Stripe/Vercel).
+
+- **Dos layouts raíz**, vía route groups de Next.js: `app/(site)/layout.tsx`
+  (Header + Footer + BottomNav, todo el sitio público) y
+  `app/(dashboard)/layout.tsx` (fondo neutro, sin chrome de marketing). Cada
+  uno declara su propio `<html>/<body>` — Next.js permite esto siempre que
+  cada ruta caiga bajo un único grupo. Las fuentes (`next/font/google`) se
+  extrajeron a `lib/fonts.ts` para no duplicar la carga entre ambos. Los
+  paths de todas las páginas (`/negocio`, `/regalos`, etc.) no cambiaron —
+  los route groups son invisibles en la URL.
+- **`DashboardShell`** (`components/dashboard/`) es el sidebar compartido
+  entre negocio y admin: en escritorio fijo a la izquierda, en móvil colapsa
+  a un `Sheet`. Reutiliza el mismo `UserMenu` del sitio.
+- **Gotcha real que volvió a pasar**: armar `NAV_ITEMS` en el layout
+  (Server Component) con `icon: LayoutDashboard` (el componente, sin
+  renderizar) y pasarlo a `DashboardShell` (Client Component) rompe en
+  producción — "Functions cannot be passed directly to Client Components".
+  Es el mismo gotcha de RSC ya documentado más abajo; la solución fue
+  pasar `icon: <LayoutDashboard className="size-4" />` ya renderizado.
+- **Listas → tablas**: Negocios y Usuarios (admin) y Productos (negocio)
+  pasaron de tarjetas apiladas a `<table>` reales vía `DataTable`
+  (`components/dashboard/data-table.tsx`) — es el formato esperado para
+  "escanear" muchas filas. Pedidos, Reportes y Reseñas se mantienen como
+  tarjetas a propósito: tienen demasiado contenido por ítem (dirección,
+  personalización, motivo, comentario) para que una fila de tabla se lea
+  bien.
+
 ## Diseño: IA de recomendaciones (Fase 7)
 
 `packages/ai` (`AIService`) ya estaba completamente construido desde la
