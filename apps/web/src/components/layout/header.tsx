@@ -4,7 +4,10 @@ import { Button } from "@/components/ui/button";
 import { CartSheet } from "./cart-sheet";
 import { UserMenu } from "./user-menu";
 
-const NAV_LINKS = [{ href: "/regalos", label: "Regalos" }];
+const NAV_LINKS = [
+  { href: "/regalos", label: "Regalos" },
+  { href: "/ayuda", label: "Ayuda" },
+];
 
 export async function Header() {
   const session = await auth();

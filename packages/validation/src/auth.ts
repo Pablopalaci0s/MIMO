@@ -37,3 +37,24 @@ export const registerBusinessSchema = z.object({
     .regex(/[0-9]/),
 });
 export type RegisterBusinessInput = z.infer<typeof registerBusinessSchema>;
+
+export const userUpdateSchema = z.object({
+  name: z.string().trim().min(2, "El nombre es muy corto").max(100),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^[267]\d{7}$/, "Teléfono salvadoreño inválido (8 dígitos)")
+    .optional()
+    .or(z.literal("")),
+});
+export type UserUpdateInput = z.infer<typeof userUpdateSchema>;
+
+export const passwordChangeSchema = z.object({
+  currentPassword: z.string().min(1, "Ingresá tu contraseña actual"),
+  newPassword: z
+    .string()
+    .min(8, "La contraseña debe tener al menos 8 caracteres")
+    .regex(/[A-Z]/, "Debe incluir al menos una mayúscula")
+    .regex(/[0-9]/, "Debe incluir al menos un número"),
+});
+export type PasswordChangeInput = z.infer<typeof passwordChangeSchema>;

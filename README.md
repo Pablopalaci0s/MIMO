@@ -171,6 +171,26 @@ Tarjeta y PayPal se muestran en la UI como "Próximamente" — el modelo
 confirmación del negocio (Fase 5) ya están pensados para que integrar
 Stripe después sea un cambio localizado, no un rediseño.
 
+## Diseño: cuenta de usuario y alta de negocios (post-Fase 6)
+
+- **`/perfil`**: el usuario edita nombre y teléfono, y puede cambiar su
+  contraseña (pide la actual, la verifica con `bcrypt.compare` antes de
+  aceptar la nueva). El correo se muestra de solo lectura — cambiarlo
+  afecta el login, así que por ahora se pide que escriban a Ayuda.
+- **`/registro-negocio`**: primer flujo real de alta de negocio (antes solo
+  existía el schema de validación, sin página ni ruta). Crea el `User`
+  (rol `BUSINESS`), el `Business` en `PENDING` y el `BusinessUser` (OWNER)
+  en una sola transacción, y loguea al dueño de inmediato — entra a
+  `/negocio` y ve el aviso "pendiente de aprobación" que ya existía desde
+  la Fase 5, hasta que un admin lo aprueba desde `/admin/negocios`
+  (Fase 6). Cierra el gap que había quedado pendiente ahí.
+- **Menú de usuario rediseñado**: el trigger pasa de ser solo un avatar a
+  mostrar avatar + nombre + chevron, y el dropdown ahora lista Inicio, Mis
+  pedidos, Mi perfil, el panel según el rol (o "Sumá tu negocio" para
+  `USER`), y Ayuda — antes solo tenía pedidos, panel y cerrar sesión.
+  "Ayuda" también se agregó a la navegación del header, visible sin
+  necesidad de iniciar sesión.
+
 ## Diseño: reseñas, reportes y ayuda (post-Fase 6)
 
 Cierra el loop que había quedado documentado como pendiente en la Fase 6:
