@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { apiErrorMessage } from "@/lib/api-error-message";
 import { useCart } from "@/lib/cart/cart-context";
 import type { DeliveryCoverageResult, DeliveryWindow } from "@mimo/types";
 import type { MunicipalityDTO } from "@mimo/types";
@@ -172,9 +173,7 @@ export function CheckoutForm({
 
     if (!body.success) {
       setLoading(false);
-      const fieldErrors = body.error?.fieldErrors as Record<string, string[]> | undefined;
-      const detail = fieldErrors ? Object.values(fieldErrors).flat()[0] : undefined;
-      setError(detail ?? body.error?.message ?? "No pudimos procesar tu pedido.");
+      setError(apiErrorMessage(body, "No pudimos procesar tu pedido."));
       return;
     }
 

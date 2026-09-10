@@ -2,6 +2,7 @@
 
 import { Cake, Gift, GraduationCap, Heart, Loader2, PartyPopper, Pencil, Sparkles, Trash2 } from "lucide-react";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { apiErrorMessage } from "@/lib/api-error-message";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -98,7 +99,7 @@ export function ImportantDatesManager() {
     setLoading(false);
 
     if (!body.success) {
-      setError(body.error?.message ?? "No pudimos guardar la fecha.");
+      setError(apiErrorMessage(body, "No pudimos guardar la fecha."));
       return;
     }
     cancelEdit();

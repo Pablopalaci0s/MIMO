@@ -3,6 +3,7 @@
 import { Check, Copy, Loader2, RefreshCw, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { cn } from "cn";
+import { apiErrorMessage } from "@/lib/api-error-message";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { GenerateDedicationRequest } from "@mimo/types";
@@ -56,7 +57,7 @@ export function DedicationAssistant({
     setLoading(false);
 
     if (!body.success) {
-      setError(body.error?.message ?? "No pudimos generar dedicatorias. Probá de nuevo.");
+      setError(apiErrorMessage(body, "No pudimos generar dedicatorias. Probá de nuevo."));
       return;
     }
     setOptions(body.data.options);

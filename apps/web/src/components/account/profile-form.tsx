@@ -2,6 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
+import { apiErrorMessage } from "@/lib/api-error-message";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,7 +30,7 @@ export function ProfileForm({ user }: { user: UserDTO }) {
     setLoading(false);
 
     if (!body.success) {
-      setError(body.error?.message ?? "No pudimos guardar tus datos.");
+      setError(apiErrorMessage(body, "No pudimos guardar tus datos."));
       return;
     }
     setSaved(true);

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { cn } from "cn";
+import { apiErrorMessage } from "@/lib/api-error-message";
 import { Button } from "@/components/ui/button";
 import { RecommendationCard } from "./recommendation-card";
 import type { RecommendGiftsResponse } from "@mimo/types";
@@ -63,7 +64,7 @@ export function GiftFinder({ initialQuery = "" }: { initialQuery?: string }) {
     setLoading(false);
 
     if (!body.success) {
-      setError(body.error?.message ?? "No pudimos buscar recomendaciones. Probá de nuevo.");
+      setError(apiErrorMessage(body, "No pudimos buscar recomendaciones. Probá de nuevo."));
       return;
     }
     setResult(body.data);

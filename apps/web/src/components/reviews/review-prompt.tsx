@@ -4,6 +4,7 @@ import { Loader2, MessageSquarePlus } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { apiErrorMessage } from "@/lib/api-error-message";
 import { Button } from "@/components/ui/button";
 import { StarRating } from "@/components/ui/star-rating";
 import { Textarea } from "@/components/ui/textarea";
@@ -41,7 +42,7 @@ export function ReviewPrompt({ item }: { item: ReviewableItemDTO }) {
     setLoading(false);
 
     if (!body.success) {
-      setError(body.error?.message ?? "No pudimos guardar tu reseña.");
+      setError(apiErrorMessage(body, "No pudimos guardar tu reseña."));
       return;
     }
     setSent(true);

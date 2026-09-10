@@ -3,6 +3,7 @@
 import { EyeOff, Loader2, MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { apiErrorMessage } from "@/lib/api-error-message";
 import { Button } from "@/components/ui/button";
 import type { BusinessOrderItemDTO, OrderStatus } from "@mimo/types";
 
@@ -46,7 +47,7 @@ export function OrderItemCard({ item, statusLabel }: { item: BusinessOrderItemDT
     const body = await response.json();
     setLoading(null);
     if (!body.success) {
-      setError(body.error?.message ?? "No pudimos actualizar el pedido.");
+      setError(apiErrorMessage(body, "No pudimos actualizar el pedido."));
       return;
     }
     router.refresh();

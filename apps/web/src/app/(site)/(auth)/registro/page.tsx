@@ -4,6 +4,7 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { apiErrorMessage } from "@/lib/api-error-message";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,7 +31,7 @@ export default function RegisterPage() {
 
     if (!body.success) {
       setLoading(false);
-      setError(body.error?.message ?? "No pudimos crear tu cuenta.");
+      setError(apiErrorMessage(body, "No pudimos crear tu cuenta."));
       return;
     }
 

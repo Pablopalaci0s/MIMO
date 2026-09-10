@@ -4,6 +4,7 @@ import { ImagePlus, Loader2, X } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState } from "react";
 import { cn } from "cn";
+import { apiErrorMessage } from "@/lib/api-error-message";
 
 export function ImageUploadField({
   value,
@@ -33,7 +34,7 @@ export function ImageUploadField({
     setLoading(false);
 
     if (!body.success) {
-      setError(body.error?.message ?? "No pudimos subir la imagen.");
+      setError(apiErrorMessage(body, "No pudimos subir la imagen."));
       return;
     }
     onChange(body.data.url);

@@ -2,6 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
+import { apiErrorMessage } from "@/lib/api-error-message";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,7 +56,7 @@ export function HoursForm({ initial }: { initial: BusinessHoursDTO }) {
     setLoading(false);
 
     if (!body.success) {
-      setError(body.error?.message ?? "No pudimos guardar los horarios.");
+      setError(apiErrorMessage(body, "No pudimos guardar los horarios."));
       return;
     }
     setSaved(true);

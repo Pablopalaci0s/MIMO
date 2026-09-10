@@ -3,6 +3,7 @@
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { apiErrorMessage } from "@/lib/api-error-message";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,7 +44,7 @@ function CategoryRow({ category }: { category: AdminCategoryDTO }) {
     const body = await response.json();
     setLoading(false);
     if (!body.success) {
-      setError(body.error?.message ?? "No pudimos guardar la categoría.");
+      setError(apiErrorMessage(body, "No pudimos guardar la categoría."));
       return;
     }
     router.refresh();
@@ -117,7 +118,7 @@ export function CategoryManager({ categories }: { categories: AdminCategoryDTO[]
     setLoading(false);
 
     if (!body.success) {
-      setError(body.error?.message ?? "No pudimos crear la categoría.");
+      setError(apiErrorMessage(body, "No pudimos crear la categoría."));
       return;
     }
     setName("");

@@ -2,6 +2,7 @@
 
 import { Flag, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { apiErrorMessage } from "@/lib/api-error-message";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,7 +50,7 @@ export function ReportButton({ targetType, targetId }: { targetType: ReportTarge
     setLoading(false);
 
     if (!body.success) {
-      setError(body.error?.message ?? "No pudimos enviar el reporte.");
+      setError(apiErrorMessage(body, "No pudimos enviar el reporte."));
       return;
     }
     setSent(true);

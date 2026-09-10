@@ -3,6 +3,7 @@
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { apiErrorMessage } from "@/lib/api-error-message";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,7 +46,7 @@ function ZoneRow({ zone, municipalities }: { zone: BusinessDeliveryZoneDTO; muni
     const body = await response.json();
     setLoading(false);
     if (!body.success) {
-      setError(body.error?.message ?? "No pudimos guardar la zona.");
+      setError(apiErrorMessage(body, "No pudimos guardar la zona."));
       return;
     }
     router.refresh();
@@ -139,7 +140,7 @@ export function ZonesManager({
     setLoading(false);
 
     if (!body.success) {
-      setError(body.error?.message ?? "No pudimos crear la zona.");
+      setError(apiErrorMessage(body, "No pudimos crear la zona."));
       return;
     }
     setName("");

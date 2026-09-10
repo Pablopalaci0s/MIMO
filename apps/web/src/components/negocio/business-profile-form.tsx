@@ -2,6 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
+import { apiErrorMessage } from "@/lib/api-error-message";
 import { Button } from "@/components/ui/button";
 import { ImageUploadField } from "@/components/ui/image-upload-field";
 import { Input } from "@/components/ui/input";
@@ -50,7 +51,7 @@ export function BusinessProfileForm({ profile }: { profile: BusinessProfileDTO }
     setLoading(false);
 
     if (!body.success) {
-      setError(body.error?.message ?? "No pudimos guardar tu perfil.");
+      setError(apiErrorMessage(body, "No pudimos guardar tu perfil."));
       return;
     }
     setSaved(true);

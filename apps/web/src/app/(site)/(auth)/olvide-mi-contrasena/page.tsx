@@ -3,6 +3,7 @@
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
+import { apiErrorMessage } from "@/lib/api-error-message";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,7 +28,7 @@ export default function ForgotPasswordPage() {
     setLoading(false);
 
     if (!body.success) {
-      setError(body.error?.message ?? "No pudimos procesar la solicitud.");
+      setError(apiErrorMessage(body, "No pudimos procesar la solicitud."));
       return;
     }
     setSent(true);
