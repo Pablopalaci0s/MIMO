@@ -1,7 +1,8 @@
-import { Prisma, prisma, type OrderItemStatus, type OrderStatus } from "@mimo/database";
+import { Prisma, prisma, type OrderItemStatus } from "@mimo/database";
 import type { BusinessOrderItemDTO, NotificationType, PersonalizationInput } from "@mimo/types";
 import { AppError } from "@/lib/errors";
 import { createNotification } from "./notification-service";
+import { computeOrderStatus, isValidTransition } from "./order-status-logic";
 
 const BUSINESS_ORDER_ITEM_INCLUDE = {
   product: { include: { images: { orderBy: { position: "asc" as const }, take: 1 } } },
@@ -39,31 +40,6 @@ function toBusinessOrderItemDTO(item: BusinessOrderItemRow): BusinessOrderItemDT
   };
 }
 
-// A qué estados puede pasar cada `OrderItem` desde su estado actual — evita
-// que el negocio salte pasos (ej. de PENDING directo a DELIVERED) o reviva
-// un ítem ya cerrado.
-const NEXT_ALLOWED: Record<OrderItemStatus, OrderItemStatus[]> = {
-  PENDING: ["CONFIRMED", "CANCELLED"],
-  CONFIRMED: ["PREPARING", "CANCELLED"],
-  PREPARING: ["OUT_FOR_DELIVERY", "CANCELLED"],
-  OUT_FOR_DELIVERY: ["DELIVERED"],
-  DELIVERED: [],
-  CANCELLED: [],
-};
-
-// El progreso general del `Order` es el del ítem menos avanzado entre los
-// que siguen activos (no cancelados) — así un negocio no puede "adelantar"
-// el pedido completo mientras otro negocio del mismo carrito multi-tienda
-// todavía no confirma el suyo. Si todos los ítems se cancelan, el pedido
-// completo queda cancelado.
-const STATUS_RANK: Record<Exclude<OrderItemStatus, "CANCELLED">, number> = {
-  PENDING: 0,
-  CONFIRMED: 1,
-  PREPARING: 2,
-  OUT_FOR_DELIVERY: 3,
-  DELIVERED: 4,
-};
-
 // PENDING no dispara nada (es el estado inicial, no una transición). El resto
 // avisa al comprador — es su pedido el que cambió, no el del negocio.
 const ORDER_STATUS_NOTIFICATION: Partial<Record<OrderItemStatus, { type: NotificationType; title: string }>> = {
@@ -73,17 +49,6 @@ const ORDER_STATUS_NOTIFICATION: Partial<Record<OrderItemStatus, { type: Notific
   DELIVERED: { type: "ORDER_DELIVERED", title: "Tu pedido fue entregado" },
   CANCELLED: { type: "ORDER_CANCELLED", title: "Tu pedido fue cancelado" },
 };
-
-function computeOrderStatus(itemStatuses: OrderItemStatus[]): OrderStatus {
-  const active = itemStatuses.filter((status) => status !== "CANCELLED") as Exclude<
-    OrderItemStatus,
-    "CANCELLED"
-  >[];
-  if (active.length === 0) return "CANCELLED";
-  const minRank = Math.min(...active.map((status) => STATUS_RANK[status]));
-  const [status] = Object.entries(STATUS_RANK).find(([, rank]) => rank === minRank)!;
-  return status as OrderStatus;
-}
 
 export async function listBusinessOrderItems(
   businessId: string,
@@ -109,7 +74,7 @@ export async function updateBusinessOrderItemStatus(
   if (!item) {
     throw new AppError("NOT_FOUND", "No encontramos ese pedido en tu negocio.", 404);
   }
-  if (!NEXT_ALLOWED[item.status].includes(nextStatus)) {
+  if (!isValidTransition(item.status, nextStatus)) {
     throw new AppError(
       "INVALID_TRANSITION",
       `No podés pasar un pedido de "${item.status}" a "${nextStatus}".`,

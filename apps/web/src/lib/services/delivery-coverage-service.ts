@@ -1,13 +1,15 @@
 import { Prisma, prisma } from "@mimo/database";
 import type { CoverageRequestDTO, CoverageRequestInput, DeliveryCoverageResult } from "@mimo/types";
 import { AppError } from "@/lib/errors";
+import { resolveDeliveryCoverage } from "./delivery-coverage-logic";
 
 /**
  * Cobertura real por negocio, no un fee por defecto — si un negocio no
  * configuró una `DeliveryZone` activa para ese municipio, no puede
  * entregar ahí (queda a criterio de cada negocio, nunca se asume). Este es
  * el único lugar que decide "cubierto sí/no"; tanto el checkout como
- * `order-service.createOrder` lo usan.
+ * `order-service.createOrder` lo usan (mismo `resolveDeliveryCoverage` de
+ * `delivery-coverage-logic.ts`, para que nunca se desincronicen entre sí).
  */
 export async function checkDeliveryCoverage(
   businessIds: string[],
@@ -16,24 +18,32 @@ export async function checkDeliveryCoverage(
   const [businesses, zones] = await Promise.all([
     prisma.business.findMany({ where: { id: { in: businessIds } }, select: { id: true, name: true } }),
     prisma.deliveryZone.findMany({
-      where: { businessId: { in: businessIds }, municipalityId, isActive: true },
-      orderBy: { deliveryFee: "asc" },
+      where: {
+        businessId: { in: businessIds },
+        isActive: true,
+        OR: [{ municipalityId }, { municipalityId: null }],
+      },
     }),
   ]);
 
-  const zoneByBusiness = new Map<string, (typeof zones)[number]>();
-  for (const zone of zones) {
-    if (!zoneByBusiness.has(zone.businessId)) zoneByBusiness.set(zone.businessId, zone);
-  }
+  const { feeByBusiness } = resolveDeliveryCoverage(
+    businessIds,
+    zones.map((zone) => ({
+      businessId: zone.businessId,
+      municipalityId: zone.municipalityId,
+      deliveryFee: Number(zone.deliveryFee),
+      estimatedMinutes: zone.estimatedMinutes,
+    })),
+  );
 
   return businesses.map((business) => {
-    const zone = zoneByBusiness.get(business.id);
+    const zone = feeByBusiness.get(business.id);
     return {
       businessId: business.id,
       businessName: business.name,
       covered: Boolean(zone),
-      deliveryFee: zone ? Number(zone.deliveryFee) : null,
-      estimatedMinutes: zone ? zone.estimatedMinutes : null,
+      deliveryFee: zone?.deliveryFee ?? null,
+      estimatedMinutes: zone?.estimatedMinutes ?? null,
     };
   });
 }

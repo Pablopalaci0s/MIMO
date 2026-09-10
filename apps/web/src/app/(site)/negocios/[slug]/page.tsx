@@ -6,6 +6,7 @@ import { FavoriteButton } from "@/components/catalog/favorite-button";
 import { ProductCard } from "@/components/catalog/product-card";
 import { ReportButton } from "@/components/reports/report-button";
 import { ReviewList } from "@/components/reviews/review-list";
+import { formatPhone, whatsappHref } from "@/lib/format";
 import { getBusinessBySlug } from "@/lib/services/business-service";
 import { listApprovedReviews } from "@/lib/services/review-service";
 
@@ -19,15 +20,6 @@ export async function generateMetadata({
     title: `${business.name} — MIMO`,
     description: business.description ?? undefined,
   };
-}
-
-function whatsappHref(whatsapp: string): string {
-  const digits = whatsapp.replace(/[^\d]/g, "");
-  return `https://wa.me/${digits}`;
-}
-
-function formatPhone(phone: string): string {
-  return `${phone.slice(0, 4)}-${phone.slice(4)}`;
 }
 
 export default async function BusinessPage({ params }: PageProps<"/negocios/[slug]">) {

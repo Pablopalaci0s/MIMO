@@ -7,14 +7,14 @@ Centraliza lo que hoy los negocios manejan por Instagram/WhatsApp: catálogo,
 disponibilidad, precios, entrega y pago, todo en un solo lugar — con un
 asistente de IA que ayuda a elegir el regalo correcto.
 
-El proyecto se construye por fases (ver **Estado del proyecto** más abajo).
-Completas hasta ahora: arquitectura del monorepo, base de datos y
-autenticación (Fase 1), home y navegación (Fase 2), catálogo de productos y
-negocios (Fase 3), carrito/checkout/pedidos (Fase 4), panel de negocio
-(Fase 5), panel administrativo (Fase 6), el asistente de IA "Ayúdame a
-elegir" (Fase 7), el asistente de dedicatorias (Fase 8), favoritos/fechas
-importantes/notificaciones (Fase 9), y PWA/optimización móvil (Fase 10).
-La fase siguiente (testing) se construye en el orden descrito más abajo.
+El proyecto se construyó por fases (ver **Estado del proyecto** más abajo) y
+las 11 planeadas ya están completas: arquitectura del monorepo, base de
+datos y autenticación (Fase 1), home y navegación (Fase 2), catálogo de
+productos y negocios (Fase 3), carrito/checkout/pedidos (Fase 4), panel de
+negocio (Fase 5), panel administrativo (Fase 6), el asistente de IA
+"Ayúdame a elegir" (Fase 7), el asistente de dedicatorias (Fase 8),
+favoritos/fechas importantes/notificaciones (Fase 9), PWA/optimización
+móvil (Fase 10), y testing/revisión completa (Fase 11).
 
 ## Arquitectura
 
@@ -126,6 +126,7 @@ npm run typecheck
 npm run db:studio          # explorador visual de la base de datos
 npm run db:migrate:deploy  # aplicar migraciones en producción (sin prompts)
 npm run clean:cache        # borra .turbo/cache y apps/web/.next (ver nota abajo)
+npm run test               # tests unitarios (validación + lógica de negocio pura)
 ```
 
 **Sobre `clean:cache`:** Turborepo (`.turbo/cache`) y Turbopack (`apps/web/.next`)
@@ -153,7 +154,7 @@ un build completo), o simplemente correr `dev`/`build` una vez antes.
 - [x] **Fase 8** — IA para dedicatorias
 - [x] **Fase 9** — Fechas importantes, favoritos, notificaciones
 - [x] **Fase 10** — PWA y optimización móvil
-- [ ] Fase 11 — Testing y revisión completa
+- [x] **Fase 11** — Testing y revisión completa
 
 ## Diseño: pagos y seguimiento de pedidos (Fase 4)
 
@@ -298,7 +299,47 @@ links de teléfono por accidente), y `apple-mobile-web-app-status-bar-style:
 black-translucent` para que la barra de estado no rompa el blanco del
 header al abrir como app instalada.
 
-## Diseño: fotos, perfil del negocio y cobertura real de entrega (post-Fase 8)
+## Diseño: testing y revisión completa (Fase 11)
+
+**Qué cubren los tests automáticos (`npm run test`, Vitest) y qué no —
+para no reclamar más de lo que hay.** El foco es la lógica de negocio pura:
+- `packages/validation`: los ~90 tests cubren cada schema de Zod usado por
+  las rutas `/api/*` (formatos de teléfono/email/UUID, coerciones de
+  string a número desde formularios, campos opcionales vs. requeridos,
+  refinamientos cruzados como "una reseña necesita al menos una
+  calificación"). Es la superficie más barata de romper sin darse cuenta
+  (cambiar un `.optional()` por accidente) y la más barata de testear.
+- `apps/web`: la lógica de negocio que antes vivía mezclada adentro de los
+  `*-service.ts` (junto a las llamadas a Prisma) se separó a módulos puros
+  testeables sin base de datos — `order-status-logic.ts` (qué transiciones
+  de estado de pedido son válidas, cómo se calcula el estado agregado de un
+  pedido multi-negocio), `delivery-coverage-logic.ts` (qué zona de entrega
+  le corresponde a cada negocio) y `date-utils.ts` (comparación de fechas
+  en UTC, el gotcha de zona horaria documentado en CLAUDE.md). Los
+  `*-service.ts` ahora son más delgados: arman los datos desde Prisma y
+  delegan la decisión a estas funciones puras.
+- **Lo que NO está cubierto por tests automáticos**: nada que dependa de
+  Postgres (las funciones `async` de cada `*-service.ts` siguen
+  verificándose a mano en el navegador, como en cada fase anterior — armar
+  una base de datos de test con setup/teardown es una inversión que no se
+  justificaba para el alcance de este proyecto) ni componentes de React.
+  Ver la sección 5 de las reglas del usuario: mejor ser honesto sobre el
+  alcance que reclamar "cobertura completa".
+
+**Un bug real que encontró este ejercicio.** Al escribir los tests de
+`delivery-coverage-logic.ts` quedó en evidencia que la zona "cualquier
+municipio" (`DeliveryZone.municipalityId: null`, pensada para que un
+negocio diga "entrego a todos lados") **nunca había funcionado**: tanto
+`checkDeliveryCoverage` como `order-service.createOrder` filtraban las
+zonas con `municipalityId: <uuid del cliente>`, un filtro que en SQL nunca
+matchea filas con `municipality_id IS NULL`. Cualquier negocio que
+configurara esa opción seguía viendo "sin cobertura" para todo el mundo.
+Se arregló unificando ambos lugares en una sola función
+(`resolveDeliveryCoverage`) que trae también las zonas genéricas
+(`OR: [{ municipalityId }, { municipalityId: null }]`) y prioriza la zona
+específica del municipio sobre la genérica cuando hay las dos — verificado
+en vivo creando una zona "cualquier municipio" y confirmando que ahora sí
+cubre un municipio sin zona propia, con la fee correcta.
 
 Cuatro cambios pedidos juntos porque todos tocan "qué tan real/creíble se
 siente el marketplace": fotos de verdad (no URLs pegadas a mano), el negocio

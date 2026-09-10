@@ -11,6 +11,7 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
     "db:generate": "dotenv -e .env -- prisma generate --schema=packages/database/prisma/schema.prisma",
     "db:migrate": "dotenv -e .env -- prisma migrate dev --schema=packages/database/prisma/schema.prisma",
     "db:migrate:deploy": "dotenv -e .env -- prisma migrate deploy --schema=packages/database/prisma/schema.prisma",
@@ -23,7 +24,8 @@
     "prisma": "^6.19.3",
     "tsx": "^4.19.2",
     "turbo": "^2.3.3",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.11"
   },
   "engines": {
     "node": ">=20"

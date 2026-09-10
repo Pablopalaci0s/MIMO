@@ -2,6 +2,8 @@ import { Prisma, prisma } from "@mimo/database";
 import type { CheckoutInputParsed } from "@mimo/validation";
 import type { OrderDTO, OrderItemDTO, PersonalizationInput, ProductSummaryDTO } from "@mimo/types";
 import { AppError } from "@/lib/errors";
+import { parseUtcDateOnly, utcDateOnly } from "@/lib/date-utils";
+import { resolveDeliveryCoverage, sumDeliveryFees } from "./delivery-coverage-logic";
 import { PRODUCT_LIST_INCLUDE, toProductSummaryDTO } from "./product-service";
 
 const ORDER_INCLUDE = {
@@ -81,27 +83,33 @@ export async function createOrder(userId: string, input: CheckoutInputParsed): P
   // se interpreta como medianoche UTC, así que "hoy" debe calcularse igual
   // (medianoche UTC), no con setHours local, o un servidor en UTC-6 marca
   // el día de hoy como "pasado" (bug real encontrado probando el checkout).
-  const deliveryDate = new Date(`${input.address.deliveryDate}T00:00:00Z`);
-  const now = new Date();
-  const todayUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-  if (deliveryDate < todayUtc) {
+  const deliveryDate = parseUtcDateOnly(input.address.deliveryDate);
+  if (deliveryDate < utcDateOnly(new Date())) {
     throw new AppError("INVALID_DELIVERY_DATE", "La fecha de entrega no puede ser en el pasado.", 400);
   }
 
   const businessIds = [...new Set(products.map((product) => product.businessId))];
   const zones = await prisma.deliveryZone.findMany({
-    where: { businessId: { in: businessIds }, municipalityId: input.address.municipalityId, isActive: true },
+    where: {
+      businessId: { in: businessIds },
+      isActive: true,
+      OR: [{ municipalityId: input.address.municipalityId }, { municipalityId: null }],
+    },
   });
-  const feeByBusiness = new Map<string, number>();
-  for (const zone of zones) {
-    if (!feeByBusiness.has(zone.businessId)) feeByBusiness.set(zone.businessId, Number(zone.deliveryFee));
-  }
+  const { feeByBusiness, uncoveredBusinessIds } = resolveDeliveryCoverage(
+    businessIds,
+    zones.map((zone) => ({
+      businessId: zone.businessId,
+      municipalityId: zone.municipalityId,
+      deliveryFee: Number(zone.deliveryFee),
+      estimatedMinutes: zone.estimatedMinutes,
+    })),
+  );
 
   // La cobertura es real, no un fee por defecto — si un negocio no
   // configuró una zona activa para este municipio, no puede entregar ahí.
   // El checkout ya chequea esto antes de dejar avanzar (/api/delivery/coverage),
   // esta es la validación de respaldo del lado del servidor.
-  const uncoveredBusinessIds = businessIds.filter((id) => !feeByBusiness.has(id));
   if (uncoveredBusinessIds.length > 0) {
     const uncoveredBusinesses = await prisma.business.findMany({
       where: { id: { in: uncoveredBusinessIds } },
@@ -128,7 +136,7 @@ export async function createOrder(userId: string, input: CheckoutInputParsed): P
     };
   });
 
-  const deliveryFee = businessIds.reduce((sum, businessId) => sum + feeByBusiness.get(businessId)!, 0);
+  const deliveryFee = sumDeliveryFees(businessIds, feeByBusiness);
   const total = subtotal + deliveryFee;
 
   const order = await prisma.$transaction(async (tx) => {

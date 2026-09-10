@@ -1,6 +1,7 @@
 import { prisma } from "@mimo/database";
 import type { ImportantDateDTO, ImportantDateInput } from "@mimo/types";
 import { AppError } from "@/lib/errors";
+import { daysBetweenUtc, parseUtcDateOnly } from "@/lib/date-utils";
 import { createNotification } from "./notification-service";
 
 type ImportantDateRow = {
@@ -11,14 +12,6 @@ type ImportantDateRow = {
   recipientName: string | null;
   remindDaysBefore: number;
 };
-
-// Días en UTC — mismo criterio que el resto del proyecto (ver gotcha de
-// zona horaria en CLAUDE.md) para que "hoy" no dependa de la hora local.
-function daysBetweenUtc(from: Date, to: Date): number {
-  const fromUtc = Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate());
-  const toUtc = Date.UTC(to.getUTCFullYear(), to.getUTCMonth(), to.getUTCDate());
-  return Math.round((toUtc - fromUtc) / (1000 * 60 * 60 * 24));
-}
 
 function toImportantDateDTO(row: ImportantDateRow): ImportantDateDTO {
   return {
@@ -49,7 +42,7 @@ export async function createImportantDate(
       userId,
       type: input.type,
       label: input.label,
-      date: new Date(`${input.date}T00:00:00Z`),
+      date: parseUtcDateOnly(input.date),
       recipientName: input.recipientName || null,
       remindDaysBefore: input.remindDaysBefore ?? 7,
     },
@@ -70,7 +63,7 @@ export async function updateImportantDate(
     data: {
       type: input.type,
       label: input.label,
-      date: new Date(`${input.date}T00:00:00Z`),
+      date: parseUtcDateOnly(input.date),
       recipientName: input.recipientName || null,
       remindDaysBefore: input.remindDaysBefore ?? 7,
     },

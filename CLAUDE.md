@@ -65,7 +65,12 @@ correcta", no logística de comida.
 - [x] Fase 8 — IA para dedicatorias
 - [x] Fase 9 — Fechas importantes, favoritos, notificaciones
 - [x] Fase 10 — PWA y optimización móvil
-- [ ] **Fase 11 — Testing y revisión completa (siguiente)**
+- [x] Fase 11 — Testing y revisión completa
+
+Las 11 fases del roadmap original están completas. Cualquier trabajo nuevo
+a partir de acá es una fase adicional que no existía en el plan inicial —
+tratarla igual que el trabajo post-fase de abajo: documentarla en el
+README bajo su propio "Diseño: ..." en vez de forzarla en este checklist.
 
 Además de las 11 fases originales hubo trabajo post-fase pedido directamente
 por el usuario (rediseño de paneles como app con sidebar, subida de fotos,
