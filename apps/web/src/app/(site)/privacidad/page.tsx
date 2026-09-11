@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   description: "Qué datos recolecta MIMO, para qué los usa y cómo protegerlos.",
 };
 
-const LAST_UPDATED = "10 de septiembre de 2026";
+const LAST_UPDATED = "11 de septiembre de 2026";
 
 export default function PrivacidadPage() {
   return (
@@ -79,14 +79,33 @@ export default function PrivacidadPage() {
           desde la sección de Ayuda.
         </p>
 
-        <h2>7. Seguridad</h2>
+        <h2>7. Cookies</h2>
+        <p>
+          Usamos una sola cookie de sesión, necesaria para mantenerte conectado/a a tu cuenta
+          entre una página y otra. No es una cookie de rastreo ni de publicidad, no la compartimos
+          con terceros, y se borra cuando cerrás sesión o expira. No usamos cookies de análisis ni
+          de marketing.
+        </p>
+
+        <h2>8. Inteligencia artificial</h2>
+        <p>
+          Funciones como &quot;Ayúdame a elegir&quot; y el asistente de dedicatorias usan un modelo de
+          IA (Claude, de Anthropic) para interpretar lo que escribís (por ejemplo, &quot;cumpleaños de
+          mi novia, presupuesto $30&quot;) y sugerirte productos u opciones de mensaje. Le enviamos el
+          texto que escribís en ese momento — no tu historial de pedidos ni datos de tu cuenta. La
+          IA nunca inventa productos ni precios: solo elige entre lo que ya existe en el catálogo
+          de MIMO. Si no hay un proveedor de IA configurado, estas funciones igual funcionan con
+          reglas internas en vez de IA.
+        </p>
+
+        <h2>9. Seguridad</h2>
         <p>
           Las contraseñas se guardan con hash (nunca en texto plano) y las conexiones al Sitio
           usan HTTPS. Ningún sistema es 100% infalible, así que te recomendamos usar una
           contraseña única para MIMO.
         </p>
 
-        <h2>8. Cambios a esta política</h2>
+        <h2>10. Cambios a esta política</h2>
         <p>
           Si hacemos cambios importantes a esta política, lo vamos a anunciar en el Sitio con
           anticipación razonable.

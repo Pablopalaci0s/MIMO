@@ -581,6 +581,24 @@ modeló aparte a propósito, seguido el mismo patrón CRUD de
 `admin-category-service.ts`/`category-manager.tsx` para no inventar uno
 nuevo.
 
+## Diseño: aviso de cookies e IA (post-Fase 11)
+
+Pedido explícito del usuario: un mensaje visible avisando el uso de cookies
+de sesión e inteligencia artificial. `components/layout/cookie-ai-notice.tsx`
+es un aviso informativo (no un gestor de consentimiento granular con
+"aceptar"/"rechazar" por categoría) porque MIMO solo usa **una** cookie
+—la de sesión, necesaria, no de rastreo ni publicidad— así que no hay nada
+que el usuario deba poder desactivar por separado; el botón es "Entendido",
+no "Aceptar cookies". Se recuerda en `localStorage`, no en una cookie, para
+no depender de lo mismo que el aviso anuncia.
+
+La política de privacidad (`/privacidad`) ganó dos secciones nuevas —
+"Cookies" e "Inteligencia artificial"— que explican en más detalle qué le
+llega a Claude (el texto que escribís en ese momento, no tu cuenta ni tu
+historial) y que sin `ANTHROPIC_API_KEY` esas funciones siguen andando con
+reglas internas en vez de IA, igual que ya se documentaba en el resto del
+proyecto sobre `AIService`.
+
 ## Diseño: paneles como app separada (post-Fase 6, rediseño)
 
 `/negocio` y `/admin` dejaron de ser páginas más del sitio con pestañas
