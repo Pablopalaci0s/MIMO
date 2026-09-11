@@ -7,6 +7,7 @@ import { prisma } from "@mimo/database";
 import { EmailVerificationBanner } from "@/components/account/email-verification-banner";
 import { PasswordForm } from "@/components/account/password-form";
 import { ProfileForm } from "@/components/account/profile-form";
+import { PushNotificationsToggle } from "@/components/account/push-notifications-toggle";
 import { Separator } from "@/components/ui/separator";
 import type { UserDTO } from "@mimo/types";
 
@@ -51,6 +52,10 @@ export default async function ProfilePage() {
       <div className="mt-8">
         <ProfileForm user={userDto} />
       </div>
+
+      <Separator className="my-8" />
+
+      <PushNotificationsToggle />
 
       <Separator className="my-8" />
 

@@ -1,9 +1,10 @@
 // Service worker de MIMO — alcance deliberadamente chico: cachear el shell
-// estático para que la app abra rápido y ofrecer una página de "sin
-// conexión" honesta cuando falta red, no simular que el marketplace
-// funciona offline (catálogo/checkout necesitan datos reales del servidor;
+// estático para que la app abra rápido, ofrecer una página de "sin
+// conexión" honesta cuando falta red (no simular que el marketplace
+// funciona offline — catálogo/checkout necesitan datos reales del servidor;
 // sección 5 de las reglas del usuario prohíbe fingir funcionalidad que no
-// existe).
+// existe), y mostrar las notificaciones push reales que llegan mientras la
+// app está cerrada (ver apps/web/src/lib/services/push-service.ts).
 //
 // Subir CACHE_VERSION cuando cambie esta lista o la estrategia de cacheo,
 // para que los clientes viejos limpien su caché en el próximo activate.
@@ -78,4 +79,38 @@ self.addEventListener("fetch", (event) => {
       ),
     );
   }
+});
+
+// El payload lo arma push-service.ts: { title, body, url? }.
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+
+  let payload;
+  try {
+    payload = event.data.json();
+  } catch {
+    return;
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      data: { url: payload.url ?? "/" },
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url ?? "/";
+
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientsList) => {
+      const existing = clientsList.find((client) => new URL(client.url).pathname === url);
+      if (existing) return existing.focus();
+      return self.clients.openWindow(url);
+    }),
+  );
 });

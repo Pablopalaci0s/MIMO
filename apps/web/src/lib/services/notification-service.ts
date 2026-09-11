@@ -1,6 +1,7 @@
 import { Prisma, prisma, type NotificationType } from "@mimo/database";
 import type { NotificationDTO, NotificationListDTO } from "@mimo/types";
 import { AppError } from "@/lib/errors";
+import { sendWebPushToUser } from "./push-service";
 
 type NotificationRow = Prisma.NotificationGetPayload<object>;
 
@@ -39,6 +40,15 @@ export async function createNotification(input: {
       body: input.body,
       metadata: { ...input.metadata, ...(input.linkHref ? { href: input.linkHref } : {}) },
     },
+  });
+
+  // No-op sin claves VAPID configuradas (ver push-service.ts) — cada
+  // notificación pasa por acá, así que cualquier tipo nuevo llega como push
+  // gratis sin tener que acordarse de cablearlo en cada call site.
+  await sendWebPushToUser(input.userId, {
+    title: input.title,
+    body: input.body,
+    url: input.linkHref,
   });
 }
 

@@ -216,6 +216,7 @@ model User {
   aiRecommendations   AIRecommendation[]
   reports             Report[]
   pushTokens          PushToken[]
+  webPushSubscriptions WebPushSubscription[]
   coverageRequests    CoverageRequest[]
   authTokens          AuthToken[]
 
@@ -306,6 +307,26 @@ model PushToken {
 
   @@index([userId])
   @@map("push_tokens")
+}
+
+/**
+ * Suscripción real de Web Push (navegador) — forma distinta a `PushToken`
+ * (pensado para un token opaco de FCM/APNs de una futura app nativa), por
+ * eso un modelo aparte en vez de forzar `endpoint`+`p256dh`+`auth` adentro
+ * de un solo campo `token` de texto. `endpoint` es único: un mismo
+ * navegador/dispositivo tiene una sola suscripción activa por vez.
+ */
+model WebPushSubscription {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("web_push_subscriptions")
 }
 
 // ─────────────────────────────────────────────────────────────────────────

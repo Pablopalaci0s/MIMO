@@ -646,6 +646,63 @@ para que alguien reconozca su pueblo/colonia sin que eso implique una
 entidad nueva que seleccionar. `packages/database/prisma/seed.ts` quedó
 con los 14 departamentos completos y correctos.
 
+## Diseño: fechas importantes recurrentes y notificaciones push (post-Fase 11)
+
+Dos deudas técnicas señaladas por el usuario, documentadas honestamente en
+el README desde la Fase 9 como limitaciones conocidas — ahora resueltas.
+
+**Fechas importantes que en verdad se repiten cada año.** El bug real:
+`daysBetweenUtc` comparaba la fecha guardada completa (con año) contra
+hoy — así que un cumpleaños cargado en 2019 daba `daysUntil` negativo para
+siempre a partir de esa fecha en 2019, nunca volvía a avisar. Se agregó
+`nextAnnualOccurrence` (`date-utils.ts`) que ignora el año guardado y
+calcula la próxima ocurrencia de mes/día. Además, el chequeo de "ya
+avisado" comparaba solo `importantDateId` — bloqueaba el aviso para
+siempre después del primer año. Ahora `metadata.occurrenceYear` va junto
+al id, así el aviso se repite cada año sin duplicarse dentro del mismo.
+
+**El cron real que faltaba.** Antes el aviso solo se generaba de forma
+perezosa cuando el usuario abría el home — si no entraba a MIMO en la
+ventana de aviso, nunca se enteraba. Ahora existe
+`/api/cron/fechas-importantes` (protegido con `CRON_SECRET`, sin esa
+variable rechaza todo) que corre `checkAllImportantDateReminders` para
+todos los usuarios, más un workflow de GitHub Actions
+(`.github/workflows/cron-fechas-importantes.yml`) que lo llama una vez al
+día. **No hace nada todavía**: hasta que el sitio esté desplegado, no hay
+`APP_URL` real a la cual pegarle — hace falta configurar los secrets
+`APP_URL` y `CRON_SECRET` en GitHub una vez elegido el hosting. El workflow
+también se puede correr a mano desde la pestaña Actions
+(`workflow_dispatch`) para probarlo.
+
+**Notificaciones push reales.** Se agregó Web Push de verdad (paquete
+`web-push`, claves VAPID) — no solo las notificaciones dentro de la app
+que ya existían. Un modelo nuevo, `WebPushSubscription` (aparte de
+`PushToken`, que ya existía pensado para tokens opacos de una futura app
+nativa — una suscripción de navegador necesita `endpoint` + dos claves,
+forma distinta). `createNotification` (el único punto de creación de
+notificaciones del proyecto) ahora también manda un push — así que pedido
+confirmado, reseña recibida, fecha importante, etc. llegan como push sin
+tener que cablear cada tipo por separado. El toggle vive en "Mi perfil"
+(`PushNotificationsToggle`) y, como todo lo demás sin su clave configurada,
+ni se muestra sin `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`.
+
+**Bug real encontrado mientras se armaba esto** (no estaba buscándolo):
+Next.js/Turbopack solo inyecta `NEXT_PUBLIC_*` al bundle del cliente si las
+encuentra en un `.env` dentro de `apps/web/` — este proyecto carga un único
+`.env` en la raíz del monorepo (`next.config.ts` → `loadEnvConfig`,
+compartido con Prisma a propósito). Confirmado inspeccionando el bundle
+compilado: la variable llegaba como `undefined` en el navegador. Esto
+también afecta a `NEXT_PUBLIC_SENTRY_DSN` — **el reporte de errores de
+Sentry del lado del cliente nunca estuvo realmente activo**, a pesar de
+estar "configurado". El server-side (API routes, `next.config.ts`) no
+tiene este problema porque ahí `process.env` es un proceso de Node real.
+Para la clave VAPID se esquivó sirviéndola por
+`/api/push/vapid-public-key` en vez de depender del inlining (es una clave
+pública por diseño, no hay problema en exponerla así). El problema de
+Sentry sigue sin resolver — arreglarlo bien implica repensar cómo
+`NEXT_PUBLIC_*` llega al cliente en todo el proyecto, alcance mayor al de
+esta sesión.
+
 ## Diseño: paneles como app separada (post-Fase 6, rediseño)
 
 `/negocio` y `/admin` dejaron de ser páginas más del sitio con pestañas

@@ -152,6 +152,17 @@ Cuentas demo: `admin@mimo.sv` / `Admin123!` (admin), `cliente@mimo.sv` /
   caché — si corrés `typecheck` después de limpiar sin antes levantar
   `dev`/`build`, falla con "Cannot find name 'PageProps'". Fix rápido:
   `npx next typegen` dentro de `apps/web`.
+- **`NEXT_PUBLIC_*` y el `.env` en la raíz del monorepo**: Next/Turbopack
+  solo inyecta variables `NEXT_PUBLIC_*` al bundle del cliente si las
+  encuentra en un `.env` dentro de `apps/web/` — este proyecto carga un
+  único `.env` en la raíz (`next.config.ts` → `loadEnvConfig`, a propósito,
+  compartido con Prisma). Confirmado inspeccionando el bundle compilado:
+  esas variables llegan como `undefined` en el navegador (afecta también a
+  `NEXT_PUBLIC_SENTRY_DSN` — el reporte de errores del lado del cliente
+  nunca estuvo activo). El server-side no tiene este problema (`process.env`
+  ahí es un proceso de Node real). Mientras no se resuelva de raíz: para
+  algo que el cliente necesite sí o sí, servirlo por una ruta `/api/*` en
+  vez de depender del inlining (ver `/api/push/vapid-public-key`).
 
 ## Estructura de servicios (para mantener el patrón en fases futuras)
 
