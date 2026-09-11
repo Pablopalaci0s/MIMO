@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { apiErrorMessage } from "@/lib/api-error-message";
+import { MunicipalityHint } from "@/components/location/municipality-hint";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -120,6 +121,7 @@ export function BusinessApplicationForm({ municipalities }: { municipalities: Mu
             ))}
           </SelectContent>
         </Select>
+        <MunicipalityHint municipalities={municipalities} municipalityId={municipalityId} />
       </div>
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="business-address">Dirección</Label>

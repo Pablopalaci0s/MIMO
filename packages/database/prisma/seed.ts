@@ -44,45 +44,327 @@ function categoryImageUrl(categorySlug: string, seedKey: string): string {
   return `https://images.unsplash.com/photo-${photoId}?auto=format&fit=crop&w=800&q=80`;
 }
 
-// El Salvador: los 14 departamentos con sus municipios. Se listan todos los
-// departamentos (para que la plataforma nunca dependa solo de San Salvador,
-// ver sección 34) pero solo se detallan municipios para los departamentos
-// del plan de expansión inicial (sección 41); el resto arranca con su
-// cabecera departamental y se completa según crece la cobertura de delivery.
-const DEPARTMENTS: Record<string, string[]> = {
-  "San Salvador": [
-    "San Salvador",
-    // El municipio de San Salvador (la capital) es demasiado grande para
-    // que "cobertura" signifique algo útil a ese nivel — se suma también
-    // por distrito, para que un negocio pueda cubrir, por ejemplo, "San
-    // Salvador Centro" sin comprometerse a toda la capital.
-    "San Salvador Centro",
-    "San Salvador Norte",
-    "San Salvador Sur",
-    "San Salvador Este",
-    "San Salvador Oeste",
-    "Mejicanos",
-    "Soyapango",
-    "Santa Tecla",
-    "Antiguo Cuscatlán",
-    "Ilopango",
-    "Apopa",
-    "San Marcos",
-    "Ayutuxtepeque",
+interface DemoMunicipality {
+  name: string;
+  /** Antiguos municipios (pre-reforma territorial 2021) agrupados acá. */
+  districts: string[];
+}
+
+/**
+ * El Salvador post-reforma territorial 2021: 14 departamentos → 44
+ * municipios nuevos (lo que antes eran ~262 municipios pasó a ser
+ * "distritos" dentro de estos 44). Un negocio elige cobertura a nivel de
+ * municipio nuevo (lo que hoy modela `Municipality`) — los distritos son
+ * solo informativos (`Municipality.districts`) para que alguien reconozca
+ * su pueblo/colonia de toda la vida al elegir, ver sección "Diseño:
+ * distritos" del README.
+ */
+const DEPARTMENTS: Record<string, DemoMunicipality[]> = {
+  Ahuachapán: [
+    { name: "Ahuachapán Norte", districts: ["Atiquizaya", "El Refugio", "San Lorenzo", "Turín"] },
+    { name: "Ahuachapán Centro", districts: ["Ahuachapán", "Apaneca", "Concepción de Ataco", "Tacuba"] },
+    {
+      name: "Ahuachapán Sur",
+      districts: ["Guaymango", "Jujutla", "San Francisco Menéndez", "San Pedro Puxtla"],
+    },
   ],
-  "La Libertad": ["Santa Tecla", "La Libertad", "Zaragoza", "Ciudad Arce", "Colón"],
-  "Santa Ana": ["Santa Ana", "Chalchuapa", "Metapán"],
-  "San Miguel": ["San Miguel", "Chinameca", "Ciudad Barrios"],
-  Sonsonate: ["Sonsonate", "Acajutla", "Izalco"],
-  Ahuachapán: ["Ahuachapán"],
-  Cuscatlán: ["Cojutepeque"],
-  "La Paz": ["Zacatecoluca"],
-  Cabañas: ["Sensuntepeque"],
-  Usulután: ["Usulután"],
-  "San Vicente": ["San Vicente"],
-  Morazán: ["San Francisco Gotera"],
-  "La Unión": ["La Unión"],
-  Chalatenango: ["Chalatenango"],
+  "San Salvador": [
+    { name: "San Salvador Norte", districts: ["Aguilares", "El Paisnal", "Guazapa"] },
+    { name: "San Salvador Oeste", districts: ["Apopa", "Nejapa"] },
+    { name: "San Salvador Este", districts: ["Ilopango", "San Martín", "Soyapango", "Tonacatepeque"] },
+    {
+      name: "San Salvador Centro",
+      districts: ["Ayutuxtepeque", "Mejicanos", "San Salvador", "Cuscatancingo", "Ciudad Delgado"],
+    },
+    {
+      name: "San Salvador Sur",
+      districts: ["Panchimalco", "Rosario de Mora", "San Marcos", "Santo Tomás", "Santiago Texacuangos"],
+    },
+  ],
+  "La Libertad": [
+    { name: "La Libertad Norte", districts: ["Quezaltepeque", "San Matías", "San Pablo Tacachico"] },
+    { name: "La Libertad Centro", districts: ["San Juan Opico", "Ciudad Arce"] },
+    { name: "La Libertad Oeste", districts: ["Colón", "Jayaque", "Sacacoyo", "Tepecoyo", "Talnique"] },
+    {
+      name: "La Libertad Este",
+      districts: ["Antiguo Cuscatlán", "Huizúcar", "Nuevo Cuscatlán", "San José Villanueva", "Zaragoza"],
+    },
+    {
+      name: "La Libertad Costa",
+      districts: ["Chiltiupán", "Jicalapa", "La Libertad", "Tamanique", "Teotepeque"],
+    },
+    { name: "La Libertad Sur", districts: ["Comasagua", "Santa Tecla"] },
+  ],
+  Chalatenango: [
+    { name: "Chalatenango Norte", districts: ["La Palma", "Citalá", "San Ignacio"] },
+    {
+      name: "Chalatenango Centro",
+      districts: [
+        "Nueva Concepción",
+        "Tejutla",
+        "La Reina",
+        "Agua Caliente",
+        "Dulce Nombre de María",
+        "El Paraíso",
+        "San Francisco Morazán",
+        "San Rafael",
+        "Santa Rita",
+        "San Fernando",
+      ],
+    },
+    {
+      name: "Chalatenango Sur",
+      districts: [
+        "Chalatenango",
+        "Arcatao",
+        "Azacualpa",
+        "Comalapa",
+        "Concepción Quezaltepeque",
+        "El Carrizal",
+        "La Laguna",
+        "Las Vueltas",
+        "Nombre de Jesús",
+        "Nueva Trinidad",
+        "Ojos de Agua",
+        "Potonico",
+        "San Antonio de La Cruz",
+        "San Antonio Los Ranchos",
+        "San Francisco Lempa",
+        "San Isidro Labrador",
+        "San José Cancasque",
+        "San Miguel de Mercedes",
+        "San José Las Flores",
+        "San Luis del Carmen",
+      ],
+    },
+  ],
+  Cuscatlán: [
+    {
+      name: "Cuscatlán Norte",
+      districts: ["Suchitoto", "San José Guayabal", "Oratorio de Concepción", "San Bartolomé Perulapán", "San Pedro Perulapán"],
+    },
+    {
+      name: "Cuscatlán Sur",
+      districts: [
+        "Cojutepeque",
+        "San Rafael Cedros",
+        "Candelaria",
+        "Monte San Juan",
+        "El Carmen",
+        "San Cristóbal",
+        "Santa Cruz Michapa",
+        "San Ramón",
+        "El Rosario",
+        "Santa Cruz Analquito",
+        "Tenancingo",
+      ],
+    },
+  ],
+  Cabañas: [
+    { name: "Cabañas Este", districts: ["Sensuntepeque", "Victoria", "Dolores", "Guacotecti", "San Isidro"] },
+    { name: "Cabañas Oeste", districts: ["Ilobasco", "Tejutepeque", "Jutiapa", "Cinquera"] },
+  ],
+  "La Paz": [
+    {
+      name: "La Paz Oeste",
+      districts: [
+        "Cuyultitán",
+        "Olocuilta",
+        "San Juan Talpa",
+        "San Luis Talpa",
+        "San Pedro Masahuat",
+        "Tapalhuaca",
+        "San Francisco Chinameca",
+      ],
+    },
+    {
+      name: "La Paz Centro",
+      districts: [
+        "El Rosario",
+        "Jerusalén",
+        "Mercedes La Ceiba",
+        "Paraíso de Osorio",
+        "San Antonio Masahuat",
+        "San Emigdio",
+        "San Juan Tepezontes",
+        "San Luis La Herradura",
+        "San Miguel Tepezontes",
+        "San Pedro Nonualco",
+        "Santa María Ostuma",
+        "Santiago Nonualco",
+      ],
+    },
+    { name: "La Paz Este", districts: ["San Juan Nonualco", "San Rafael Obrajuelo", "Zacatecoluca"] },
+  ],
+  "La Unión": [
+    {
+      name: "La Unión Norte",
+      districts: [
+        "Anamorós",
+        "Bolívar",
+        "Concepción de Oriente",
+        "El Sauce",
+        "Lislique",
+        "Nueva Esparta",
+        "Pasaquina",
+        "Polorós",
+        "San José La Fuente",
+        "Santa Rosa de Lima",
+      ],
+    },
+    {
+      name: "La Unión Sur",
+      districts: [
+        "Conchagua",
+        "El Carmen",
+        "Intipucá",
+        "La Unión",
+        "Meanguera del Golfo",
+        "San Alejo",
+        "Yayantique",
+        "Yucuaiquín",
+      ],
+    },
+  ],
+  Usulután: [
+    {
+      name: "Usulután Norte",
+      districts: [
+        "Santiago de María",
+        "Alegría",
+        "Berlín",
+        "Mercedes Umaña",
+        "Jucuapa",
+        "El Triunfo",
+        "Estanzuelas",
+        "San Buenaventura",
+        "Nueva Granada",
+      ],
+    },
+    {
+      name: "Usulután Este",
+      districts: [
+        "Usulután",
+        "Jucuarán",
+        "San Dionisio",
+        "Concepción Batres",
+        "Santa María",
+        "Ozatlán",
+        "Tecapán",
+        "Santa Elena",
+        "California",
+        "Ereguayquín",
+      ],
+    },
+    { name: "Usulután Oeste", districts: ["Jiquilisco", "Puerto El Triunfo", "San Agustín", "San Francisco Javier"] },
+  ],
+  Sonsonate: [
+    { name: "Sonsonate Norte", districts: ["Juayúa", "Nahuizalco", "Salcoatitán", "Santa Catarina Masahuat"] },
+    {
+      name: "Sonsonate Centro",
+      districts: ["Sonsonate", "Sonzacate", "Nahulingo", "San Antonio del Monte", "Santo Domingo de Guzmán"],
+    },
+    {
+      name: "Sonsonate Este",
+      districts: ["Izalco", "Armenia", "Caluco", "San Julián", "Cuisnahuat", "Santa Isabel Ishuatán"],
+    },
+    { name: "Sonsonate Oeste", districts: ["Acajutla"] },
+  ],
+  "Santa Ana": [
+    { name: "Santa Ana Norte", districts: ["Masahuat", "Metapán", "Santa Rosa Guachipilín", "Texistepeque"] },
+    { name: "Santa Ana Centro", districts: ["Santa Ana"] },
+    { name: "Santa Ana Este", districts: ["Coatepeque", "El Congo"] },
+    {
+      name: "Santa Ana Oeste",
+      districts: [
+        "Candelaria de la Frontera",
+        "Chalchuapa",
+        "El Porvenir",
+        "San Antonio Pajonal",
+        "San Sebastián Salitrillo",
+        "Santiago de la Frontera",
+      ],
+    },
+  ],
+  "San Vicente": [
+    {
+      name: "San Vicente Norte",
+      districts: [
+        "Apastepeque",
+        "Santa Clara",
+        "San Ildefonso",
+        "San Esteban Catarina",
+        "San Sebastián",
+        "San Lorenzo",
+        "Santo Domingo",
+      ],
+    },
+    {
+      name: "San Vicente Sur",
+      districts: ["San Vicente", "Guadalupe", "Verapaz", "Tepetitán", "Tecoluca", "San Cayetano Istepeque"],
+    },
+  ],
+  "San Miguel": [
+    {
+      name: "San Miguel Norte",
+      districts: [
+        "Ciudad Barrios",
+        "Sesori",
+        "Nuevo Edén de San Juan",
+        "San Gerardo",
+        "San Luis de La Reina",
+        "Carolina",
+        "San Antonio del Mosco",
+        "Chapeltique",
+      ],
+    },
+    {
+      name: "San Miguel Centro",
+      districts: ["San Miguel", "Comacarán", "Uluazapa", "Moncagua", "Quelepa", "Chirilagua"],
+    },
+    {
+      name: "San Miguel Oeste",
+      districts: ["Chinameca", "Nueva Guadalupe", "Lolotique", "San Jorge", "San Rafael Oriente", "El Tránsito"],
+    },
+  ],
+  Morazán: [
+    {
+      name: "Morazán Norte",
+      districts: [
+        "Arambala",
+        "Cacaopera",
+        "Corinto",
+        "El Rosario",
+        "Joateca",
+        "Jocoaitique",
+        "Meanguera",
+        "Perquín",
+        "San Fernando",
+        "San Isidro",
+        "Torola",
+      ],
+    },
+    {
+      name: "Morazán Sur",
+      districts: [
+        "Chilanga",
+        "Delicias de Concepción",
+        "El Divisadero",
+        "Gualococti",
+        "Guatajiagua",
+        "Jocoro",
+        "Lolotiquillo",
+        "Osicala",
+        "San Carlos",
+        "San Francisco Gotera",
+        "San Simón",
+        "Sensembra",
+        "Sociedad",
+        "Yamabal",
+        "Yoloaiquín",
+      ],
+    },
+  ],
 };
 
 const CATEGORIES = [
@@ -140,19 +422,20 @@ async function main() {
       create: { name: departmentName, slug: slugify(departmentName) },
     });
 
-    for (const municipalityName of municipalities) {
+    for (const municipality of municipalities) {
       await prisma.municipality.upsert({
         where: {
           departmentId_slug: {
             departmentId: department.id,
-            slug: slugify(municipalityName),
+            slug: slugify(municipality.name),
           },
         },
-        update: {},
+        update: { districts: municipality.districts },
         create: {
-          name: municipalityName,
-          slug: slugify(municipalityName),
+          name: municipality.name,
+          slug: slugify(municipality.name),
           departmentId: department.id,
+          districts: municipality.districts,
         },
       });
     }

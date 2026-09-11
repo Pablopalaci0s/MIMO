@@ -599,6 +599,53 @@ historial) y que sin `ANTHROPIC_API_KEY` esas funciones siguen andando con
 reglas internas en vez de IA, igual que ya se documentaba en el resto del
 proyecto sobre `AIService`.
 
+## Diseño: búsqueda, filtros de admin y distritos (post-Fase 11)
+
+Tres pedidos del usuario juntos porque salieron en el mismo mensaje, no
+porque estén relacionados entre sí:
+
+**Buscador en el catálogo.** El backend (`product-service.ts`) ya soportaba
+búsqueda de texto (`query`, con `contains` insensible a mayúsculas sobre
+nombre y descripción) desde que existe `/regalos` — el filtro `q` ya se
+parseaba y se pasaba a `listProducts`. Lo que faltaba era el input: se
+agregó a `catalog-filters.tsx`, con debounce de 400ms para no navegar en
+cada tecla.
+
+**Filtros en el admin.** `/admin/usuarios` y `/admin/negocios` mostraban
+una tabla plana sin forma de buscar nada. Se agregó `listAdminUsers`/
+`listAdminBusinesses` con filtros (`q`, rol, suspendido/estado) armados
+como `where` de Prisma, y componentes `user-filters.tsx`/
+`business-filters.tsx` que leen/escriben query params — mismo patrón que
+`catalog-filters.tsx`, nada nuevo bajo el capó.
+
+**Bug real encontrado (y arreglado) en el camino**: crear un banner tiraba
+"URL de imagen inválida" aunque se hubiera subido una foto, porque
+`adminBannerInputSchema.imageUrl` exigía `z.string().url()` (URL absoluta)
+pero `/api/uploads` devuelve una ruta local (`/uploads/xyz.png`).
+`packages/validation/src/business.ts` ya tenía el fix correcto para este
+mismo problema (`imageUrlSchema`, que acepta ambas formas) resuelto para
+productos — solo hacía falta exportarlo y reusarlo en vez de reinventar la
+validación de imagen en `admin.ts`.
+
+**Distritos.** El usuario pegó la lista oficial completa de los 14
+departamentos post-reforma territorial 2021 (44 municipios nuevos, cada
+uno agrupando lo que antes eran varios municipios — ahora "distritos").
+Los datos de semilla anteriores solo detallaban unos pocos departamentos y
+tenían errores reales (ej. Santa Tecla aparecía bajo el departamento de
+San Salvador, cuando en realidad es La Libertad Sur). Se decidió
+explícitamente **no** agregar un tercer nivel de jerarquía seleccionable
+(Departamento → Municipio → Distrito): un negocio sigue eligiendo
+cobertura a nivel de municipio nuevo, que es el nivel real de
+administración territorial hoy. Los distritos se guardan como
+`Municipality.districts` (`String[]`, migración
+`20260911054300_add_municipality_districts`) y se muestran como texto
+informativo bajo cada selector de municipio (`MunicipalityHint`, en el
+alta de negocio y en zonas de entrega) — "San Salvador Centro — incluye
+Ayutuxtepeque, Mejicanos, San Salvador, Cuscatancingo, Ciudad Delgado" —
+para que alguien reconozca su pueblo/colonia sin que eso implique una
+entidad nueva que seleccionar. `packages/database/prisma/seed.ts` quedó
+con los 14 departamentos completos y correctos.
+
 ## Diseño: paneles como app separada (post-Fase 6, rediseño)
 
 `/negocio` y `/admin` dejaron de ser páginas más del sitio con pestañas

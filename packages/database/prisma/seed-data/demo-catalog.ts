@@ -27,7 +27,7 @@ export interface DemoBusiness {
 export const DEMO_BUSINESSES: DemoBusiness[] = [
   {
     name: "Rosas del Valle",
-    municipalitySlug: "san-salvador",
+    municipalitySlug: "san-salvador-centro",
     whatsapp: "+503 7000-0001",
     description: "Floristería especializada en arreglos frescos para toda ocasión. [DEMO]",
     addressLine: "Colonia Escalón, San Salvador",
@@ -82,7 +82,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
   },
   {
     name: "Choco Amor",
-    municipalitySlug: "santa-tecla",
+    municipalitySlug: "la-libertad-sur",
     whatsapp: "+503 7000-0002",
     description: "Chocolatería artesanal salvadoreña. [DEMO]",
     addressLine: "Paseo El Carmen, Santa Tecla",
@@ -136,7 +136,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
   },
   {
     name: "Cajas con Cariño",
-    municipalitySlug: "antiguo-cuscatlan",
+    municipalitySlug: "la-libertad-este",
     whatsapp: "+503 7000-0003",
     description: "Cajas de regalo curadas para cada ocasión. [DEMO]",
     addressLine: "Multiplaza, Antiguo Cuscatlán",
@@ -191,7 +191,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
   },
   {
     name: "Dulce Locura Pastelería",
-    municipalitySlug: "san-salvador",
+    municipalitySlug: "san-salvador-centro",
     whatsapp: "+503 7000-0004",
     description: "Pasteles y postres horneados por encargo. [DEMO]",
     addressLine: "Colonia San Benito, San Salvador",
@@ -246,7 +246,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
   },
   {
     name: "Globos y Fiesta SV",
-    municipalitySlug: "soyapango",
+    municipalitySlug: "san-salvador-este",
     whatsapp: "+503 7000-0005",
     description: "Decoración con globos para fiestas y celebraciones. [DEMO]",
     addressLine: "Ciudad Delgado, Soyapango",
@@ -300,7 +300,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
   },
   {
     name: "Peluches Ticos",
-    municipalitySlug: "mejicanos",
+    municipalitySlug: "san-salvador-centro",
     whatsapp: "+503 7000-0006",
     description: "Peluches y detalles personalizados. [DEMO]",
     addressLine: "Zacamil, Mejicanos",
@@ -356,7 +356,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
   },
   {
     name: "Desayunos Sorpresa SV",
-    municipalitySlug: "santa-tecla",
+    municipalitySlug: "la-libertad-sur",
     whatsapp: "+503 7000-0007",
     description: "Desayunos sorpresa a domicilio. [DEMO]",
     addressLine: "Merliot, Santa Tecla",
@@ -402,7 +402,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
   },
   {
     name: "Joyería Luna",
-    municipalitySlug: "antiguo-cuscatlan",
+    municipalitySlug: "la-libertad-este",
     whatsapp: "+503 7000-0008",
     description: "Joyería fina para momentos especiales. [DEMO]",
     addressLine: "La Sultana, Antiguo Cuscatlán",
@@ -448,7 +448,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
   },
   {
     name: "Cartas & Detalles",
-    municipalitySlug: "san-salvador",
+    municipalitySlug: "san-salvador-centro",
     whatsapp: "+503 7000-0009",
     description: "Cartas y detalles escritos con cariño. [DEMO]",
     addressLine: "Colonia Miramonte, San Salvador",
@@ -497,7 +497,7 @@ export const DEMO_BUSINESSES: DemoBusiness[] = [
   },
   {
     name: "Todo Regalos SV",
-    municipalitySlug: "la-libertad",
+    municipalitySlug: "la-libertad-costa",
     whatsapp: "+503 7000-0010",
     description: "Regalos variados para toda ocasión. [DEMO]",
     addressLine: "Playa El Sunzal, La Libertad",

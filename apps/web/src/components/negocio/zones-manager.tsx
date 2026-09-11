@@ -4,6 +4,7 @@ import { Loader2, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { apiErrorMessage } from "@/lib/api-error-message";
+import { MunicipalityHint } from "@/components/location/municipality-hint";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,18 +64,21 @@ function ZoneRow({ zone, municipalities }: { zone: BusinessDeliveryZoneDTO; muni
     <div className="flex flex-col gap-2 rounded-2xl border border-neutral-200 p-3">
       <div className="grid gap-2 sm:grid-cols-[1.5fr_1.5fr_1fr_1fr_auto_auto]">
         <Input value={name} onChange={(e) => setName(e.target.value)} onBlur={() => save()} placeholder="Nombre de la zona" />
-        <Select value={municipalityId} onValueChange={(v) => { setMunicipalityId(v); void save({ municipalityId: v }); }}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Cualquier municipio" />
-          </SelectTrigger>
-          <SelectContent>
-            {municipalities.map((m) => (
-              <SelectItem key={m.id} value={m.id}>
-                {m.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex flex-col gap-1">
+          <Select value={municipalityId} onValueChange={(v) => { setMunicipalityId(v); void save({ municipalityId: v }); }}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Cualquier municipio" />
+            </SelectTrigger>
+            <SelectContent>
+              {municipalities.map((m) => (
+                <SelectItem key={m.id} value={m.id}>
+                  {m.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <MunicipalityHint municipalities={municipalities} municipalityId={municipalityId} />
+        </div>
         <Input
           type="number"
           min="0"
@@ -157,18 +161,21 @@ export function ZonesManager({
             <Label className="sr-only">Nombre</Label>
             <Input required placeholder="Ej. San Salvador Centro" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
-          <Select value={municipalityId} onValueChange={setMunicipalityId}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Cualquier municipio" />
-            </SelectTrigger>
-            <SelectContent>
-              {municipalities.map((m) => (
-                <SelectItem key={m.id} value={m.id}>
-                  {m.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex flex-col gap-1">
+            <Select value={municipalityId} onValueChange={setMunicipalityId}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Cualquier municipio" />
+              </SelectTrigger>
+              <SelectContent>
+                {municipalities.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <MunicipalityHint municipalities={municipalities} municipalityId={municipalityId} />
+          </div>
           <Input
             type="number"
             min="0"

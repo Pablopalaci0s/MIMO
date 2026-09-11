@@ -12,5 +12,6 @@ export async function listMunicipalities(): Promise<MunicipalityDTO[]> {
     name: `${municipality.name} — ${municipality.department.name}`,
     slug: municipality.slug,
     departmentId: municipality.departmentId,
+    districts: municipality.districts,
   }));
 }

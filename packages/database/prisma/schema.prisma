@@ -172,6 +172,12 @@ model Municipality {
   department   Department     @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   latitude     Float?
   longitude    Float?
+  // Los antiguos municipios (pre-reforma territorial 2021) que hoy quedaron
+  // agrupados dentro de este municipio — solo informativo (ej. "San Salvador
+  // Centro" incluye "Mejicanos", "Ciudad Delgado"...), no es una entidad
+  // seleccionable propia: no hace falta un nivel más de jerarquía para que
+  // un negocio elija su zona de entrega.
+  districts    String[]       @default([])
   businesses     Business[]
   deliveryZones  DeliveryZone[]
   orderAddresses OrderAddress[]
