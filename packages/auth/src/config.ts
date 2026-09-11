@@ -55,7 +55,22 @@ export const authConfig: NextAuthConfig = {
       if (user) {
         token.id = user.id;
         token.role = (user as { role?: string }).role ?? "USER";
+        return token;
       }
+
+      // El login ya rechaza cuentas suspendidas (deletedAt) en authorize(),
+      // pero la sesión es JWT: sin esto, una cuenta suspendida DESPUÉS de
+      // iniciar sesión seguiría con acceso normal hasta que el token expire.
+      // auth() llama a este callback en cada request (ver getSession en
+      // next-auth/lib/index.js), así que esto cierra esa sesión al vuelo.
+      if (token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { deletedAt: true },
+        });
+        if (!dbUser || dbUser.deletedAt) return null;
+      }
+
       return token;
     },
     async session({ session, token }) {
