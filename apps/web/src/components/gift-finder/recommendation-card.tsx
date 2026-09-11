@@ -14,7 +14,7 @@ export function RecommendationCard({
 
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-neutral-200 p-4 sm:flex-row">
-      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-semibold text-white">
+      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-semibold text-neutral-50">
         {position}
       </span>
 

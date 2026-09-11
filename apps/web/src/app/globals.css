@@ -93,37 +93,56 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  /* Reemplaza la escala "neutral" de Tailwind (acromática, oklch(x 0 none))
+     por la escala "stone" (gris cálido) invertida — 50 con 950, 100 con
+     900, etc. Como todas las utilidades bg/text/border neutral de la app
+     referencian estas mismas variables de tema, esto re-tematiza
+     automáticamente cualquier clase neutral ya escrita en el proyecto,
+     sin tocar componentes. Elegido "stone" en vez de gris puro para que
+     el oscuro combine con la paleta cálida de MIMO. */
+  --color-neutral-50: oklch(14.7% 0.004 49.25);
+  --color-neutral-100: oklch(21.6% 0.006 56.043);
+  --color-neutral-200: oklch(26.8% 0.007 34.298);
+  --color-neutral-300: oklch(37.4% 0.01 67.558);
+  --color-neutral-400: oklch(44.4% 0.011 73.639);
+  --color-neutral-500: oklch(55.3% 0.013 58.071);
+  --color-neutral-600: oklch(70.9% 0.01 56.259);
+  --color-neutral-700: oklch(86.9% 0.005 56.366);
+  --color-neutral-800: oklch(92.3% 0.003 48.717);
+  --color-neutral-900: oklch(97% 0.001 106.424);
+  --color-neutral-950: oklch(98.5% 0.001 106.423);
+
+  --background: oklch(14.7% 0.004 49.25);
+  --foreground: oklch(97% 0.001 106.424);
+  --card: oklch(21.6% 0.006 56.043);
+  --card-foreground: oklch(97% 0.001 106.424);
+  --popover: oklch(21.6% 0.006 56.043);
+  --popover-foreground: oklch(97% 0.001 106.424);
+  --primary: oklch(92.3% 0.003 48.717);
+  --primary-foreground: oklch(21.6% 0.006 56.043);
+  --secondary: oklch(26.8% 0.007 34.298);
+  --secondary-foreground: oklch(97% 0.001 106.424);
+  --muted: oklch(26.8% 0.007 34.298);
+  --muted-foreground: oklch(70.9% 0.01 56.259);
+  --accent: oklch(26.8% 0.007 34.298);
+  --accent-foreground: oklch(97% 0.001 106.424);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --ring: oklch(55.3% 0.013 58.071);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar: oklch(21.6% 0.006 56.043);
+  --sidebar-foreground: oklch(97% 0.001 106.424);
+  --sidebar-primary: oklch(0.64 0.19 15);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(26.8% 0.007 34.298);
+  --sidebar-accent-foreground: oklch(97% 0.001 106.424);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-ring: oklch(55.3% 0.013 58.071);
 
   --brand: oklch(0.64 0.19 15);
   --brand-foreground: oklch(0.99 0 0);

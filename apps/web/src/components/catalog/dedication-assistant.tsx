@@ -99,7 +99,7 @@ export function DedicationAssistant({
               "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
               tone === option.value
                 ? "border-brand/50 bg-brand-soft text-brand"
-                : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300",
+                : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300 dark:bg-neutral-100",
             )}
           >
             {option.label}
@@ -111,7 +111,7 @@ export function DedicationAssistant({
         value={instructions}
         onChange={(event) => setInstructions(event.target.value)}
         placeholder='Ej. "quiero algo romántico pero no demasiado cursi" (opcional)'
-        className="bg-white"
+        className="bg-white dark:bg-neutral-100"
       />
 
       <div className="flex gap-2">
@@ -128,7 +128,7 @@ export function DedicationAssistant({
       {options.length > 0 && (
         <div className="flex flex-col gap-2">
           {options.map((option, index) => (
-            <div key={index} className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white p-3">
+            <div key={index} className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white p-3 dark:bg-neutral-100">
               <p className="text-sm text-neutral-700">{option}</p>
               <div className="flex flex-wrap gap-2">
                 <Button type="button" size="sm" onClick={() => onSelect(option)}>

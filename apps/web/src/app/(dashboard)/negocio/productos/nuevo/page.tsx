@@ -10,7 +10,7 @@ export default async function NewBusinessProductPage() {
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-xl font-semibold tracking-tight text-neutral-900">Nuevo producto</h1>
-      <div className="max-w-2xl rounded-2xl border border-neutral-200 bg-white p-5">
+      <div className="max-w-2xl rounded-2xl border border-neutral-200 bg-white p-5 dark:bg-neutral-100">
         <ProductForm categories={categories} />
       </div>
     </div>

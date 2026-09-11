@@ -110,7 +110,7 @@ export function CartSheet({ variant = "icon" }: { variant?: "icon" | "tab" }) {
                             </div>
                             <button
                               onClick={() => removeItem(item.productId)}
-                              className="flex size-6 items-center justify-center rounded-full text-neutral-400 hover:bg-red-50 hover:text-red-600"
+                              className="flex size-6 items-center justify-center rounded-full text-neutral-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40 dark:hover:text-red-400"
                               aria-label="Quitar del carrito"
                             >
                               <Trash2 className="size-3.5" />

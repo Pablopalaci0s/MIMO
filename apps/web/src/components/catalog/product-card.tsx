@@ -8,7 +8,7 @@ export function ProductCard({ product }: { product: ProductSummaryDTO }) {
   return (
     <Link
       href={`/productos/${product.slug}`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-neutral-200/80 bg-white transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-[0_12px_28px_-14px_rgba(0,0,0,0.18)]"
+      className="group flex flex-col overflow-hidden rounded-2xl border border-neutral-200/80 bg-white transition-all dark:bg-neutral-100 duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-[0_12px_28px_-14px_rgba(0,0,0,0.18)]"
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100">
         {product.coverImageUrl ? (

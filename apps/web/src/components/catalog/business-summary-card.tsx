@@ -6,9 +6,9 @@ import { FavoriteButton } from "./favorite-button";
 
 export function BusinessSummaryCard({ business }: { business: BusinessSummaryDTO }) {
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-neutral-200/80 bg-white p-3">
+    <div className="flex items-center gap-3 rounded-2xl border border-neutral-200/80 bg-white p-3 dark:bg-neutral-100">
       <Link href={`/negocios/${business.slug}`} className="flex flex-1 items-center gap-3 overflow-hidden">
-        <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-neutral-900 text-lg font-semibold text-white">
+        <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-neutral-900 text-lg font-semibold text-neutral-50">
           {business.logoUrl ? (
             <Image src={business.logoUrl} alt={business.name} fill className="object-cover" />
           ) : (

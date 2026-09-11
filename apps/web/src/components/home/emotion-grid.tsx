@@ -40,7 +40,7 @@ export function EmotionGrid({ emotions }: { emotions: OccasionDTO[] }) {
               >
                 <Link
                   href={`/regalos?emocion=${emotion.slug}`}
-                  className="group flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white py-2 pr-4 pl-3 text-sm font-medium whitespace-nowrap text-neutral-700 shadow-sm transition-all duration-200 hover:border-brand/50 hover:bg-brand-soft hover:text-brand hover:shadow-[0_6px_16px_-8px_var(--brand)]"
+                  className="group flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white py-2 pr-4 pl-3 dark:bg-neutral-100 text-sm font-medium whitespace-nowrap text-neutral-700 shadow-sm transition-all duration-200 hover:border-brand/50 hover:bg-brand-soft hover:text-brand hover:shadow-[0_6px_16px_-8px_var(--brand)]"
                 >
                   <Icon className="size-4 shrink-0" strokeWidth={1.75} />
                   {emotion.name}
@@ -51,7 +51,7 @@ export function EmotionGrid({ emotions }: { emotions: OccasionDTO[] }) {
         </motion.div>
       </div>
 
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white to-transparent dark:from-neutral-50" />
     </section>
   );
 }

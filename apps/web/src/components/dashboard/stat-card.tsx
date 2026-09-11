@@ -13,7 +13,7 @@ export function StatCard({
   highlight?: boolean;
 }) {
   return (
-    <div className="flex items-center gap-3.5 rounded-2xl border border-neutral-200 bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+    <div className="flex items-center gap-3.5 rounded-2xl border border-neutral-200 bg-white p-4 dark:bg-neutral-100 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
       <span
         className={cn(
           "flex size-11 shrink-0 items-center justify-center rounded-xl",

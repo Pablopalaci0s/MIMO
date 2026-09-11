@@ -163,6 +163,26 @@ Cuentas demo: `admin@mimo.sv` / `Admin123!` (admin), `cliente@mimo.sv` /
   ahí es un proceso de Node real). Mientras no se resuelva de raíz: para
   algo que el cliente necesite sí o sí, servirlo por una ruta `/api/*` en
   vez de depender del inlining (ver `/api/push/vapid-public-key`).
+- **Modo oscuro (`next-themes` + toggle en `/perfil`)**: la escala
+  `neutral-*` de Tailwind se redefine dentro de `.dark` en `globals.css`
+  (con la escala "stone" invertida: 50↔950, 100↔900, etc.) para que los
+  ~650 usos existentes de `bg-neutral-*`/`text-neutral-*`/`border-neutral-*`
+  en toda la app se re-tematicen solos, sin tocar componentes. Esto invierte
+  el SIGNIFICADO de los números dentro de `.dark`: ahí, `neutral-50` es el
+  más oscuro (14.7%) y `neutral-900`/`950` son casi blancos (97%/98.5%) —
+  exactamente al revés que en claro. Si escribís a mano un `dark:bg-neutral-XXX`
+  nuevo (no una clase neutral ya existente, que se invierte sola), acordate
+  de esto o vas a poner un fondo claro donde querías oscuro (nos pasó dos
+  veces armando esto: usamos `dark:bg-neutral-900` para tarjetas —dio casi
+  blanco— y `dark:bg-neutral-950` para el header —dio casi blanco
+  también—; lo correcto es `neutral-100` para superficies elevadas tipo
+  tarjeta y `neutral-50` para que combine con el fondo de página). Los
+  `bg-white`/`text-white` literales NO se resuelven solos —quedan blancos
+  fijos porque muchos son texto/badges sobre fotos que deben seguir
+  siendo blancos en cualquier tema— así que cualquier `bg-white` nuevo que
+  sea fondo de tarjeta/sección (no overlay sobre una imagen) necesita su
+  propio `dark:bg-neutral-100` (tarjeta) o `dark:bg-neutral-50` (chrome de
+  página) a mano.
 
 ## Estructura de servicios (para mantener el patrón en fases futuras)
 

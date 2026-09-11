@@ -47,7 +47,7 @@ export function FeaturedBusinesses({ businesses }: { businesses: FeaturedBusines
             <motion.div key={business.id} variants={item} className="w-64 shrink-0 snap-start sm:w-auto">
               <Link
                 href={`/negocios/${business.slug}`}
-                className="group flex h-full flex-col overflow-hidden rounded-3xl border border-neutral-200/80 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-brand/25 hover:shadow-[0_18px_36px_-16px_rgba(0,0,0,0.22)]"
+                className="group flex h-full flex-col overflow-hidden rounded-3xl border border-neutral-200/80 bg-white transition-all dark:bg-neutral-100 duration-300 hover:-translate-y-1 hover:border-brand/25 hover:shadow-[0_18px_36px_-16px_rgba(0,0,0,0.22)]"
               >
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-brand-soft to-neutral-100">
                   {business.previewImageUrl && (

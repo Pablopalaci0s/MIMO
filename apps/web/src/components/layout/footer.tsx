@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="border-t border-neutral-200 bg-white pb-16 sm:pb-0">
+    <footer className="border-t border-neutral-200 bg-white pb-16 dark:bg-neutral-50 sm:pb-0">
       <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-14 sm:flex-row sm:items-start sm:justify-between sm:px-6">
         <div>
           <p className="text-lg font-semibold tracking-tight text-neutral-900">MIMO</p>

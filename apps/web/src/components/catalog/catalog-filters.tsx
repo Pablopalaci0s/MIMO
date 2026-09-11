@@ -59,7 +59,7 @@ export function CatalogFilters({ categories }: { categories: CategoryDTO[] }) {
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Buscar por nombre..."
-          className="h-11 w-full rounded-full border border-neutral-200 bg-white pr-10 pl-10 text-sm text-neutral-900 outline-none transition-colors placeholder:text-neutral-400 focus:border-neutral-300"
+          className="h-11 w-full rounded-full border border-neutral-200 bg-white pr-10 pl-10 dark:bg-neutral-100 text-sm text-neutral-900 outline-none transition-colors placeholder:text-neutral-400 focus:border-neutral-300"
         />
         {query && (
           <button
@@ -78,7 +78,7 @@ export function CatalogFilters({ categories }: { categories: CategoryDTO[] }) {
           onClick={() => updateParam("categoria", null)}
           className={`shrink-0 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors ${
             !activeCategory
-              ? "border-neutral-900 bg-neutral-900 text-white"
+              ? "border-neutral-900 bg-neutral-900 text-neutral-50"
               : "border-neutral-200 text-neutral-600 hover:border-neutral-300"
           }`}
         >
@@ -93,7 +93,7 @@ export function CatalogFilters({ categories }: { categories: CategoryDTO[] }) {
               onClick={() => updateParam("categoria", active ? null : category.slug)}
               className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors ${
                 active
-                  ? "border-neutral-900 bg-neutral-900 text-white"
+                  ? "border-neutral-900 bg-neutral-900 text-neutral-50"
                   : "border-neutral-200 text-neutral-600 hover:border-neutral-300"
               }`}
             >

@@ -52,7 +52,7 @@ export default async function BusinessOrdersPage({ searchParams }: PageProps<"/n
             className={cn(
               "shrink-0 rounded-full border px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors",
               activeFilter === filter.value
-                ? "border-neutral-900 bg-neutral-900 text-white"
+                ? "border-neutral-900 bg-neutral-900 text-neutral-50"
                 : "border-neutral-200 text-neutral-600 hover:border-neutral-300",
             )}
           >
