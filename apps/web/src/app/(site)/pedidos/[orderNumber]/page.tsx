@@ -9,7 +9,7 @@ import { getOrderByNumber } from "@/lib/services/order-service";
 import { listReviewableOrderItems } from "@/lib/services/review-service";
 import type { OrderPaymentDTO } from "@mimo/types";
 
-export const metadata: Metadata = { title: "Tu pedido — MIMO" };
+export const metadata: Metadata = { title: "Tu pedido" };
 
 function paymentSummary(payment: OrderPaymentDTO): string {
   if (payment.provider === "CASH") return "Pago contra entrega (efectivo).";

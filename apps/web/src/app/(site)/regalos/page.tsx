@@ -7,7 +7,7 @@ import { listProducts } from "@/lib/services/product-service";
 import { productFiltersSchema } from "@mimo/validation";
 
 export const metadata: Metadata = {
-  title: "Regalos — MIMO",
+  title: "Regalos",
   description: "Explorá flores, chocolates, cajas de regalo y más detalles de negocios salvadoreños.",
 };
 

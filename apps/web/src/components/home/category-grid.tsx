@@ -3,6 +3,8 @@
 import { motion } from "motion/react";
 import Link from "next/link";
 import { getCategoryIcon } from "@/lib/category-icons";
+import { useHorizontalScroll } from "@/lib/hooks/use-horizontal-scroll";
+import { ScrollArrowButton } from "./scroll-arrow-button";
 import type { CategoryDTO } from "@mimo/types";
 
 const container = {
@@ -16,12 +18,21 @@ const item = {
 };
 
 export function CategoryGrid({ categories }: { categories: CategoryDTO[] }) {
+  const { ref, canScrollLeft, canScrollRight, scrollByAmount } = useHorizontalScroll();
+
   if (categories.length === 0) return null;
 
   return (
     <section className="relative min-w-0 py-6">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
+        {canScrollLeft && (
+          <ScrollArrowButton direction="left" side="left" onClick={() => scrollByAmount("left")} />
+        )}
+        {canScrollRight && (
+          <ScrollArrowButton direction="right" side="right" onClick={() => scrollByAmount("right")} />
+        )}
         <motion.div
+          ref={ref}
           variants={container}
           initial="hidden"
           animate="show"
@@ -53,7 +64,12 @@ export function CategoryGrid({ categories }: { categories: CategoryDTO[] }) {
         </motion.div>
       </div>
 
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white to-transparent" />
+      {canScrollLeft && (
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white to-transparent" />
+      )}
+      {canScrollRight && (
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white to-transparent" />
+      )}
     </section>
   );
 }

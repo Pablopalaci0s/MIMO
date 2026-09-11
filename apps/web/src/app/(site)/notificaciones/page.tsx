@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@mimo/auth";
 import { NotificationsPageList } from "@/components/account/notifications-page-list";
 
-export const metadata: Metadata = { title: "Notificaciones — MIMO" };
+export const metadata: Metadata = { title: "Notificaciones" };
 
 export default async function NotificationsPage() {
   const session = await auth();

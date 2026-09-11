@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Política de privacidad — MIMO",
+  title: "Política de privacidad",
   description: "Qué datos recolecta MIMO, para qué los usa y cómo protegerlos.",
 };
 

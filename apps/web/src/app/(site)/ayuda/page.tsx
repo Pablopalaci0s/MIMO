@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/accordion";
 
 export const metadata: Metadata = {
-  title: "Ayuda — MIMO",
+  title: "Ayuda",
   description: "Preguntas frecuentes sobre pedidos, entregas, pagos y negocios en MIMO.",
 };
 

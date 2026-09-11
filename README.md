@@ -839,11 +839,56 @@ cambia el mecanismo interno.
 - Sin `PAYPAL_CLIENT_ID`/`PAYPAL_CLIENT_SECRET` configuradas, el botón de
   PayPal del checkout muestra "no disponible" en vez de fingir que
   funciona (regla del proyecto) — se probó apagando las claves a propósito.
-- **Pendiente, no bloqueante:** todavía no se probó contra credenciales
-  sandbox reales de PayPal (no estaban disponibles al escribir esto) — la
-  integración se armó contra la documentación oficial de la REST API v2/v1,
-  pero falta la prueba end-to-end con una cuenta sandbox antes de
-  considerarla verificada en vivo.
+- **Verificado en vivo contra credenciales sandbox reales**: checkout →
+  botón de PayPal → login con una cuenta sandbox de comprador → cobro real
+  capturado → `PaymentSplit` calculado con la comisión correcta → negocio
+  confirma → Payout real enviado (con ID de PayPal real de vuelta). Ciclo
+  completo probado de punta a punta, no solo por partes sueltas.
+
+## Diseño: SEO básico y Sentry en el cliente (post-Fase 11)
+
+Dos deudas técnicas encontradas al revisar qué falta para producción real
+(ninguna de las dos rompía nada, pero un usuario real las iba a notar).
+
+**Sentry nunca se inicializaba en el navegador.** Ya se sabía que
+`NEXT_PUBLIC_*` no llega al cliente si vive solo en el `.env` de la raíz
+(ver "Gotchas reales encontrados" en CLAUDE.md), pero el primer intento de
+arreglarlo — la opción `env: {...}` de `next.config.ts`, la forma
+"oficial" según la documentación de Next — **se probó y no funcionó bajo
+Turbopack**: se verificó poniendo un DSN de prueba y confirmando que no
+aparecía en el bundle compilado, solo un `process.env` polyfill vacío en
+tiempo de ejecución. Lo único que funcionó de verdad (mismo método de
+verificación): que la variable viva en un `.env` físico dentro de
+`apps/web/`. Por eso `NEXT_PUBLIC_SENTRY_DSN` ahora es la única variable
+que NO vive en el `.env` de la raíz — tiene su propio
+`apps/web/.env.example` con la explicación de por qué.
+
+**SEO nunca se había tocado.** No había Open Graph, ni `sitemap.xml`, ni
+`robots.txt` en ninguna fase anterior. Se agregó:
+- `metadataBase` + Open Graph/Twitter por defecto en el layout de `(site)`,
+  con una imagen generada al vuelo (`opengraph-image.tsx`, vía
+  `next/og` — nada de assets estáticos que se puedan desactualizar).
+- Producto y negocio pisan esa imagen por defecto con su propia foto real
+  en su `generateMetadata`.
+- `title.template` centralizado ("%s — MIMO") en el layout — **al
+  agregarlo aparecieron títulos duplicados** ("Checkout — MIMO — MIMO")
+  en cada página que ya traía el "— MIMO" escrito a mano; se encontró
+  probando en el navegador (no solo mirando el código) y se limpiaron los
+  ~15 archivos afectados.
+- `sitemap.ts` con las páginas estáticas más todos los productos activos y
+  negocios aprobados (consulta directo a Prisma, no a través de un
+  `*-service.ts` — es una proyección de solo lectura para un archivo
+  especial de Next, no lógica de negocio).
+- `robots.ts` que bloquea `/admin`, `/negocio`, `/checkout`, `/pedidos` y
+  el resto de páginas con datos personales — más `robots: {index:false}`
+  a nivel de metadata en el layout de `(dashboard)` como refuerzo.
+
+**Se probó además el alta de un negocio nuevo de punta a punta** (no solo
+negocios demo/seed): registro → panel con aviso de "pendiente de
+aprobación" → admin aprueba → comisión de prueba (0%) asignada sola por
+ser el primer negocio real → notificación de aprobación al dueño →
+negocio visible públicamente. Sin bugs nuevos aparte del de los títulos
+duplicados de arriba (que salió a la luz justo en esta prueba).
 
 ## Diseño: paneles como app separada (post-Fase 6, rediseño)
 

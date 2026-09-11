@@ -17,10 +17,21 @@ export async function generateMetadata({
 }: PageProps<"/productos/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProductBySlug(slug);
-  if (!product) return { title: "Producto no encontrado — MIMO" };
+  if (!product) return { title: "Producto no encontrado" };
   return {
-    title: `${product.name} — MIMO`,
+    title: product.name,
     description: product.description,
+    openGraph: {
+      title: product.name,
+      description: product.description,
+      images: product.coverImageUrl ? [{ url: product.coverImageUrl }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: product.name,
+      description: product.description,
+      images: product.coverImageUrl ? [product.coverImageUrl] : undefined,
+    },
   };
 }
 

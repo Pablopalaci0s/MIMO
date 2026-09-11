@@ -157,12 +157,27 @@ Cuentas demo: `admin@mimo.sv` / `Admin123!` (admin), `cliente@mimo.sv` /
   encuentra en un `.env` dentro de `apps/web/` — este proyecto carga un
   único `.env` en la raíz (`next.config.ts` → `loadEnvConfig`, a propósito,
   compartido con Prisma). Confirmado inspeccionando el bundle compilado:
-  esas variables llegan como `undefined` en el navegador (afecta también a
+  esas variables llegan como `undefined` en el navegador (afectaba también a
   `NEXT_PUBLIC_SENTRY_DSN` — el reporte de errores del lado del cliente
   nunca estuvo activo). El server-side no tiene este problema (`process.env`
-  ahí es un proceso de Node real). Mientras no se resuelva de raíz: para
-  algo que el cliente necesite sí o sí, servirlo por una ruta `/api/*` en
-  vez de depender del inlining (ver `/api/push/vapid-public-key`).
+  ahí es un proceso de Node real). **Probado y descartado**: la opción
+  `env: {...}` de `next.config.ts` (la forma "oficial" de inyectar una
+  variable al bundle) tampoco resuelve esto bajo Turbopack — se verificó
+  con un valor de prueba y no aparecía inlineado en el chunk compilado, solo
+  quedaba como lectura en tiempo de ejecución de un `process.env` polyfill
+  vacío. Lo único que funciona de verdad, confirmado igual (inspeccionando
+  el bundle): que la variable viva en un `.env` físico dentro de
+  `apps/web/`. Dos formas de aplicar esto según el caso:
+  - Si el cliente necesita el valor en tiempo de ejecución (fetch async
+    está bien): servirlo por una ruta `/api/*` en vez de depender del
+    inlining (ver `/api/push/vapid-public-key`,
+    `/api/payments/paypal-client-id`).
+  - Si el valor tiene que estar disponible ANTES de que corra cualquier
+    código propio (ej. `Sentry.init()` en `instrumentation-client.ts`, que
+    no puede esperar un fetch): no queda otra que duplicar esa variable
+    puntual en `apps/web/.env` (ver `apps/web/.env.example`) — es el único
+    caso donde una variable vive fuera del `.env` de la raíz, documentado
+    ahí mismo para que no se pierda por qué.
 
 ## Estructura de servicios (para mantener el patrón en fases futuras)
 

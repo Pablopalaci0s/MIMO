@@ -3,7 +3,7 @@ import { BusinessApplicationForm } from "@/components/account/business-applicati
 import { listMunicipalities } from "@/lib/services/location-service";
 
 export const metadata: Metadata = {
-  title: "Sumá tu negocio — MIMO",
+  title: "Sumá tu negocio",
   description: "Postulá tu floristería, dulcería o negocio de regalos a MIMO.",
 };
 

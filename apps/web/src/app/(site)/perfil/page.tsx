@@ -11,7 +11,7 @@ import { PushNotificationsToggle } from "@/components/account/push-notifications
 import { Separator } from "@/components/ui/separator";
 import type { UserDTO } from "@mimo/types";
 
-export const metadata: Metadata = { title: "Mi perfil — MIMO" };
+export const metadata: Metadata = { title: "Mi perfil" };
 
 export default async function ProfilePage() {
   const session = await auth();

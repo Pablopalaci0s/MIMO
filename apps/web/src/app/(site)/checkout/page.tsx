@@ -5,7 +5,7 @@ import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { listMunicipalities } from "@/lib/services/location-service";
 
 export const metadata: Metadata = {
-  title: "Checkout — MIMO",
+  title: "Checkout",
 };
 
 export default async function CheckoutPage() {
