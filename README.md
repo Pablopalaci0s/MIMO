@@ -533,6 +533,35 @@ app en Facebook for Developers, configurar el redirect URI de cada uno
 `FACEBOOK_CLIENT_SECRET` en `.env` — instrucciones cortas dejadas ahí mismo
 en `.env.example`.
 
+## Diseño: home más vivo (post-Fase 11)
+
+Pedido del usuario mostrando una app de delivery (PedidosYa) como referencia
+de "se ve más viva". Se aclaró de entrada que no se copia ese estilo tal
+cual — sigue valiendo la regla 4 (blanco/negro/gris + el rosado-rojo con
+moderación, nada de fondos de colores sólidos) — sino que se buscó más vida
+dentro de esa paleta.
+
+**El hallazgo real: las fotos, no el layout.** El catálogo de demo usaba
+`placehold.co` — cajas grises con el nombre del producto escrito encima —
+en vez de fotos. Ningún ajuste de CSS iba a hacer sentir "vivo" un catálogo
+de cajas grises. Se reemplazó por fotos de stock reales (licencia Unsplash,
+uso libre) elegidas por categoría — 2 por categoría, 24 en total, cada
+`photo-<id>` verificado a mano (200 OK) antes de sumarlo — y elegidas de
+forma determinística según el nombre del producto en
+`packages/database/prisma/seed.ts` (`CATEGORY_STOCK_PHOTOS`). Esto es
+**solo para datos de demo**: un negocio real sigue subiendo sus propias
+fotos con `image-upload-field.tsx`, como siempre.
+
+**Ajustes de UI**, todos dentro de la paleta existente:
+- Hero: título más grande y audaz, blob de fondo más presente, y el
+  placeholder del buscador ahora rota entre ejemplos (`hero.tsx`) — antes
+  era estático.
+- Cards de negocios destacados: el rating se movió a superpuesto sobre la
+  foto (con degradado para legibilidad), igual que ya hacían las cards de
+  producto — más consistente y con más presencia visual.
+- Íconos de categoría: círculo más grande, sombra sutil, hover con resorte
+  (`motion`) en vez de una transición CSS plana.
+
 ## Diseño: paneles como app separada (post-Fase 6, rediseño)
 
 `/negocio` y `/admin` dejaron de ser páginas más del sitio con pestañas

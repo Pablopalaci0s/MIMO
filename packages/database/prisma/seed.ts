@@ -14,6 +14,36 @@ function placeholderImageUrl(text: string): string {
   return `https://placehold.co/800x600/f4f4f5/171717.png?text=${encodeURIComponent(text)}`;
 }
 
+// Fotos reales de stock (licencia Unsplash, uso libre) para que el catálogo
+// de demo se vea vivo en vez de cajas grises con texto — cada id verificado
+// a mano (200 OK) antes de sumarlo acá. 2 por categoría para variedad; se
+// elige una de forma determinística según el nombre del producto (mismo
+// producto siempre saca la misma foto, sin depender de Math.random()).
+const CATEGORY_STOCK_PHOTOS: Record<string, string[]> = {
+  flores: ["1494972308805-463bc619d34e", "1578439231583-9eca0a363860"],
+  chocolates: ["1687795097254-f019f9d7fd17", "1481391319762-47dff72954d9"],
+  peluches: ["1556012018-50c5c0da73bf", "1641085809270-71f722611ce1"],
+  globos: ["1583875762487-5f8f7c718d14", "1479750178258-aec5879046ce"],
+  cartas: ["1526614180703-827d23e7c8f2", "1554894872-1a01c75f7513"],
+  "cajas-de-regalo": ["1513201099705-a9746e1e201f", "1592903297149-37fb25202dfa"],
+  pasteles: ["1606983340126-99ab4feaa64a", "1577998474517-7eeeed4e448a"],
+  postres: ["1561845730-208ad5910553", "1701104427900-70ce3ddc2470"],
+  "desayunos-sorpresa": ["1641924676578-ed2792eb24de", "1675125530909-15213f01a9e1"],
+  personalizados: ["1771660722417-38ceb9e85bc1", "1724318496827-2813ff4772b8"],
+  propuestas: ["1529519195486-16945f0fb37f", "1512163143273-bde0e3cc7407"],
+  celebraciones: ["1513151233558-d860c5398176", "1584890132374-d69d5d01483e"],
+};
+
+function categoryImageUrl(categorySlug: string, seedKey: string): string {
+  const photos = CATEGORY_STOCK_PHOTOS[categorySlug];
+  if (!photos) return placeholderImageUrl(seedKey);
+
+  let hash = 0;
+  for (let i = 0; i < seedKey.length; i++) hash = (hash * 31 + seedKey.charCodeAt(i)) >>> 0;
+  const photoId = photos[hash % photos.length];
+  return `https://images.unsplash.com/photo-${photoId}?auto=format&fit=crop&w=800&q=80`;
+}
+
 // El Salvador: los 14 departamentos con sus municipios. Se listan todos los
 // departamentos (para que la plataforma nunca dependa solo de San Salvador,
 // ver sección 34) pero solo se detallan municipios para los departamentos
@@ -293,7 +323,7 @@ async function main() {
         await prisma.productImage.create({
           data: {
             productId: product.id,
-            url: placeholderImageUrl(demoProduct.name),
+            url: categoryImageUrl(demoProduct.categorySlug, demoProduct.name),
             altText: demoProduct.name,
             position: 0,
           },
