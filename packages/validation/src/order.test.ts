@@ -77,13 +77,20 @@ describe("checkoutInputSchema", () => {
     expect(() => checkoutInputSchema.parse({ ...valid, items: [] })).toThrow();
   });
 
-  it("acepta CARD/PAYPAL/OTHER a nivel de esquema — el rechazo real es en el servicio, no acá", () => {
-    for (const paymentProvider of ["CARD", "PAYPAL", "OTHER"] as const) {
+  it("acepta CARD/OTHER a nivel de esquema — el rechazo real es en el servicio, no acá", () => {
+    for (const paymentProvider of ["CARD", "OTHER"] as const) {
       expect(() => checkoutInputSchema.parse({ ...valid, paymentProvider })).not.toThrow();
     }
   });
 
   it("rechaza un método de pago fuera del enum conocido", () => {
     expect(() => checkoutInputSchema.parse({ ...valid, paymentProvider: "BITCOIN" })).toThrow();
+  });
+
+  it("PAYPAL requiere paypalOrderId (la orden ya aprobada por el comprador)", () => {
+    expect(() => checkoutInputSchema.parse({ ...valid, paymentProvider: "PAYPAL" })).toThrow();
+    expect(() =>
+      checkoutInputSchema.parse({ ...valid, paymentProvider: "PAYPAL", paypalOrderId: "5O190127TN364715T" }),
+    ).not.toThrow();
   });
 });

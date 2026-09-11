@@ -59,6 +59,18 @@ export interface CheckoutInput {
   hideBuyerFromRecipient: boolean;
   surpriseInstructions?: string;
   paymentProvider: "CARD" | "PAYPAL" | "CASH" | "OTHER";
+  /** Solo cuando `paymentProvider` es "PAYPAL": el id de la orden de PayPal
+   * ya aprobada por el comprador (ver `/api/payments/paypal/order`), que el
+   * servidor captura al crear el pedido. */
+  paypalOrderId?: string;
+}
+
+export type PaymentProvider = "CARD" | "PAYPAL" | "CASH" | "OTHER";
+export type PaymentStatus = "PENDING" | "PAID" | "FAILED" | "REFUNDED" | "PARTIALLY_REFUNDED";
+
+export interface OrderPaymentDTO {
+  provider: PaymentProvider;
+  status: PaymentStatus;
 }
 
 export interface OrderItemDTO {
@@ -83,6 +95,7 @@ export interface OrderDTO {
   currency: string;
   items: OrderItemDTO[];
   isSurpriseMode: boolean;
+  payment: OrderPaymentDTO;
   createdAt: string;
 }
 

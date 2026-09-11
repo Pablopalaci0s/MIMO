@@ -36,6 +36,7 @@ export function OrderItemCard({ item, statusLabel }: { item: BusinessOrderItemDT
   const router = useRouter();
   const [loading, setLoading] = useState<OrderStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [paymentNote, setPaymentNote] = useState(item.paymentNote);
 
   async function updateStatus(status: OrderStatus) {
     setLoading(status);
@@ -51,6 +52,7 @@ export function OrderItemCard({ item, statusLabel }: { item: BusinessOrderItemDT
       setError(apiErrorMessage(body, "No pudimos actualizar el pedido."));
       return;
     }
+    setPaymentNote(body.data.paymentNote);
     router.refresh();
   }
 
@@ -122,6 +124,9 @@ export function OrderItemCard({ item, statusLabel }: { item: BusinessOrderItemDT
 
       <OrderMessages orderNumber={item.orderNumber} businessId={item.businessId} viewerRole="BUSINESS" />
 
+      {paymentNote && (
+        <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800">{paymentNote}</p>
+      )}
       {error && <p className="text-sm text-destructive">{error}</p>}
 
       {actions.length > 0 && (

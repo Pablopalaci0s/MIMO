@@ -14,6 +14,8 @@ export interface BusinessProfileDTO {
   facebook: string | null;
   tiktok: string | null;
   addressLine: string | null;
+  paypalEmail: string | null;
+  commissionRate: number;
 }
 
 export interface BusinessProfileInput {
@@ -26,6 +28,7 @@ export interface BusinessProfileInput {
   facebook?: string;
   tiktok?: string;
   addressLine?: string;
+  paypalEmail?: string;
 }
 
 /** Un `OrderItem` visto desde el panel del negocio dueño de ese ítem — trae
@@ -43,6 +46,10 @@ export interface BusinessOrderItemDTO {
   unitPrice: number;
   personalization: PersonalizationInput | null;
   status: OrderStatus;
+  /** Aviso puntual sobre el pago de esta parte del pedido (ej. no pudimos
+   * pagarte porque falta tu correo de PayPal) — null si no hay nada que
+   * avisar. Ver `payment-split-service.ts`. */
+  paymentNote: string | null;
   createdAt: string;
   buyerName: string;
   buyerPhone: string;

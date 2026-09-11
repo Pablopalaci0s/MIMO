@@ -73,6 +73,9 @@ export const businessProfileInputSchema = z.object({
   facebook: z.string().trim().max(100).optional().or(z.literal("")),
   tiktok: z.string().trim().max(100).optional().or(z.literal("")),
   addressLine: z.string().trim().min(5).max(255).optional().or(z.literal("")),
+  // A dónde le mandamos su parte con PayPal Payouts cuando confirma un
+  // pedido pagado con PayPal — ver "Diseño: pagos con PayPal" en el README.
+  paypalEmail: z.string().trim().toLowerCase().email().optional().or(z.literal("")),
 });
 
 export type BusinessProductInputParsed = z.infer<typeof businessProductInputSchema>;

@@ -19,7 +19,8 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { apiErrorMessage } from "@/lib/api-error-message";
 import { useCart } from "@/lib/cart/cart-context";
-import type { DeliveryCoverageResult, DeliveryWindow } from "@mimo/types";
+import { PaypalButton } from "./paypal-button";
+import type { CheckoutInput, DeliveryCoverageResult, DeliveryWindow } from "@mimo/types";
 import type { MunicipalityDTO } from "@mimo/types";
 
 const DELIVERY_WINDOWS: { value: DeliveryWindow; label: string }[] = [
@@ -57,6 +58,7 @@ export function CheckoutForm({
   const [deliveryInstructions, setDeliveryInstructions] = useState("");
   const [isSurpriseMode, setIsSurpriseMode] = useState(false);
   const [surpriseInstructions, setSurpriseInstructions] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"CASH" | "PAYPAL">("CASH");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -130,12 +132,50 @@ export function CheckoutForm({
     );
   }
 
+  function buildPayload(): Omit<CheckoutInput, "paymentProvider" | "paypalOrderId"> | { error: string } {
+    if (hasUncovered) {
+      return { error: "Uno o más negocios de tu carrito no tienen cobertura para tu zona." };
+    }
+    if (!municipalityId) {
+      return { error: "Seleccioná un municipio para la entrega." };
+    }
+    return {
+      buyerName,
+      buyerEmail,
+      buyerPhone,
+      items: items.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        personalization: item.personalization,
+      })),
+      address: {
+        recipientName,
+        recipientPhone,
+        addressLine,
+        reference: reference || undefined,
+        municipalityId,
+        deliveryDate,
+        deliveryWindow,
+        deliveryInstructions: deliveryInstructions || undefined,
+      },
+      isSurpriseMode,
+      hideBuyerFromRecipient: isSurpriseMode,
+      surpriseInstructions: isSurpriseMode ? surpriseInstructions || undefined : undefined,
+    };
+  }
+
+  function handleOrderCreated(orderNumber: string) {
+    clear();
+    router.push(`/pedidos/${orderNumber}`);
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
 
-    if (hasUncovered) {
-      setError("Uno o más negocios de tu carrito no tienen cobertura para tu zona.");
+    const payload = buildPayload();
+    if ("error" in payload) {
+      setError(payload.error);
       return;
     }
 
@@ -144,30 +184,7 @@ export function CheckoutForm({
     const response = await fetch("/api/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        buyerName,
-        buyerEmail,
-        buyerPhone,
-        items: items.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-          personalization: item.personalization,
-        })),
-        address: {
-          recipientName,
-          recipientPhone,
-          addressLine,
-          reference: reference || undefined,
-          municipalityId,
-          deliveryDate,
-          deliveryWindow,
-          deliveryInstructions: deliveryInstructions || undefined,
-        },
-        isSurpriseMode,
-        hideBuyerFromRecipient: isSurpriseMode,
-        surpriseInstructions: isSurpriseMode ? surpriseInstructions || undefined : undefined,
-        paymentProvider: "CASH",
-      }),
+      body: JSON.stringify({ ...payload, paymentProvider: "CASH" }),
     });
     const body = await response.json();
 
@@ -177,8 +194,7 @@ export function CheckoutForm({
       return;
     }
 
-    clear();
-    router.push(`/pedidos/${body.data.orderNumber}`);
+    handleOrderCreated(body.data.orderNumber);
   }
 
   return (
@@ -381,18 +397,30 @@ export function CheckoutForm({
 
         <section className="flex flex-col gap-3">
           <h2 className="text-sm font-semibold tracking-wide text-neutral-400 uppercase">Pago</h2>
-          <RadioGroup value="CASH" className="flex flex-col gap-2">
-            <label className="flex items-center gap-3 rounded-xl border border-neutral-900 bg-neutral-50 p-3">
+          <RadioGroup
+            value={paymentMethod}
+            onValueChange={(value) => setPaymentMethod(value as "CASH" | "PAYPAL")}
+            className="flex flex-col gap-2"
+          >
+            <label
+              className={`flex items-center gap-3 rounded-xl border p-3 ${
+                paymentMethod === "CASH" ? "border-neutral-900 bg-neutral-50" : "border-neutral-200"
+              }`}
+            >
               <RadioGroupItem value="CASH" id="pay-cash" />
               <span className="text-sm font-medium text-neutral-900">Pago contra entrega (efectivo)</span>
+            </label>
+            <label
+              className={`flex items-center gap-3 rounded-xl border p-3 ${
+                paymentMethod === "PAYPAL" ? "border-neutral-900 bg-neutral-50" : "border-neutral-200"
+              }`}
+            >
+              <RadioGroupItem value="PAYPAL" id="pay-paypal" />
+              <span className="text-sm font-medium text-neutral-900">PayPal</span>
             </label>
             <label className="flex items-center gap-3 rounded-xl border border-neutral-200 p-3 opacity-50">
               <RadioGroupItem value="CARD" id="pay-card" disabled />
               <span className="text-sm text-neutral-500">Tarjeta — próximamente</span>
-            </label>
-            <label className="flex items-center gap-3 rounded-xl border border-neutral-200 p-3 opacity-50">
-              <RadioGroupItem value="PAYPAL" id="pay-paypal" disabled />
-              <span className="text-sm text-neutral-500">PayPal — próximamente</span>
             </label>
           </RadioGroup>
         </section>
@@ -425,9 +453,21 @@ export function CheckoutForm({
 
         {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
 
-        <Button type="submit" disabled={loading || !municipalityId || hasUncovered} className="mt-4 h-11 w-full">
-          {loading ? <Loader2 className="size-4 animate-spin" /> : "Confirmar pedido"}
-        </Button>
+        {paymentMethod === "PAYPAL" ? (
+          <div className="mt-4">
+            {!municipalityId || hasUncovered ? (
+              <p className="rounded-xl bg-neutral-50 p-3 text-center text-sm text-neutral-500">
+                Completá la dirección y el municipio para pagar con PayPal.
+              </p>
+            ) : (
+              <PaypalButton buildPayload={buildPayload} onSuccess={handleOrderCreated} />
+            )}
+          </div>
+        ) : (
+          <Button type="submit" disabled={loading || !municipalityId || hasUncovered} className="mt-4 h-11 w-full">
+            {loading ? <Loader2 className="size-4 animate-spin" /> : "Confirmar pedido"}
+          </Button>
+        )}
       </aside>
     </form>
   );

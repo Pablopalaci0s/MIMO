@@ -11,6 +11,7 @@ const COLUMNS = [
   { label: "Dueño" },
   { label: "Ubicación" },
   { label: "Productos" },
+  { label: "Comisión" },
   { label: "Verificado" },
   { label: "", className: "text-right" },
 ];

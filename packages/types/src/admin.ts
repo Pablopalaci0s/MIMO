@@ -26,12 +26,14 @@ export interface AdminBusinessDTO {
   ratingAvg: number;
   ratingCount: number;
   productCount: number;
+  commissionRate: number;
   createdAt: string;
 }
 
 export interface AdminBusinessUpdateInput {
   status?: BusinessStatus;
   verified?: boolean;
+  commissionRate?: number;
 }
 
 export interface AdminUserDTO {

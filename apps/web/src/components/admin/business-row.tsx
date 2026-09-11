@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import type { AdminBusinessDTO, BusinessStatus } from "@mimo/types";
 
@@ -36,15 +37,23 @@ const NEXT_ACTIONS: Record<BusinessStatus, { status: BusinessStatus; label: stri
 export function BusinessRow({ business }: { business: AdminBusinessDTO }) {
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
+  const [commissionRate, setCommissionRate] = useState(String(business.commissionRate));
 
-  async function update(input: { status?: BusinessStatus; verified?: boolean }, key: string) {
+  async function update(
+    input: { status?: BusinessStatus; verified?: boolean; commissionRate?: number },
+    key: string,
+  ) {
     setLoading(key);
-    await fetch(`/api/admin/negocios/${business.id}`, {
+    const response = await fetch(`/api/admin/negocios/${business.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(input),
     });
     setLoading(null);
+    if (!response.ok && input.commissionRate !== undefined) {
+      setCommissionRate(String(business.commissionRate));
+      return;
+    }
     router.refresh();
   }
 
@@ -66,6 +75,33 @@ export function BusinessRow({ business }: { business: AdminBusinessDTO }) {
       <td className="py-3 text-neutral-500">{business.ownerEmail ?? "—"}</td>
       <td className="py-3 text-neutral-500">{business.municipalityName ?? "—"}</td>
       <td className="py-3 text-neutral-500">{business.productCount}</td>
+      <td className="py-3">
+        <div className="flex items-center gap-1">
+          <Input
+            type="number"
+            min={0}
+            max={100}
+            step={1}
+            value={commissionRate}
+            onChange={(e) => setCommissionRate(e.target.value)}
+            onBlur={() => {
+              const parsed = Number(commissionRate);
+              if (Number.isNaN(parsed)) {
+                setCommissionRate(String(business.commissionRate));
+                return;
+              }
+              const clamped = Math.min(100, Math.max(0, parsed));
+              setCommissionRate(String(clamped));
+              if (clamped !== business.commissionRate) {
+                update({ commissionRate: clamped }, "commissionRate");
+              }
+            }}
+            disabled={loading !== null}
+            className="h-8 w-16 text-sm"
+          />
+          <span className="text-xs text-neutral-400">%</span>
+        </div>
+      </td>
       <td className="py-3">
         <Switch
           checked={business.verified}

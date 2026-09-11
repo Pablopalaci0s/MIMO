@@ -7,8 +7,19 @@ import { OrderStatusTimeline } from "@/components/orders/order-status-timeline";
 import { ReviewPrompt } from "@/components/reviews/review-prompt";
 import { getOrderByNumber } from "@/lib/services/order-service";
 import { listReviewableOrderItems } from "@/lib/services/review-service";
+import type { OrderPaymentDTO } from "@mimo/types";
 
 export const metadata: Metadata = { title: "Tu pedido — MIMO" };
+
+function paymentSummary(payment: OrderPaymentDTO): string {
+  if (payment.provider === "CASH") return "Pago contra entrega (efectivo).";
+  if (payment.provider !== "PAYPAL") return "";
+  if (payment.status === "PARTIALLY_REFUNDED") {
+    return "Pagado con PayPal — te reembolsamos la parte de algún negocio que no pudo confirmar.";
+  }
+  if (payment.status === "REFUNDED") return "Pagado con PayPal — reembolsado.";
+  return "Pagado con PayPal.";
+}
 
 export default async function OrderDetailPage({
   params,
@@ -91,7 +102,7 @@ export default async function OrderDetailPage({
           <span>Total</span>
           <span>${order.total.toFixed(2)}</span>
         </div>
-        <p className="mt-3 text-xs text-neutral-400">Pago contra entrega (efectivo).</p>
+        <p className="mt-3 text-xs text-neutral-400">{paymentSummary(order.payment)}</p>
       </div>
     </div>
   );
