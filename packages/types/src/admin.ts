@@ -86,6 +86,24 @@ export interface AdminReportDTO {
 
 export type ModerationStatus = "PENDING" | "APPROVED" | "REJECTED";
 
+export interface AdminBannerDTO {
+  id: string;
+  title: string;
+  imageUrl: string;
+  linkUrl: string | null;
+  isActive: boolean;
+  position: number;
+  createdAt: string;
+}
+
+export interface AdminBannerInput {
+  title: string;
+  imageUrl: string;
+  linkUrl?: string | null;
+  isActive: boolean;
+  position: number;
+}
+
 export interface AdminReviewDTO {
   id: string;
   userName: string;

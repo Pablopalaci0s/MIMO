@@ -23,6 +23,22 @@ export const adminCategoryInputSchema = z.object({
   position: z.coerce.number().int().min(0).max(999),
 });
 
+export const adminBannerInputSchema = z.object({
+  title: z.string().trim().min(2, "Mínimo 2 caracteres").max(80),
+  imageUrl: z.string().trim().url("URL de imagen inválida"),
+  linkUrl: z
+    .string()
+    .trim()
+    .max(500)
+    .optional()
+    .nullable()
+    .refine((value) => !value || value.startsWith("/") || /^https?:\/\//.test(value), {
+      message: "Tiene que ser una ruta interna (/regalos) o una URL completa (https://...)",
+    }),
+  isActive: z.boolean(),
+  position: z.coerce.number().int().min(0).max(999),
+});
+
 export const adminReportStatusUpdateSchema = z.object({
   status: z.enum(["OPEN", "REVIEWED", "RESOLVED", "DISMISSED"]),
 });

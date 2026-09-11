@@ -562,6 +562,25 @@ fotos con `image-upload-field.tsx`, como siempre.
 - Íconos de categoría: círculo más grande, sombra sutil, hover con resorte
   (`motion`) en vez de una transición CSS plana.
 
+## Diseño: banners promocionales (post-Fase 11)
+
+El admin ahora puede subir banners/publicidad desde `/admin/banners` (modelo
+`Banner` nuevo en el schema, migración `20260911035142_add_banners`) — sube
+la foto con el mismo `image-upload-field.tsx` que ya usaban productos y
+perfil de negocio, le pone un título, opcionalmente un link (ruta interna
+como `/regalos?categoria=flores` o una URL externa completa), un orden, y
+un switch de activo/oculto. Solo los banners `isActive` se muestran en el
+home (`PromoBanners`, entre los filtros rápidos y las categorías
+emocionales) — se agregan/sacan sin redeploy.
+
+**Por qué no reutilizar `Category` o algo existente**: un banner no es un
+concepto de catálogo (no tiene slug, no cuelga de productos) y su ciclo de
+vida es distinto — se crea y se borra libremente sin las validaciones de
+"no eliminar si tiene productos asignados" que sí aplican a categorías. Se
+modeló aparte a propósito, seguido el mismo patrón CRUD de
+`admin-category-service.ts`/`category-manager.tsx` para no inventar uno
+nuevo.
+
 ## Diseño: paneles como app separada (post-Fase 6, rediseño)
 
 `/negocio` y `/admin` dejaron de ser páginas más del sitio con pestañas
