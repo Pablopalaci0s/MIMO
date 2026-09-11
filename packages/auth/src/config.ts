@@ -81,8 +81,13 @@ export const authConfig: NextAuthConfig = {
       // authorize() — sin esto, suspender a alguien no le impediría volver
       // a entrar con Google/Facebook.
       if (account?.provider !== "credentials") {
+        // Puede pasar (ej. Facebook si el correo de la cuenta no está
+        // confirmado como principal, ver README) — sin esto, seguir de
+        // largo rompe más abajo en el adapter porque email es obligatorio.
+        if (!user.email) return "/iniciar-sesion?error=NoEmailFromProvider";
+
         const existing = await prisma.user.findUnique({
-          where: { email: user.email as string },
+          where: { email: user.email },
           select: { deletedAt: true },
         });
         if (existing?.deletedAt) return false;

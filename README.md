@@ -516,6 +516,15 @@ en `jwt()`, ver commit anterior) para que "suspender" bloquee los tres
 caminos: login nuevo por contraseña, login nuevo por OAuth, y sesión ya
 abierta.
 
+**Proveedores sin correo verificado.** Facebook en particular puede no
+devolver `email` en el perfil aunque el usuario haya aceptado el permiso —
+pasa cuando el correo de la cuenta no está confirmado como principal (caso
+real, encontrado probando con una cuenta de Facebook real). Como `email`
+es obligatorio en el modelo `User`, dejar pasar ese login rompía más abajo
+en el adapter con un error críptico de Prisma. El callback `signIn()` en
+`config.ts` corta ese caso antes, con un mensaje claro en vez de un
+"Access Denied" genérico.
+
 **Lo que solo el usuario puede hacer** (no es algo que se pueda automatizar
 sin acceso a sus cuentas): crear un proyecto en Google Cloud Console y una
 app en Facebook for Developers, configurar el redirect URI de cada uno

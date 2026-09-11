@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   AccessDenied: "Esa cuenta está suspendida.",
   OAuthAccountNotLinked: "Ese correo ya está en uso con otro método de inicio de sesión.",
+  NoEmailFromProvider:
+    "Esa cuenta no tiene un correo verificado que podamos usar. Probá con otra cuenta o iniciá sesión con tu correo.",
 };
 
 export function LoginForm({ oauthProviders }: { oauthProviders: { google: boolean; facebook: boolean } }) {
