@@ -25,7 +25,7 @@ export function CategoryGrid({ categories }: { categories: CategoryDTO[] }) {
           variants={container}
           initial="hidden"
           animate="show"
-          className="scrollbar-hide -mx-4 flex snap-x gap-6 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:justify-center sm:gap-x-8 sm:gap-y-5 sm:px-0"
+          className="scrollbar-hide -mx-4 flex snap-x gap-6 overflow-x-auto px-4 sm:gap-8"
         >
           {categories.map((category) => {
             const Icon = getCategoryIcon(category.slug);
@@ -53,7 +53,7 @@ export function CategoryGrid({ categories }: { categories: CategoryDTO[] }) {
         </motion.div>
       </div>
 
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent sm:hidden" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white to-transparent" />
     </section>
   );
 }

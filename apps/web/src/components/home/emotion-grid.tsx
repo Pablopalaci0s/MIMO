@@ -25,7 +25,7 @@ export function EmotionGrid({ emotions }: { emotions: OccasionDTO[] }) {
           variants={container}
           initial="hidden"
           animate="show"
-          className="scrollbar-hide -mx-4 flex snap-x gap-2.5 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:justify-center sm:px-0"
+          className="scrollbar-hide -mx-4 flex snap-x gap-2.5 overflow-x-auto px-4"
         >
           {emotions.map((emotion) => {
             const Icon = getEmotionIcon(emotion.slug);
@@ -51,7 +51,7 @@ export function EmotionGrid({ emotions }: { emotions: OccasionDTO[] }) {
         </motion.div>
       </div>
 
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent sm:hidden" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white to-transparent" />
     </section>
   );
 }
