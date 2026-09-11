@@ -39,7 +39,7 @@ export function CategoryGrid({ categories }: { categories: CategoryDTO[] }) {
                     whileHover={{ scale: 1.08, rotate: -4 }}
                     whileTap={{ scale: 0.96 }}
                     transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                    className="flex size-16 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 shadow-sm transition-colors duration-200 group-hover:bg-neutral-900 group-hover:text-white"
+                    className="flex size-16 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 shadow-sm ring-0 ring-brand-soft transition-all duration-200 group-hover:bg-neutral-900 group-hover:text-white group-hover:ring-4"
                   >
                     <Icon className="size-6" strokeWidth={1.6} />
                   </motion.span>

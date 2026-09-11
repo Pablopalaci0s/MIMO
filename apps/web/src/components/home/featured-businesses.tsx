@@ -1,6 +1,6 @@
 "use client";
 
-import { ShieldCheck, Star, Truck } from "lucide-react";
+import { ArrowRight, ArrowUpRight, ShieldCheck, Star, Truck } from "lucide-react";
 import { motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -22,7 +22,16 @@ export function FeaturedBusinesses({ businesses }: { businesses: FeaturedBusines
   return (
     <section className="relative min-w-0 py-6">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <h2 className="mb-4 text-lg font-semibold tracking-tight text-neutral-900">Negocios destacados</h2>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Negocios destacados</h2>
+          <Link
+            href="/regalos"
+            className="group flex items-center gap-1 text-sm font-medium text-neutral-500 transition-colors hover:text-brand"
+          >
+            Ver todo
+            <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+          </Link>
+        </div>
 
         <motion.div
           variants={container}
@@ -35,7 +44,7 @@ export function FeaturedBusinesses({ businesses }: { businesses: FeaturedBusines
             <motion.div key={business.id} variants={item} className="w-64 shrink-0 snap-start sm:w-auto">
               <Link
                 href={`/negocios/${business.slug}`}
-                className="group flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-200/80 bg-white transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-[0_12px_28px_-14px_rgba(0,0,0,0.18)]"
+                className="group flex h-full flex-col overflow-hidden rounded-3xl border border-neutral-200/80 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-brand/25 hover:shadow-[0_18px_36px_-16px_rgba(0,0,0,0.22)]"
               >
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-brand-soft to-neutral-100">
                   {business.previewImageUrl && (
@@ -44,23 +53,26 @@ export function FeaturedBusinesses({ businesses }: { businesses: FeaturedBusines
                       alt={business.name}
                       fill
                       sizes="(max-width: 640px) 256px, (max-width: 1024px) 50vw, 33vw"
-                      className="object-cover transition-transform duration-300 group-hover:scale-110"
+                      className="object-cover transition-transform duration-500 ease-out group-hover:scale-110"
                     />
                   )}
                   <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/35 to-transparent" />
                   {business.verified && (
-                    <span className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-white/95 px-2 py-1 text-[11px] font-medium text-neutral-700 shadow-sm">
+                    <span className="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-white/85 px-2 py-1 text-[11px] font-medium text-neutral-700 shadow-sm backdrop-blur-sm">
                       <ShieldCheck className="size-3 text-brand" strokeWidth={2} />
                       Verificado
                     </span>
                   )}
                   {business.ratingCount > 0 && (
-                    <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-white/95 px-2 py-1 text-[11px] font-medium text-neutral-800 shadow-sm">
+                    <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-white/85 px-2 py-1 text-[11px] font-medium text-neutral-800 shadow-sm backdrop-blur-sm">
                       <Star className="size-3 fill-amber-400 text-amber-400" />
                       {business.ratingAvg.toFixed(1)}
                       <span className="text-neutral-500">({business.ratingCount})</span>
                     </span>
                   )}
+                  <span className="absolute right-2 bottom-2 flex size-7 translate-y-1 items-center justify-center rounded-full bg-white/90 text-neutral-900 opacity-0 shadow-sm backdrop-blur-sm transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                    <ArrowUpRight className="size-3.5" strokeWidth={2.25} />
+                  </span>
                 </div>
 
                 <div className="flex flex-1 flex-col gap-1 px-4 py-3">

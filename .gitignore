@@ -44,3 +44,6 @@ next-env.d.ts
 
 # Vercel
 .vercel
+
+# Notas personales en Obsidian (registro propio de Salvador, nunca se sube)
+/Notes_MIMO/
