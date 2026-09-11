@@ -85,3 +85,17 @@ export interface OrderDTO {
   isSurpriseMode: boolean;
   createdAt: string;
 }
+
+export type OrderMessageSender = "CUSTOMER" | "BUSINESS";
+
+export interface OrderMessageDTO {
+  id: string;
+  senderRole: OrderMessageSender;
+  senderName: string;
+  body: string;
+  createdAt: string;
+}
+
+export interface OrderMessageInput {
+  body: string;
+}

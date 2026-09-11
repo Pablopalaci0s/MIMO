@@ -4,6 +4,7 @@ import { EyeOff, Loader2, MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { apiErrorMessage } from "@/lib/api-error-message";
+import { OrderMessages } from "@/components/orders/order-messages";
 import { Button } from "@/components/ui/button";
 import type { BusinessOrderItemDTO, OrderStatus } from "@mimo/types";
 
@@ -118,6 +119,8 @@ export function OrderItemCard({ item, statusLabel }: { item: BusinessOrderItemDT
       <p className="text-xs text-neutral-400">
         Comprador: {item.buyerName} · {item.buyerPhone}
       </p>
+
+      <OrderMessages orderNumber={item.orderNumber} businessId={item.businessId} viewerRole="BUSINESS" />
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 

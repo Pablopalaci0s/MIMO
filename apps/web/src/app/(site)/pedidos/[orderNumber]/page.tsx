@@ -2,6 +2,7 @@ import { CheckCircle2 } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@mimo/auth";
+import { OrderMessages } from "@/components/orders/order-messages";
 import { OrderStatusTimeline } from "@/components/orders/order-status-timeline";
 import { ReviewPrompt } from "@/components/reviews/review-prompt";
 import { getOrderByNumber } from "@/lib/services/order-service";
@@ -24,10 +25,14 @@ export default async function OrderDetailPage({
       ? (await listReviewableOrderItems(session.user.id)).filter((item) => item.orderId === order.id)
       : [];
 
-  const groupedByBusiness = order.items.reduce<Record<string, typeof order.items>>((groups, item) => {
-    (groups[item.businessName] ??= []).push(item);
-    return groups;
-  }, {});
+  const groupedByBusiness = order.items.reduce<Record<string, { businessName: string; items: typeof order.items }>>(
+    (groups, item) => {
+      const group = (groups[item.businessId] ??= { businessName: item.businessName, items: [] });
+      group.items.push(item);
+      return groups;
+    },
+    {},
+  );
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-10 sm:px-6">
@@ -42,11 +47,11 @@ export default async function OrderDetailPage({
       </div>
 
       <div className="mt-6 flex flex-col gap-5">
-        {Object.entries(groupedByBusiness).map(([businessName, businessItems]) => (
-          <div key={businessName} className="rounded-2xl border border-neutral-200 p-4">
-            <p className="mb-3 text-sm font-semibold text-neutral-900">{businessName}</p>
+        {Object.entries(groupedByBusiness).map(([businessId, group]) => (
+          <div key={businessId} className="rounded-2xl border border-neutral-200 p-4">
+            <p className="mb-3 text-sm font-semibold text-neutral-900">{group.businessName}</p>
             <div className="flex flex-col gap-2">
-              {businessItems.map((item) => (
+              {group.items.map((item) => (
                 <div key={item.id} className="flex justify-between text-sm text-neutral-600">
                   <span>
                     {item.quantity}× {item.productName}
@@ -54,6 +59,9 @@ export default async function OrderDetailPage({
                   <span>${(item.unitPrice * item.quantity).toFixed(2)}</span>
                 </div>
               ))}
+            </div>
+            <div className="mt-3">
+              <OrderMessages orderNumber={order.orderNumber} businessId={businessId} viewerRole="CUSTOMER" />
             </div>
           </div>
         ))}

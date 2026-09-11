@@ -117,6 +117,7 @@ enum NotificationType {
   REVIEW_RECEIVED
   PROMOTION
   SYSTEM
+  ORDER_MESSAGE
 }
 
 enum PromotionDiscountType {
@@ -219,6 +220,7 @@ model User {
   webPushSubscriptions WebPushSubscription[]
   coverageRequests    CoverageRequest[]
   authTokens          AuthToken[]
+  orderMessages       OrderMessage[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -569,6 +571,7 @@ model Order {
   address    OrderAddress?
   payment    Payment?
   reviews    Review[]
+  messages   OrderMessage[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -601,6 +604,34 @@ model OrderItem {
   @@index([businessId])
   @@index([productId])
   @@map("order_items")
+}
+
+enum OrderMessageSender {
+  CUSTOMER
+  BUSINESS
+}
+
+/**
+ * Conversación por pedido+negocio — no por `OrderItem`: un mismo negocio
+ * puede tener varias líneas en el mismo pedido (carrito multi-tienda) y son
+ * la misma entrega, la misma conversación ("no encuentro la casa" aplica a
+ * los dos productos, no a uno). `businessId` es un id suelto sin relación
+ * formal de Prisma a propósito — mismo patrón que `OrderItem.businessId`
+ * en este archivo, no una inconsistencia.
+ */
+model OrderMessage {
+  id         String             @id @default(uuid()) @db.Uuid
+  orderId    String             @db.Uuid
+  order      Order              @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  businessId String             @db.Uuid
+  senderId   String             @db.Uuid
+  sender     User               @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  senderRole OrderMessageSender
+  body       String             @db.Text
+  createdAt  DateTime           @default(now())
+
+  @@index([orderId, businessId])
+  @@map("order_messages")
 }
 
 model OrderAddress {

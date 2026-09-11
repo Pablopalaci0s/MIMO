@@ -17,6 +17,7 @@ function toBusinessOrderItemDTO(item: BusinessOrderItemRow): BusinessOrderItemDT
     id: item.id,
     orderId: item.orderId,
     orderNumber: item.order.orderNumber,
+    businessId: item.businessId,
     productId: item.productId,
     productName: item.product.name,
     productImageUrl: item.product.images[0]?.url ?? null,

@@ -9,7 +9,8 @@ export type NotificationType =
   | "BUSINESS_SUSPENDED"
   | "REVIEW_RECEIVED"
   | "PROMOTION"
-  | "SYSTEM";
+  | "SYSTEM"
+  | "ORDER_MESSAGE";
 
 export interface NotificationDTO {
   id: string;

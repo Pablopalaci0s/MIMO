@@ -48,3 +48,8 @@ export const checkoutInputSchema = z.object({
 });
 
 export type CheckoutInputParsed = z.infer<typeof checkoutInputSchema>;
+
+export const orderMessageInputSchema = z.object({
+  businessId: z.string().uuid(),
+  body: z.string().trim().min(1, "Escribí un mensaje").max(1000),
+});

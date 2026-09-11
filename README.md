@@ -740,6 +740,47 @@ probarlo de verdad:
    ventana de aviso) y ver si aparece como notificación del sistema
    operativo, no dentro de la pestaña.
 
+## Diseño: mensajes entre negocio y cliente por pedido (post-Fase 11)
+
+Dos pedidos del usuario en el mismo mensaje:
+
+**"Que le llegue notificación al cliente cuando el negocio cambia el
+estado"** — esto ya existía desde la Fase 9
+(`ORDER_STATUS_NOTIFICATION` en `business-order-service.ts`, dispara en
+cada `updateBusinessOrderItemStatus`) y, desde que se agregó Web Push esta
+misma sesión, ya sale como push real también, sin tocar nada — todo pasa
+por `createNotification`. Se verificó, no se reconstruyó.
+
+**"Que el negocio pueda pedir un dato o avisar que no encuentra la
+casa"** — esto sí era nuevo. `OrderMessage` es una conversación por
+pedido+negocio, no por línea de producto (`OrderItem`): un mismo pedido
+puede tener varias líneas del mismo negocio (carrito multi-tienda) y es la
+misma entrega, la misma conversación — separarla por ítem hubiera
+fragmentado sin sentido un solo "no encuentro la casa" en N hilos
+idénticos. Un mismo componente (`components/orders/order-messages.tsx`)
+se usa en las dos puntas — la página de pedido del cliente
+(`/pedidos/[orderNumber]`, agrupado por negocio) y la card de pedido del
+negocio (`OrderItemCard`) — con `viewerRole` como única diferencia (alinea
+los mensajes propios a la derecha). Cualquiera de los dos lados que
+escribe dispara una notificación (con push) para el otro — reusa
+`createNotification`, no es un sistema aparte. La ruta
+`/api/orders/[orderNumber]/messages` sirve a los dos lados: la
+autorización adentro del servicio decide si quien pregunta es el
+comprador de ese pedido o parte de ese negocio, no hay separación por rol
+a nivel de ruta.
+
+Probado en vivo de punta a punta: negocio manda "no encontramos tu casa"
+→ aparece del lado del cliente en `/pedidos/...` alineado a la izquierda,
+con notificación creada correctamente → cliente responde con la
+referencia → aparece del lado del negocio alineado a la derecha.
+
+**No es un chat en tiempo real** (sin WebSockets/polling en esta
+pantalla) — se recarga al abrir el hilo o al mandar un mensaje propio, no
+sondea solo. Para el caso de uso (una aclaración puntual sobre una
+entrega, no una conversación activa de ida y vuelta rápida) alcanza; si
+en algún momento hace falta más inmediatez, el mismo patrón de
+`NewOrderWatcher` (polling) se podría reusar acá.
+
 ## Diseño: paneles como app separada (post-Fase 6, rediseño)
 
 `/negocio` y `/admin` dejaron de ser páginas más del sitio con pestañas

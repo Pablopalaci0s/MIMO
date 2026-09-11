@@ -5,6 +5,7 @@ import {
   CalendarHeart,
   CheckCheck,
   Loader2,
+  MessageCircle,
   MessageSquareText,
   Package,
   ShieldCheck,
@@ -27,6 +28,7 @@ const ICON: Record<NotificationType, ReactNode> = {
   REVIEW_RECEIVED: <MessageSquareText className="size-4" />,
   PROMOTION: <Tag className="size-4" />,
   SYSTEM: <Bell className="size-4" />,
+  ORDER_MESSAGE: <MessageCircle className="size-4" />,
 };
 
 function formatDate(iso: string): string {

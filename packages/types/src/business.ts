@@ -35,6 +35,7 @@ export interface BusinessOrderItemDTO {
   id: string;
   orderId: string;
   orderNumber: string;
+  businessId: string;
   productId: string;
   productName: string;
   productImageUrl: string | null;
