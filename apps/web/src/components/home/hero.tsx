@@ -177,8 +177,9 @@ export function Hero() {
           </span>
           <Button
             type="submit"
+            variant="brand"
             size="icon"
-            className="size-11 shrink-0 rounded-full bg-brand text-brand-foreground transition-transform hover:scale-105 hover:bg-brand/90 active:scale-95"
+            className="size-11 shrink-0 rounded-full transition-transform hover:scale-105 active:scale-95"
             aria-label="Buscar detalle"
           >
             <ArrowRight className="size-4" />

@@ -23,7 +23,10 @@ export function FeaturedBusinesses({ businesses }: { businesses: FeaturedBusines
     <section className="relative min-w-0 py-6">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Negocios destacados</h2>
+          <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-neutral-900">
+            <span className="h-4 w-1 rounded-full bg-brand" />
+            Negocios destacados
+          </h2>
           <Link
             href="/regalos"
             className="group flex items-center gap-1 text-sm font-medium text-neutral-500 transition-colors hover:text-brand"

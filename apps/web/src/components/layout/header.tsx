@@ -33,7 +33,7 @@ export async function Header() {
               <Button variant="ghost" className="transition-transform active:scale-[0.98]" asChild>
                 <Link href="/iniciar-sesion">Iniciar sesión</Link>
               </Button>
-              <Button className="transition-transform active:scale-[0.98]" asChild>
+              <Button variant="brand" className="rounded-full transition-transform active:scale-[0.98]" asChild>
                 <Link href="/registro">Crear cuenta</Link>
               </Button>
             </div>

@@ -17,7 +17,7 @@ export function QuickFilters() {
             <Link
               key={filter.href}
               href={filter.href}
-              className="flex shrink-0 items-center gap-1.5 rounded-full border border-neutral-200 px-3.5 py-1.5 text-sm font-medium whitespace-nowrap text-neutral-700 transition-colors hover:border-neutral-300 hover:bg-neutral-50"
+              className="flex shrink-0 items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-sm font-medium whitespace-nowrap text-neutral-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-neutral-300 hover:bg-neutral-50 hover:shadow-md"
             >
               <Icon className="size-3.5 text-neutral-500" strokeWidth={1.75} />
               {filter.label}
