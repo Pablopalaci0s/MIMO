@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { daysBetweenUtc, parseUtcDateOnly, utcDateOnly } from "./date-utils";
+import { daysBetweenUtc, nextAnnualOccurrence, parseUtcDateOnly, utcDateOnly } from "./date-utils";
 
 describe("utcDateOnly", () => {
   it("descarta la hora, conservando solo el día calendario en UTC", () => {
@@ -40,5 +40,25 @@ describe("daysBetweenUtc", () => {
 
   it("cruza correctamente un límite de mes/año", () => {
     expect(daysBetweenUtc(parseUtcDateOnly("2025-12-30"), parseUtcDateOnly("2026-01-02"))).toBe(3);
+  });
+});
+
+describe("nextAnnualOccurrence", () => {
+  it("ignora el año guardado — el bug real que reemplaza: una fecha de un año viejo no queda 'pasada' para siempre", () => {
+    const birthday = parseUtcDateOnly("2019-09-10"); // año viejo, como si se hubiera creado hace años
+    const today = parseUtcDateOnly("2026-09-01");
+    expect(nextAnnualOccurrence(today, birthday).toISOString()).toBe("2026-09-10T00:00:00.000Z");
+  });
+
+  it("si ya pasó este año, cae en el año que viene", () => {
+    const birthday = parseUtcDateOnly("2019-01-15");
+    const today = parseUtcDateOnly("2026-09-01");
+    expect(nextAnnualOccurrence(today, birthday).toISOString()).toBe("2027-01-15T00:00:00.000Z");
+  });
+
+  it("si es hoy, devuelve hoy (no salta al año que viene)", () => {
+    const birthday = parseUtcDateOnly("2020-09-01");
+    const today = parseUtcDateOnly("2026-09-01");
+    expect(nextAnnualOccurrence(today, birthday).toISOString()).toBe("2026-09-01T00:00:00.000Z");
   });
 });

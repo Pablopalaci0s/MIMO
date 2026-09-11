@@ -1,0 +1,29 @@
+name: Cron — fechas importantes
+
+# Job programado real (ver README "Diseño: fechas importantes recurrentes"
+# y apps/web/src/app/api/cron/fechas-importantes/route.ts). No hace nada
+# hasta que el sitio esté desplegado y tenga estos dos secrets configurados
+# en Settings → Secrets and variables → Actions:
+#   APP_URL      → https://tu-dominio-real (sin barra final)
+#   CRON_SECRET  → el mismo valor que CRON_SECRET en el .env del servidor
+# Sin esos secrets, este workflow corre igual pero el curl falla (esperado
+# — no hay URL real todavía). "workflow_dispatch" permite además correrlo a
+# mano desde la pestaña Actions de GitHub para probarlo sin esperar al cron.
+on:
+  schedule:
+    - cron: "0 12 * * *" # 6:00 AM America/El_Salvador (UTC-6), todos los días
+  workflow_dispatch: {}
+
+jobs:
+  check-fechas-importantes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Llamar al endpoint de recordatorios
+        run: |
+          if [ -z "${{ secrets.APP_URL }}" ] || [ -z "${{ secrets.CRON_SECRET }}" ]; then
+            echo "Faltan los secrets APP_URL y/o CRON_SECRET — configuralos en Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          curl -sf --fail-with-body \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.APP_URL }}/api/cron/fechas-importantes"

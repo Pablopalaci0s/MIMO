@@ -1,7 +1,7 @@
 import { prisma } from "@mimo/database";
 import type { ImportantDateDTO, ImportantDateInput } from "@mimo/types";
 import { AppError } from "@/lib/errors";
-import { daysBetweenUtc, parseUtcDateOnly } from "@/lib/date-utils";
+import { daysBetweenUtc, nextAnnualOccurrence, parseUtcDateOnly } from "@/lib/date-utils";
 import { createNotification } from "./notification-service";
 
 type ImportantDateRow = {
@@ -14,6 +14,7 @@ type ImportantDateRow = {
 };
 
 function toImportantDateDTO(row: ImportantDateRow): ImportantDateDTO {
+  const now = new Date();
   return {
     id: row.id,
     type: row.type,
@@ -21,7 +22,9 @@ function toImportantDateDTO(row: ImportantDateRow): ImportantDateDTO {
     date: row.date.toISOString().slice(0, 10),
     recipientName: row.recipientName,
     remindDaysBefore: row.remindDaysBefore,
-    daysUntil: daysBetweenUtc(new Date(), row.date),
+    // Se repite cada año: lo que importa es cuándo cae el próximo 10 de
+    // septiembre, no cuántos días pasaron desde el año en que se cargó.
+    daysUntil: daysBetweenUtc(now, nextAnnualOccurrence(now, row.date)),
   };
 }
 
@@ -78,27 +81,35 @@ export async function deleteImportantDate(userId: string, id: string): Promise<v
 }
 
 /**
- * Revisa, en el momento en que el usuario abre el home, si alguna fecha
- * importante está dentro de su ventana de aviso (`remindDaysBefore`) y crea
- * la notificación correspondiente. No hay un cron real detrás — sección 5 de
- * las reglas del usuario prohíbe fingir funcionalidad que no existe, así que
- * en vez de simular un push automático a medianoche, el aviso se genera de
- * forma perezosa la próxima vez que el usuario visita la app dentro de la
- * ventana. `metadata.importantDateId` evita mandar el mismo aviso dos veces.
+ * Revisa si alguna fecha importante de `userId` está dentro de su ventana de
+ * aviso (`remindDaysBefore`) y crea la notificación correspondiente. Se
+ * repite cada año: la ocurrencia se calcula con `nextAnnualOccurrence`, y el
+ * año de ESA ocurrencia va en `metadata.occurrenceYear` — así el chequeo de
+ * "ya avisado" (`metadata.importantDateId` + `occurrenceYear`) solo bloquea
+ * duplicados dentro del mismo año, no para siempre después del primer aviso.
+ *
+ * Se llama desde dos lugares: de forma perezosa cuando el usuario visita el
+ * home (`checkImportantDateReminders`, mantiene el aviso fresco aunque el
+ * cron no haya corrido todavía) y desde `checkAllImportantDateReminders`,
+ * que sí es un job programado real — ver `/api/cron/fechas-importantes` y
+ * `.github/workflows/cron-fechas-importantes.yml`.
  */
-export async function checkImportantDateReminders(userId: string): Promise<void> {
-  const dates = await prisma.importantDate.findMany({ where: { userId } });
+async function checkDatesForUser(userId: string, dates: { id: string; label: string; date: Date; recipientName: string | null; remindDaysBefore: number }[]): Promise<number> {
   const now = new Date();
+  let created = 0;
 
   for (const date of dates) {
-    const daysUntil = daysBetweenUtc(now, date.date);
+    const occurrence = nextAnnualOccurrence(now, date.date);
+    const daysUntil = daysBetweenUtc(now, occurrence);
     if (daysUntil < 0 || daysUntil > date.remindDaysBefore) continue;
 
+    const occurrenceYear = occurrence.getUTCFullYear();
     const alreadyNotified = await prisma.notification.findFirst({
       where: {
         userId,
         type: "IMPORTANT_DATE_REMINDER",
         metadata: { path: ["importantDateId"], equals: date.id },
+        AND: { metadata: { path: ["occurrenceYear"], equals: occurrenceYear } },
       },
     });
     if (alreadyNotified) continue;
@@ -111,8 +122,37 @@ export async function checkImportantDateReminders(userId: string): Promise<void>
       body: date.recipientName
         ? `No te olvidés de ${date.recipientName} — todavía estás a tiempo de pedir algo.`
         : "Todavía estás a tiempo de pedir algo especial.",
-      metadata: { importantDateId: date.id },
+      metadata: { importantDateId: date.id, occurrenceYear },
       linkHref: "/ayudame-a-elegir",
     });
+    created++;
   }
+
+  return created;
+}
+
+export async function checkImportantDateReminders(userId: string): Promise<void> {
+  const dates = await prisma.importantDate.findMany({ where: { userId } });
+  await checkDatesForUser(userId, dates);
+}
+
+/**
+ * Versión "todos los usuarios" para el cron real — agrupa por usuario para
+ * no golpear la base con una query por persona en un solo `findMany`.
+ */
+export async function checkAllImportantDateReminders(): Promise<{ usersChecked: number; remindersCreated: number }> {
+  const dates = await prisma.importantDate.findMany();
+  const byUser = new Map<string, typeof dates>();
+  for (const date of dates) {
+    const list = byUser.get(date.userId) ?? [];
+    list.push(date);
+    byUser.set(date.userId, list);
+  }
+
+  let remindersCreated = 0;
+  for (const [userId, userDates] of byUser) {
+    remindersCreated += await checkDatesForUser(userId, userDates);
+  }
+
+  return { usersChecked: byUser.size, remindersCreated };
 }
