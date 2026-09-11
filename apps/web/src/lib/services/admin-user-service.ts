@@ -1,6 +1,12 @@
 import { Prisma, prisma } from "@mimo/database";
-import type { AdminUserDTO, AdminUserUpdateInput } from "@mimo/types";
+import type { AdminUserDTO, AdminUserUpdateInput, UserRole } from "@mimo/types";
 import { AppError } from "@/lib/errors";
+
+export interface AdminUserFilters {
+  q?: string;
+  role?: UserRole;
+  isSuspended?: boolean;
+}
 
 const ADMIN_USER_INCLUDE = {
   _count: { select: { businessMemberships: true, orders: true } },
@@ -22,8 +28,24 @@ function toAdminUserDTO(user: AdminUserRow): AdminUserDTO {
   };
 }
 
-export async function listAdminUsers(): Promise<AdminUserDTO[]> {
+export async function listAdminUsers(filters: AdminUserFilters = {}): Promise<AdminUserDTO[]> {
+  const where: Prisma.UserWhereInput = {
+    ...(filters.q
+      ? {
+          OR: [
+            { name: { contains: filters.q, mode: "insensitive" } },
+            { email: { contains: filters.q, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+    ...(filters.role ? { role: filters.role } : {}),
+    ...(filters.isSuspended !== undefined
+      ? { deletedAt: filters.isSuspended ? { not: null } : null }
+      : {}),
+  };
+
   const users = await prisma.user.findMany({
+    where,
     include: ADMIN_USER_INCLUDE,
     orderBy: { createdAt: "desc" },
   });

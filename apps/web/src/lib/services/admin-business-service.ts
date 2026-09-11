@@ -1,7 +1,12 @@
 import { Prisma, prisma } from "@mimo/database";
-import type { AdminBusinessDTO, AdminBusinessUpdateInput } from "@mimo/types";
+import type { AdminBusinessDTO, AdminBusinessUpdateInput, BusinessStatus } from "@mimo/types";
 import { AppError } from "@/lib/errors";
 import { createNotification } from "./notification-service";
+
+export interface AdminBusinessFilters {
+  q?: string;
+  status?: BusinessStatus;
+}
 
 const ADMIN_BUSINESS_INCLUDE = {
   municipality: true,
@@ -28,9 +33,15 @@ function toAdminBusinessDTO(business: AdminBusinessRow): AdminBusinessDTO {
   };
 }
 
-export async function listAdminBusinesses(): Promise<AdminBusinessDTO[]> {
+export async function listAdminBusinesses(filters: AdminBusinessFilters = {}): Promise<AdminBusinessDTO[]> {
+  const where: Prisma.BusinessWhereInput = {
+    deletedAt: null,
+    ...(filters.q ? { name: { contains: filters.q, mode: "insensitive" } } : {}),
+    ...(filters.status ? { status: filters.status } : {}),
+  };
+
   const businesses = await prisma.business.findMany({
-    where: { deletedAt: null },
+    where,
     include: ADMIN_BUSINESS_INCLUDE,
     orderBy: [{ status: "asc" }, { createdAt: "desc" }],
   });
