@@ -30,10 +30,17 @@ export function EmotionGrid({ emotions }: { emotions: OccasionDTO[] }) {
           {emotions.map((emotion) => {
             const Icon = getEmotionIcon(emotion.slug);
             return (
-              <motion.div key={emotion.id} variants={item} className="shrink-0 snap-start">
+              <motion.div
+                key={emotion.id}
+                variants={item}
+                whileHover={{ scale: 1.05, y: -1 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                className="shrink-0 snap-start"
+              >
                 <Link
                   href={`/regalos?emocion=${emotion.slug}`}
-                  className="group flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white py-2 pr-4 pl-3 text-sm font-medium whitespace-nowrap text-neutral-700 transition-colors duration-200 hover:border-brand/50 hover:bg-brand-soft hover:text-brand"
+                  className="group flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white py-2 pr-4 pl-3 text-sm font-medium whitespace-nowrap text-neutral-700 shadow-sm transition-all duration-200 hover:border-brand/50 hover:bg-brand-soft hover:text-brand hover:shadow-[0_6px_16px_-8px_var(--brand)]"
                 >
                   <Icon className="size-4 shrink-0" strokeWidth={1.75} />
                   {emotion.name}
