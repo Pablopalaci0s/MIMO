@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@mimo/auth";
 import { Button } from "@/components/ui/button";
 import { DashboardShell, type DashboardNavItem } from "@/components/dashboard/dashboard-shell";
+import { NewOrderWatcher } from "@/components/negocio/new-order-watcher";
 import { getBusinessIdForUser } from "@/lib/services/business-service";
 import { prisma } from "@mimo/database";
 
@@ -49,6 +50,7 @@ export default async function BusinessDashboardLayout({ children }: { children: 
 
   return (
     <DashboardShell brand={businessName} subtitle="Panel de negocio" navItems={NAV_ITEMS} user={session.user}>
+      <NewOrderWatcher />
       {children}
     </DashboardShell>
   );

@@ -703,6 +703,43 @@ Sentry sigue sin resolver — arreglarlo bien implica repensar cómo
 `NEXT_PUBLIC_*` llega al cliente en todo el proyecto, alcance mayor al de
 esta sesión.
 
+**Aviso en vivo de pedido nuevo, sin recargar (`NewOrderWatcher`).** Pedido
+del usuario: cuando entra un pedido, el negocio se tiene que enterar al
+toque, con la pestaña abierta, sin F5. El push de arriba cubre "el negocio
+no tiene MIMO abierto"; esto cubre "sí lo tiene abierto, en cualquier
+página del panel" — son problemas distintos, un push no alcanza para el
+segundo porque los navegadores no siempre lo muestran si la pestaña ya
+está enfocada. `components/negocio/new-order-watcher.tsx` vive en el
+layout de `/negocio` (todas las páginas, no solo Pedidos): sondea pedidos
+pendientes cada 15s, y si aparece uno que no estaba en la vuelta anterior,
+suena una alerta (dos tonos generados con Web Audio, sin archivo de audio
+que empaquetar) y muestra un aviso flotante con link directo — más
+`router.refresh()`, que sí actualiza los datos del Server Component actual
+sin una recarga completa de la página. Probado en vivo: creé un pedido de
+prueba directo en la base mientras tenía `/negocio/pedidos` abierto, y el
+contador subió solo (4 → 5 → 6) con el pedido nuevo arriba de la lista.
+**No es realtime de verdad** (WebSockets/SSE) — es polling simple a
+propósito, no hay infraestructura de tiempo real en este proyecto y
+agregarla solo para esto sería sobre-ingeniería; 15s es un compromiso
+razonable entre "casi al instante" y no perforar el servidor a pedidos.
+
+**Cómo probar que las notificaciones push realmente llegan.** El service
+worker (que es lo que muestra un push cuando el navegador está cerrado o
+en background) **solo se registra en producción** — `next dev` lo evita a
+propósito (gotcha ya documentado, cachea agresivo y sirve JS viejo). Para
+probarlo de verdad:
+1. `npm run build && npm run start` (no `npm run dev`).
+2. Entrar a "Mi perfil" → "Notificaciones push" → "Activar", y aceptar el
+   permiso del navegador cuando lo pida (si ya lo habías bloqueado antes,
+   el botón no aparece — hay que sacarlo desde la configuración del sitio
+   en el navegador primero).
+3. Windows también tiene su propio interruptor: Configuración → Sistema →
+   Notificaciones → confirmar que Chrome/Edge puede mandar notificaciones.
+4. Disparar una notificación real (pedir/entregar un pedido de prueba,
+   dejar una reseña, o esperar a que una fecha importante entre en su
+   ventana de aviso) y ver si aparece como notificación del sistema
+   operativo, no dentro de la pestaña.
+
 ## Diseño: paneles como app separada (post-Fase 6, rediseño)
 
 `/negocio` y `/admin` dejaron de ser páginas más del sitio con pestañas
