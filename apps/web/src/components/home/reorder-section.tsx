@@ -1,3 +1,5 @@
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 import { ProductCard } from "@/components/catalog/product-card";
 import type { ProductSummaryDTO } from "@mimo/types";
 
@@ -7,7 +9,16 @@ export function ReorderSection({ products }: { products: ProductSummaryDTO[] }) 
   return (
     <section className="min-w-0 py-6">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <h2 className="mb-4 text-lg font-semibold tracking-tight text-neutral-900">Volver a pedir</h2>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold tracking-tight text-neutral-900">Volver a pedir</h2>
+          <Link
+            href="/mis-pedidos"
+            className="group flex items-center gap-1 text-sm font-medium text-neutral-500 transition-colors hover:text-brand"
+          >
+            Ver todo
+            <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+          </Link>
+        </div>
         <div className="scrollbar-hide -mx-4 flex gap-4 overflow-x-auto px-4 sm:mx-0 sm:grid sm:grid-cols-3 sm:px-0 lg:grid-cols-4">
           {products.map((product) => (
             <div key={product.id} className="w-40 shrink-0 sm:w-auto">
