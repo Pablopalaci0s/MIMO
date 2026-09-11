@@ -2,7 +2,7 @@
 
 import { ImagePlus, Loader2, X } from "lucide-react";
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { cn } from "cn";
 import { apiErrorMessage } from "@/lib/api-error-message";
 
@@ -12,12 +12,15 @@ export function ImageUploadField({
   onRemove,
   className,
   aspect = "square",
+  children,
 }: {
   value: string | null;
   onChange: (url: string) => void;
   onRemove?: () => void;
   className?: string;
   aspect?: "square" | "wide";
+  /** Overlay decorativo sobre la imagen (ej. previsualizar cómo se ve en el sitio) — se oculta al hacer hover, igual que la imagen. */
+  children?: ReactNode;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
@@ -41,15 +44,15 @@ export function ImageUploadField({
   }
 
   return (
-    <div className={cn("flex flex-col gap-1", aspect === "wide" ? "w-full" : "w-28")}>
+    <div className={cn("flex shrink-0 flex-col gap-1", aspect === "wide" ? "w-full" : "w-28", className)}>
       <div
         className={cn(
-          "group relative shrink-0 overflow-hidden rounded-xl border border-dashed border-neutral-300 bg-neutral-50",
+          "group relative overflow-hidden rounded-xl border border-dashed border-neutral-300 bg-neutral-50",
           aspect === "wide" ? "aspect-[16/5] w-full" : "size-28",
-          className,
         )}
       >
         {value && <Image src={value} alt="" fill className="object-cover" />}
+        {value && children && <div className="pointer-events-none absolute inset-0">{children}</div>}
 
         <button
           type="button"
