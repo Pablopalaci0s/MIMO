@@ -6,3 +6,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
 export { authConfig };
 export { assertRole, ForbiddenError, UnauthorizedError } from "./roles";
 export type { MimoRole } from "./roles";
+export { oauthProviderStatus } from "./oauth";

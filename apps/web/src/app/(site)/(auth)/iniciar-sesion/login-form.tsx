@@ -4,17 +4,27 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export function LoginForm() {
+const OAUTH_ERROR_MESSAGES: Record<string, string> = {
+  AccessDenied: "Esa cuenta está suspendida.",
+  OAuthAccountNotLinked: "Ese correo ya está en uso con otro método de inicio de sesión.",
+};
+
+export function LoginForm({ oauthProviders }: { oauthProviders: { google: boolean; facebook: boolean } }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const oauthError = searchParams.get("error");
+  const [error, setError] = useState<string | null>(
+    oauthError ? (OAUTH_ERROR_MESSAGES[oauthError] ?? "No pudimos iniciar sesión con ese proveedor.") : null,
+  );
   const [loading, setLoading] = useState(false);
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/";
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -34,12 +44,14 @@ export function LoginForm() {
       return;
     }
 
-    router.push(searchParams.get("callbackUrl") ?? "/");
+    router.push(callbackUrl);
     router.refresh();
   }
 
   return (
     <>
+      <OAuthButtons providers={oauthProviders} callbackUrl={callbackUrl} />
+
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="email">Correo</Label>

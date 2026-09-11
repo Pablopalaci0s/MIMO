@@ -2,8 +2,11 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { compare } from "bcryptjs";
 import type { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import Facebook from "next-auth/providers/facebook";
+import Google from "next-auth/providers/google";
 import { prisma } from "@mimo/database";
 import { loginSchema } from "@mimo/validation";
+import { oauthProviderStatus } from "./oauth";
 
 /**
  * Shared Auth.js config. Lives outside apps/web so the same authorization
@@ -12,8 +15,8 @@ import { loginSchema } from "@mimo/validation";
  * duplicating logic — see packages/auth/src/index.ts for the Next.js glue.
  *
  * Session strategy is JWT: Credentials sign-in can't use database sessions,
- * and this keeps the door open for Google/Apple OAuth (section 5) to link
- * into the same PrismaAdapter without a strategy change.
+ * y esto permite que Google/Facebook (ver oauthProviderStatus) se linkeen
+ * al mismo PrismaAdapter sin cambiar de estrategia.
  */
 export const authConfig: NextAuthConfig = {
   adapter: PrismaAdapter(prisma),
@@ -49,8 +52,43 @@ export const authConfig: NextAuthConfig = {
         };
       },
     }),
+    ...(oauthProviderStatus.google
+      ? [
+          Google({
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            // Google ya verificó el correo — permitir que se vincule a una
+            // cuenta existente creada con contraseña en vez de fallar con
+            // "OAuthAccountNotLinked" cuando alguien usa el mismo correo.
+            allowDangerousEmailAccountLinking: true,
+          }),
+        ]
+      : []),
+    ...(oauthProviderStatus.facebook
+      ? [
+          Facebook({
+            clientId: process.env.FACEBOOK_CLIENT_ID,
+            clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+            allowDangerousEmailAccountLinking: true,
+          }),
+        ]
+      : []),
   ],
   callbacks: {
+    async signIn({ user, account }) {
+      // El login por contraseña ya rechaza cuentas suspendidas en
+      // authorize(). Este callback cubre el flujo OAuth, que nunca pasa por
+      // authorize() — sin esto, suspender a alguien no le impediría volver
+      // a entrar con Google/Facebook.
+      if (account?.provider !== "credentials") {
+        const existing = await prisma.user.findUnique({
+          where: { email: user.email as string },
+          select: { deletedAt: true },
+        });
+        if (existing?.deletedAt) return false;
+      }
+      return true;
+    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;

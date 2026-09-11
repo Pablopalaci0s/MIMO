@@ -490,6 +490,40 @@ pendientes:
 - **Datos de demo** (`admin@mimo.sv` con contraseña conocida, negocios
   `isDemo`) no pueden quedar en un ambiente real.
 
+## Diseño: login con Google y Facebook (post-Fase 11)
+
+Pedido explícito del usuario. `packages/auth/src/oauth.ts` es la única
+fuente de verdad de qué proveedores están realmente configurados
+(`Boolean(CLIENT_ID && CLIENT_SECRET)`) — tanto `config.ts` (para registrar
+o no el provider en Auth.js) como las páginas de login/registro (para
+mostrar o no el botón) la importan, así nunca se muestra un botón que no
+vaya a funcionar (regla 5). Sin las claves en `.env`, la UI se ve exacto
+igual que antes — verificado en el navegador.
+
+**Vinculación de cuentas por correo.** `allowDangerousEmailAccountLinking:
+true` en ambos providers: si alguien se registró con contraseña y después
+entra con Google/Facebook usando el mismo correo, se linkea a la cuenta
+existente en vez de tirar "OAuthAccountNotLinked". Es "peligroso" en el
+sentido de que confía en que el proveedor verificó el correo — aceptable
+acá porque tanto Google como Facebook lo verifican.
+
+**Cuentas suspendidas.** El login por contraseña ya rechazaba cuentas
+suspendidas (`deletedAt`) en `authorize()`, pero ese callback no corre en
+el flujo OAuth — se agregó el callback `signIn()` en `config.ts` para
+cubrir ese hueco: una cuenta suspendida no puede volver a entrar ni con
+Google ni con Facebook. Combina con el fix de sesión activa (revalidación
+en `jwt()`, ver commit anterior) para que "suspender" bloquee los tres
+caminos: login nuevo por contraseña, login nuevo por OAuth, y sesión ya
+abierta.
+
+**Lo que solo el usuario puede hacer** (no es algo que se pueda automatizar
+sin acceso a sus cuentas): crear un proyecto en Google Cloud Console y una
+app en Facebook for Developers, configurar el redirect URI de cada uno
+(`{NEXTAUTH_URL}/api/auth/callback/google` y `.../facebook`), y poner
+`GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`/`FACEBOOK_CLIENT_ID`/
+`FACEBOOK_CLIENT_SECRET` en `.env` — instrucciones cortas dejadas ahí mismo
+en `.env.example`.
+
 ## Diseño: paneles como app separada (post-Fase 6, rediseño)
 
 `/negocio` y `/admin` dejaron de ser páginas más del sitio con pestañas

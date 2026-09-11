@@ -1,3 +1,4 @@
+import { oauthProviderStatus } from "@mimo/auth";
 import { Suspense } from "react";
 import { LoginForm } from "./login-form";
 
@@ -10,7 +11,7 @@ export default function LoginPage() {
       </div>
 
       <Suspense fallback={null}>
-        <LoginForm />
+        <LoginForm oauthProviders={oauthProviderStatus} />
       </Suspense>
     </div>
   );
