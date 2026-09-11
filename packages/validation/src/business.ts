@@ -8,7 +8,7 @@ export const orderItemStatusUpdateSchema = z.object({
 /** Acepta tanto una URL absoluta (http/https) como una ruta local propia
  * (`/uploads/...`, la que devuelve nuestro endpoint de subida de fotos) —
  * `z.string().url()` por sí solo rechazaría esa segunda forma. */
-const imageUrlSchema = z
+export const imageUrlSchema = z
   .string()
   .trim()
   .min(1, "URL de imagen inválida")

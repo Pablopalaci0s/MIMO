@@ -54,4 +54,8 @@ describe("adminBannerInputSchema", () => {
   it("rechaza imageUrl que no es una URL", () => {
     expect(() => adminBannerInputSchema.parse({ ...valid, imageUrl: "no-es-url" })).toThrow();
   });
+
+  it("acepta una ruta local devuelta por /api/uploads (ej. /uploads/xyz.png)", () => {
+    expect(() => adminBannerInputSchema.parse({ ...valid, imageUrl: "/uploads/xyz.png" })).not.toThrow();
+  });
 });

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { imageUrlSchema } from "./business";
 
 export const adminBusinessUpdateSchema = z.object({
   status: z.enum(["PENDING", "APPROVED", "SUSPENDED", "REJECTED"]).optional(),
@@ -25,7 +26,7 @@ export const adminCategoryInputSchema = z.object({
 
 export const adminBannerInputSchema = z.object({
   title: z.string().trim().min(2, "Mínimo 2 caracteres").max(80),
-  imageUrl: z.string().trim().url("URL de imagen inválida"),
+  imageUrl: imageUrlSchema,
   linkUrl: z
     .string()
     .trim()
