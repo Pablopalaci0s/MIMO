@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "turbo run dev --filter=web",
     "build": "turbo run build",
+    "start": "turbo run start --filter=web",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
