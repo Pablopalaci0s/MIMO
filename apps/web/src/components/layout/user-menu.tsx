@@ -1,12 +1,26 @@
 "use client";
 
-import { Bell, ChevronDown, Heart, Home, LifeBuoy, LogOut, Package, Store, User as UserIcon } from "lucide-react";
+import {
+  Bell,
+  ChevronDown,
+  Gift,
+  Heart,
+  Home,
+  LifeBuoy,
+  LogOut,
+  Package,
+  PartyPopper,
+  Store,
+  User as UserIcon,
+} from "lucide-react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -64,63 +78,92 @@ export function UserMenu({ user, variant = "icon" }: { user: AuthSessionUser; va
           </>
         )}
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-60">
-        <DropdownMenuLabel>
-          <p className="truncate font-medium">{user.name ?? user.email}</p>
-          <p className="text-xs font-normal text-muted-foreground">{ROLE_LABEL[user.role]}</p>
-        </DropdownMenuLabel>
+      <DropdownMenuContent align="end" className="w-64">
+        <div className="flex items-center gap-2.5 px-1.5 py-2">
+          <Avatar size="sm" className="size-9">
+            <AvatarFallback className="bg-neutral-900 text-sm text-white">{initials(user)}</AvatarFallback>
+          </Avatar>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-medium text-neutral-900">{user.name ?? user.email}</p>
+            <Badge variant="outline" className="mt-0.5 h-4.5 px-1.5 text-[10px] text-neutral-500">
+              {ROLE_LABEL[user.role]}
+            </Badge>
+          </div>
+        </div>
+
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/">
-            <Home /> Inicio
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/mis-pedidos">
-            <Package /> Mis pedidos
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/notificaciones">
-            <Bell /> Notificaciones
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/favoritos">
-            <Heart /> Mis favoritos
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/perfil">
-            <UserIcon /> Mi perfil
-          </Link>
-        </DropdownMenuItem>
-        {user.role === "BUSINESS" && (
+
+        {(user.role === "BUSINESS" || user.role === "ADMIN") && (
+          <>
+            <DropdownMenuGroup>
+              <DropdownMenuItem asChild>
+                <Link href={user.role === "BUSINESS" ? "/negocio" : "/admin"}>
+                  <Store className="text-neutral-500" />
+                  Panel {user.role === "BUSINESS" ? "de negocio" : "admin"}
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+          </>
+        )}
+
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Regalos</DropdownMenuLabel>
           <DropdownMenuItem asChild>
-            <Link href="/negocio">
-              <Store /> Panel de negocio
+            <Link href="/perfil/listas">
+              <Gift className="text-neutral-500" /> Listas de regalos
             </Link>
           </DropdownMenuItem>
-        )}
-        {user.role === "ADMIN" && (
           <DropdownMenuItem asChild>
-            <Link href="/admin">
-              <Store /> Panel admin
+            <Link href="/perfil/colectas">
+              <PartyPopper className="text-neutral-500" /> Colectas grupales
             </Link>
           </DropdownMenuItem>
-        )}
-        {user.role === "USER" && (
           <DropdownMenuItem asChild>
-            <Link href="/registro-negocio">
-              <Store /> Sumá tu negocio
+            <Link href="/favoritos">
+              <Heart className="text-neutral-500" /> Mis favoritos
             </Link>
           </DropdownMenuItem>
-        )}
-        <DropdownMenuItem asChild>
-          <Link href="/ayuda">
-            <LifeBuoy /> Ayuda
-          </Link>
-        </DropdownMenuItem>
+        </DropdownMenuGroup>
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Mi cuenta</DropdownMenuLabel>
+          <DropdownMenuItem asChild>
+            <Link href="/">
+              <Home className="text-neutral-500" /> Inicio
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/mis-pedidos">
+              <Package className="text-neutral-500" /> Mis pedidos
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/notificaciones">
+              <Bell className="text-neutral-500" /> Notificaciones
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/perfil">
+              <UserIcon className="text-neutral-500" /> Mi perfil
+            </Link>
+          </DropdownMenuItem>
+          {user.role === "USER" && (
+            <DropdownMenuItem asChild>
+              <Link href="/registro-negocio">
+                <Store className="text-neutral-500" /> Sumá tu negocio
+              </Link>
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuItem asChild>
+            <Link href="/ayuda">
+              <LifeBuoy className="text-neutral-500" /> Ayuda
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => signOut()} variant="destructive">
           <LogOut /> Cerrar sesión
