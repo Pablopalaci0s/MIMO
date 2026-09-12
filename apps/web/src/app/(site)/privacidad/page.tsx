@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   description: "Qué datos recolecta MIMO, para qué los usa y cómo protegerlos.",
 };
 
-const LAST_UPDATED = "11 de septiembre de 2026";
+const LAST_UPDATED = "12 de septiembre de 2026";
 
 export default function PrivacidadPage() {
   return (
@@ -27,7 +27,22 @@ export default function PrivacidadPage() {
           </li>
           <li>
             <strong>Pedidos:</strong> nombre y teléfono del destinatario, dirección de entrega,
-            fecha/horario elegido, y cualquier dedicatoria o mensaje que escribas.
+            fecha/horario elegido, cualquier dedicatoria o mensaje que escribas, y el cupón de
+            descuento que hayas usado.
+          </li>
+          <li>
+            <strong>Pagos:</strong> si pagás con PayPal, el pago lo procesa PayPal directamente —
+            MIMO no ve ni guarda tu número de tarjeta ni tus credenciales de PayPal, solo recibe
+            la confirmación de que el cobro se hizo.
+          </li>
+          <li>
+            <strong>Listas de regalos y cabudas:</strong> los productos que agregás a una lista de
+            regalos; y si organizás o aportás a una cabuda, tu nombre, el monto que aportaste, y
+            el correo de PayPal del organizador (para mandarle lo recaudado).
+          </li>
+          <li>
+            <strong>Reseñas:</strong> el texto y las fotos (hasta 4) que subís al calificar un
+            producto.
           </li>
           <li>
             <strong>Negocios:</strong> datos del negocio (nombre, dirección, teléfono, redes) y
@@ -44,6 +59,7 @@ export default function PrivacidadPage() {
         <ul>
           <li>Procesar y entregar tus pedidos, y comunicárselos al negocio correspondiente.</li>
           <li>Mostrarte el estado de tus pedidos y avisarte de novedades (notificaciones dentro de la app).</li>
+          <li>Juntar aportes para una cabuda y pagarle al organizador cuando la cierra.</li>
           <li>Verificar negocios nuevos y moderar reportes/reseñas.</li>
           <li>Mejorar el catálogo y las recomendaciones que te mostramos.</li>
         </ul>
@@ -51,20 +67,30 @@ export default function PrivacidadPage() {
         <h2>3. Con quién se comparten</h2>
         <p>
           El negocio del que comprás recibe los datos necesarios para preparar y entregar tu
-          pedido (nombre y teléfono del destinatario, dirección, dedicatoria). MIMO no vende tus
-          datos a terceros ni los comparte con fines publicitarios. Si en el futuro se integra un
-          proveedor de pago (hoy solo aceptamos efectivo contra entrega), esta política se
-          actualizará para reflejar qué datos procesa ese proveedor.
+          pedido (nombre y teléfono del destinatario, dirección, dedicatoria). Si pagás con
+          PayPal, le compartimos el monto a cobrar, pero nunca tu número de tarjeta ni tus
+          credenciales — eso queda entre vos y PayPal, sujeto a su propia política de privacidad.
+          MIMO no vende tus datos a terceros ni los comparte con fines publicitarios.
         </p>
 
-        <h2>4. Fotos que subís</h2>
+        <h2>4. Listas de regalos y cabudas</h2>
         <p>
-          Las fotos de perfil, banner o productos que subís (como dueño de negocio) se guardan en
-          el servidor de MIMO y son públicas dentro del Sitio una vez publicadas — no subas
-          imágenes que no tengas derecho a usar.
+          Estas funciones son públicas para quien tenga el link, a propósito — es parte de cómo
+          funcionan. En una lista de regalos, cualquiera con el link ve si un producto ya fue
+          reservado, pero no quién lo reservó (eso solo lo ve el dueño de la lista). En una
+          cabuda, cualquiera con el link ve el nombre y el monto de cada persona que aportó — como
+          en cualquier colecta o &quot;vaquita&quot;. Si preferís mantener alguna de estas en privado, no
+          compartas su link.
         </p>
 
-        <h2>5. Cuánto tiempo se conservan</h2>
+        <h2>5. Fotos que subís</h2>
+        <p>
+          Las fotos de perfil, banner o productos que subís (como dueño de negocio), y las fotos
+          que agregás a una reseña, se guardan en el servidor de MIMO y son públicas dentro del
+          Sitio una vez publicadas — no subas imágenes que no tengas derecho a usar.
+        </p>
+
+        <h2>6. Cuánto tiempo se conservan</h2>
         <p>
           Conservamos tus datos mientras tu cuenta esté activa. Si pedís eliminar tu cuenta,
           borramos los datos personales asociados salvo los que debamos conservar por obligación
@@ -72,14 +98,14 @@ export default function PrivacidadPage() {
           proceso).
         </p>
 
-        <h2>6. Tus opciones</h2>
+        <h2>7. Tus opciones</h2>
         <p>
           Desde &quot;Mi perfil&quot; podés actualizar tus datos de contacto y contraseña en cualquier
           momento. Para pedir la eliminación de tu cuenta o de datos específicos, escribinos
           desde la sección de Ayuda.
         </p>
 
-        <h2>7. Cookies</h2>
+        <h2>8. Cookies</h2>
         <p>
           Usamos una sola cookie de sesión, necesaria para mantenerte conectado/a a tu cuenta
           entre una página y otra. No es una cookie de rastreo ni de publicidad, no la compartimos
@@ -87,7 +113,7 @@ export default function PrivacidadPage() {
           de marketing.
         </p>
 
-        <h2>8. Inteligencia artificial</h2>
+        <h2>9. Inteligencia artificial</h2>
         <p>
           Funciones como &quot;Ayúdame a elegir&quot; y el asistente de dedicatorias usan un modelo de
           IA (Claude, de Anthropic) para interpretar lo que escribís (por ejemplo, &quot;cumpleaños de
@@ -98,14 +124,58 @@ export default function PrivacidadPage() {
           reglas internas en vez de IA.
         </p>
 
-        <h2>9. Seguridad</h2>
+        <h2>10. Seguridad</h2>
+        <p>Estas son las medidas concretas que tenemos implementadas hoy para proteger tus datos:</p>
+        <ul>
+          <li>
+            <strong>Contraseñas:</strong> se guardan siempre con hash (bcrypt), nunca en texto
+            plano — ni nosotros podemos verlas.
+          </li>
+          <li>
+            <strong>Recuperación de contraseña:</strong> el link que te mandamos usa un código
+            aleatorio de un solo uso que vence en 1 hora. Pedir un reset nunca revela si un correo
+            está o no registrado en MIMO.
+          </li>
+          <li>
+            <strong>Límite de intentos:</strong> el inicio de sesión, el registro, la recuperación
+            de contraseña y otras acciones sensibles tienen un límite de intentos para dificultar
+            ataques automatizados.
+          </li>
+          <li>
+            <strong>Validación de datos:</strong> todo lo que se envía a nuestros formularios se
+            valida en el servidor antes de guardarse — nunca confiamos en lo que llega desde el
+            navegador.
+          </li>
+          <li>
+            <strong>Base de datos:</strong> todas las consultas se hacen a través de un ORM con
+            parámetros seguros, nunca armando SQL a mano, lo que evita inyección SQL.
+          </li>
+          <li>
+            <strong>Pagos:</strong> cuando pagás con PayPal, el cobro se procesa siempre del lado
+            de PayPal — tu número de tarjeta nunca llega a los servidores de MIMO. El monto a
+            cobrar siempre lo recalculamos nosotros en el servidor, nunca confiando en el monto
+            que envía el navegador.
+          </li>
+          <li>
+            <strong>Archivos:</strong> las imágenes que subís se validan por tipo y tamaño (máximo
+            5MB, solo JPG/PNG/WEBP) antes de guardarse.
+          </li>
+          <li>
+            <strong>Permisos:</strong> cada acción sobre tus pedidos, tu negocio o tu cuenta se
+            verifica en el servidor contra quién sos realmente — no alcanza con estar logueado
+            para ver o modificar datos de otra cuenta o negocio.
+          </li>
+          <li>
+            <strong>Monitoreo:</strong> usamos Sentry para enterarnos rápido si algo falla en el
+            Sitio.
+          </li>
+        </ul>
         <p>
-          Las contraseñas se guardan con hash (nunca en texto plano) y las conexiones al Sitio
-          usan HTTPS. Ningún sistema es 100% infalible, así que te recomendamos usar una
-          contraseña única para MIMO.
+          Ningún sistema es 100% infalible, así que te recomendamos usar una contraseña única
+          para MIMO.
         </p>
 
-        <h2>10. Cambios a esta política</h2>
+        <h2>11. Cambios a esta política</h2>
         <p>
           Si hacemos cambios importantes a esta política, lo vamos a anunciar en el Sitio con
           anticipación razonable.
