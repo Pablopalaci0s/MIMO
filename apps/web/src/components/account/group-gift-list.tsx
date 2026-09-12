@@ -59,7 +59,7 @@ export function GroupGiftList({ gifts }: { gifts: GroupGiftDTO[] }) {
     setLoading(true);
     setError(null);
 
-    const response = await fetch("/api/perfil/colectas", {
+    const response = await fetch("/api/perfil/cabudas", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -75,10 +75,10 @@ export function GroupGiftList({ gifts }: { gifts: GroupGiftDTO[] }) {
     setLoading(false);
 
     if (!body.success) {
-      setError(apiErrorMessage(body, "No pudimos crear la colecta."));
+      setError(apiErrorMessage(body, "No pudimos crear la cabuda."));
       return;
     }
-    router.push(`/perfil/colectas/${body.data.id}`);
+    router.push(`/perfil/cabudas/${body.data.id}`);
   }
 
   return (
@@ -86,7 +86,7 @@ export function GroupGiftList({ gifts }: { gifts: GroupGiftDTO[] }) {
       {gifts.map((gift) => (
         <Link
           key={gift.id}
-          href={`/perfil/colectas/${gift.id}`}
+          href={`/perfil/cabudas/${gift.id}`}
           className="flex items-center gap-3 rounded-2xl border border-neutral-200 p-4 transition-colors hover:border-neutral-300"
         >
           <div className="relative size-12 shrink-0 overflow-hidden rounded-xl bg-neutral-100">
@@ -148,7 +148,7 @@ export function GroupGiftList({ gifts }: { gifts: GroupGiftDTO[] }) {
           )}
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="gift-title">Título de la colecta</Label>
+            <Label htmlFor="gift-title">Título de la cabuda</Label>
             <Input
               id="gift-title"
               required
@@ -191,7 +191,7 @@ export function GroupGiftList({ gifts }: { gifts: GroupGiftDTO[] }) {
               id="gift-paypal"
               required
               type="email"
-              placeholder="Ahí te mandamos lo recaudado cuando cierres la colecta"
+              placeholder="Ahí te mandamos lo recaudado cuando cierres la cabuda"
               value={paypalEmail}
               onChange={(e) => setPaypalEmail(e.target.value)}
             />
@@ -199,7 +199,7 @@ export function GroupGiftList({ gifts }: { gifts: GroupGiftDTO[] }) {
           {error && <p className="text-sm text-destructive">{error}</p>}
           <div className="flex gap-2">
             <Button type="submit" disabled={loading || !product}>
-              {loading ? <Loader2 className="size-4 animate-spin" /> : "Crear colecta"}
+              {loading ? <Loader2 className="size-4 animate-spin" /> : "Crear cabuda"}
             </Button>
             <Button type="button" variant="ghost" onClick={() => setCreating(false)} disabled={loading}>
               Cancelar
@@ -208,7 +208,7 @@ export function GroupGiftList({ gifts }: { gifts: GroupGiftDTO[] }) {
         </form>
       ) : (
         <Button variant="outline" onClick={() => setCreating(true)} className="w-fit">
-          <Plus className="size-4" /> Crear colecta grupal
+          <Plus className="size-4" /> Crear cabuda
         </Button>
       )}
 
@@ -216,7 +216,7 @@ export function GroupGiftList({ gifts }: { gifts: GroupGiftDTO[] }) {
         <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-neutral-200 py-12 text-center">
           <PartyPopper className="size-8 text-neutral-300" />
           <p className="text-sm text-neutral-500">
-            Armá una colecta para juntar entre varios y regalar algo más grande — compartí el link y cada quien
+            Armá una cabuda para juntar entre varios y regalar algo más grande — compartí el link y cada quien
             aporta lo que quiera.
           </p>
         </div>

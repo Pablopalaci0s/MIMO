@@ -6,17 +6,17 @@ import { notFound } from "next/navigation";
 import { ContributeForm } from "@/components/group-gift/contribute-form";
 import { getPublicGroupGift } from "@/lib/services/group-gift-service";
 
-export async function generateMetadata({ params }: PageProps<"/colectas/[slug]">): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps<"/cabudas/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   const gift = await getPublicGroupGift(slug);
-  if (!gift) return { title: "Colecta no encontrada" };
+  if (!gift) return { title: "Cabuda no encontrada" };
   return {
     title: gift.title,
-    description: `Colecta para regalarle ${gift.productName} — organizada por ${gift.organizerName} en MIMO.`,
+    description: `Cabuda para regalarle ${gift.productName} — organizada por ${gift.organizerName} en MIMO.`,
   };
 }
 
-export default async function PublicGroupGiftPage({ params }: PageProps<"/colectas/[slug]">) {
+export default async function PublicGroupGiftPage({ params }: PageProps<"/cabudas/[slug]">) {
   const { slug } = await params;
   const gift = await getPublicGroupGift(slug);
   if (!gift) notFound();
@@ -29,7 +29,7 @@ export default async function PublicGroupGiftPage({ params }: PageProps<"/colect
       <div className="flex flex-col items-center gap-2 text-center">
         <PartyPopper className="size-8 text-brand" />
         <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">{gift.title}</h1>
-        <p className="text-sm text-neutral-500">Colecta organizada por {gift.organizerName}</p>
+        <p className="text-sm text-neutral-500">Cabuda organizada por {gift.organizerName}</p>
         {gift.message && <p className="mt-2 max-w-md text-sm text-neutral-600">{gift.message}</p>}
       </div>
 
@@ -47,7 +47,7 @@ export default async function PublicGroupGiftPage({ params }: PageProps<"/colect
 
       {gift.status !== "OPEN" && (
         <p className="mt-4 rounded-xl bg-neutral-100 p-3 text-center text-sm text-neutral-600">
-          {gift.status === "COMPLETED" ? "Esta colecta ya se completó — ¡gracias a todos!" : "Esta colecta se canceló."}
+          {gift.status === "COMPLETED" ? "Esta cabuda ya se completó — ¡gracias a todos!" : "Esta cabuda se canceló."}
         </p>
       )}
 

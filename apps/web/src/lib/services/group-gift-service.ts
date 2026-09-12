@@ -55,7 +55,7 @@ function toBaseDTO(gift: GroupGiftRow): GroupGiftDTO {
 }
 
 async function uniqueGroupGiftSlug(title: string): Promise<string> {
-  const base = slugify(title) || "colecta";
+  const base = slugify(title) || "cabuda";
   let candidate = base;
   let suffix = 1;
   while (await prisma.groupGift.findUnique({ where: { slug: candidate }, select: { id: true } })) {
@@ -102,7 +102,7 @@ async function requireOwnedGroupGift(organizerId: string, id: string): Promise<G
     where: { id, organizerId },
     include: GROUP_GIFT_INCLUDE,
   });
-  if (!gift) throw new AppError("NOT_FOUND", "No encontramos esa colecta.", 404);
+  if (!gift) throw new AppError("NOT_FOUND", "No encontramos esa cabuda.", 404);
   return gift;
 }
 
@@ -117,7 +117,7 @@ export async function getGroupGiftForManage(organizerId: string, id: string): Pr
 
 /** Público — no requiere login, cualquiera con el link puede ver el
  * progreso y aportar. A diferencia de la lista de regalos, acá SÍ se
- * muestra quién aportó cuánto (parte del efecto social de una colecta). */
+ * muestra quién aportó cuánto (parte del efecto social de una cabuda). */
 export async function getPublicGroupGift(slug: string): Promise<GroupGiftPublicDTO | null> {
   const gift = await prisma.groupGift.findUnique({
     where: { slug },
@@ -132,7 +132,7 @@ export async function getPublicGroupGift(slug: string): Promise<GroupGiftPublicD
 }
 
 /** Paso 1 de aportar: crea la orden de PayPal por el monto exacto que la
- * persona quiere aportar (no el total de la colecta — alguien puede
+ * persona quiere aportar (no el total de la cabuda — alguien puede
  * aportar una parte). Deja un registro PENDING para poder rastrear el
  * intento aunque nunca lo termine de aprobar. */
 export async function createContributionOrder(
@@ -140,9 +140,9 @@ export async function createContributionOrder(
   input: ContributeToGroupGiftInput,
 ): Promise<{ contributionId: string; paypalOrderId: string }> {
   const gift = await prisma.groupGift.findUnique({ where: { slug } });
-  if (!gift) throw new AppError("NOT_FOUND", "No encontramos esa colecta.", 404);
+  if (!gift) throw new AppError("NOT_FOUND", "No encontramos esa cabuda.", 404);
   if (gift.status !== "OPEN") {
-    throw new AppError("GROUP_GIFT_CLOSED", "Esta colecta ya no está recibiendo aportes.", 400);
+    throw new AppError("GROUP_GIFT_CLOSED", "Esta cabuda ya no está recibiendo aportes.", 400);
   }
 
   const paypalOrderId = await createPaypalCheckoutOrder(input.amount);
@@ -176,13 +176,13 @@ export async function confirmContribution(contributionId: string, paypalOrderId:
 
 /**
  * Le manda al organizador todo lo recaudado (aportes PAID) por PayPal
- * Payouts, y cierra la colecta. MIMO no arma un pedido automático — el
+ * Payouts, y cierra la cabuda. MIMO no arma un pedido automático — el
  * organizador hace la compra real él mismo con esa plata (ver el
- * comentario del modelo en el schema y "Diseño: colectas grupales").
+ * comentario del modelo en el schema y "Diseño: cabudas").
  */
 export async function finalizeGroupGift(organizerId: string, id: string): Promise<GroupGiftManageDTO> {
   const gift = await requireOwnedGroupGift(organizerId, id);
-  if (gift.status !== "OPEN") throw new AppError("GROUP_GIFT_CLOSED", "Esta colecta ya se cerró.", 400);
+  if (gift.status !== "OPEN") throw new AppError("GROUP_GIFT_CLOSED", "Esta cabuda ya se cerró.", 400);
 
   const total = collectedAmount(gift);
   if (total <= 0) throw new AppError("NOTHING_COLLECTED", "Todavía no hay ningún aporte confirmado.", 400);
@@ -191,7 +191,7 @@ export async function finalizeGroupGift(organizerId: string, id: string): Promis
     receiverEmail: gift.organizerPaypalEmail,
     amount: total,
     senderItemId: gift.id,
-    note: `Colecta "${gift.title}" completada en MIMO`,
+    note: `Cabuda "${gift.title}" completada en MIMO`,
   });
 
   await prisma.groupGift.update({
@@ -202,11 +202,11 @@ export async function finalizeGroupGift(organizerId: string, id: string): Promis
   return getGroupGiftForManage(organizerId, id);
 }
 
-/** Cancela la colecta y reembolsa cada aporte PAID — para cuando el
+/** Cancela la cabuda y reembolsa cada aporte PAID — para cuando el
  * organizador decide no seguir (ej. ya no hace falta el regalo). */
 export async function cancelGroupGift(organizerId: string, id: string): Promise<GroupGiftManageDTO> {
   const gift = await requireOwnedGroupGift(organizerId, id);
-  if (gift.status !== "OPEN") throw new AppError("GROUP_GIFT_CLOSED", "Esta colecta ya se cerró.", 400);
+  if (gift.status !== "OPEN") throw new AppError("GROUP_GIFT_CLOSED", "Esta cabuda ya se cerró.", 400);
 
   for (const contribution of gift.contributions) {
     if (contribution.status !== "PAID" || !contribution.captureId) continue;
@@ -215,7 +215,7 @@ export async function cancelGroupGift(organizerId: string, id: string): Promise<
         contribution.captureId,
         Number(contribution.amount),
         "USD",
-        `La colecta "${gift.title}" se canceló — te devolvemos tu aporte.`,
+        `La cabuda "${gift.title}" se canceló — te devolvemos tu aporte.`,
       );
       await prisma.groupGiftContribution.update({
         where: { id: contribution.id },

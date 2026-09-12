@@ -81,12 +81,12 @@ export default async function ProfilePage() {
           <ChevronRight className="size-4 text-neutral-400" />
         </Link>
         <Link
-          href="/perfil/colectas"
+          href="/perfil/cabudas"
           className="flex items-center justify-between rounded-xl border border-neutral-200 px-4 py-3 transition-colors hover:border-neutral-300"
         >
           <span className="flex items-center gap-3 text-sm font-medium text-neutral-900">
             <PartyPopper className="size-4 text-neutral-500" />
-            Colectas grupales
+            Cabudas
           </span>
           <ChevronRight className="size-4 text-neutral-400" />
         </Link>

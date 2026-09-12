@@ -875,7 +875,7 @@ model GiftRegistryItem {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// COLECTAS GRUPALES ("VAQUITA")
+// CABUDAS ("VAQUITA" / COLECTA GRUPAL)
 // ─────────────────────────────────────────────────────────────────────────
 
 enum GroupGiftStatus {
@@ -898,7 +898,7 @@ enum GroupGiftContributionStatus {
  * al elegir dirección, generaría un descuadre). En cambio, al completarse
  * se le manda todo lo recaudado al organizador por PayPal Payouts (mismo
  * mecanismo que ya se usa para pagarle a los negocios) para que sea él
- * quien haga la compra real — ver README, "Diseño: colectas grupales".
+ * quien haga la compra real — ver README, "Diseño: cabudas".
  */
 model GroupGift {
   id          String   @id @default(uuid()) @db.Uuid

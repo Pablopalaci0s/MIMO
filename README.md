@@ -963,7 +963,7 @@ productos de MIMO y comparte el link para que no le dupliquen el regalo.
 - Se buscan productos para agregar reusando `/api/products?q=...` (el
   mismo buscador del catálogo) en vez de armar un buscador nuevo.
 
-## Diseño: colectas grupales (post-Fase 11)
+## Diseño: cabudas (post-Fase 11)
 
 La más grande de las funcionalidades post-Fase 11 y la que más cuidado
 pidió para no fingir algo que no existe. Varias personas aportan plata
@@ -976,7 +976,7 @@ dirección de entrega, y los aportes solo cubren el precio del producto en
 el momento en que se hicieron. Mezclar fondos ya cobrados de varias
 personas con ese flujo (¿quién paga el envío? ¿y si el precio cambió?)
 hubiera significado simular una integración prolija que en realidad
-tendría descuadres de plata reales. En cambio, al cerrar la colecta se le
+tendría descuadres de plata reales. En cambio, al cerrar la cabuda se le
 manda TODO lo recaudado al organizador por **PayPal Payouts** (el mismo
 mecanismo ya construido y probado para pagarle a los negocios, ver
 "Diseño: pagos con PayPal") — el organizador recibe la plata real y hace
@@ -989,14 +989,14 @@ la compra él mismo, con el método que quiera.
   jamás aprobada se rechazó con el mismo error que en el checkout
   principal, y el aporte quedó en `PENDING`, no en `PAID`.
   **Verificado con un Payout real de PayPal** (ID de batch real devuelto
-  por la API) al cerrar una colecta de prueba.
+  por la API) al cerrar una cabuda de prueba.
 - A diferencia de la lista de regalos, acá la página pública **sí**
   muestra quién aportó cuánto — es parte del efecto social de una
-  colecta (como cualquier vaquita/crowdfunding), no hay nada que ocultar.
-- El organizador carga su correo de PayPal al crear la colecta (no hay
+  cabuda (como cualquier vaquita/crowdfunding), no hay nada que ocultar.
+- El organizador carga su correo de PayPal al crear la cabuda (no hay
   todavía un campo de PayPal a nivel de `User` como sí existe en
   `Business` — se pidió puntual en el formulario de creación).
-- Cancelar una colecta reembolsa cada aporte `PAID` por separado
+- Cancelar una cabuda reembolsa cada aporte `PAID` por separado
   (`refundPaypalCapture`, mismo mecanismo que el reembolso automático de
   pedidos de PayPal sin confirmar) — si el reembolso de un aporte puntual
   falla, no traba la cancelación de los demás, queda visible para

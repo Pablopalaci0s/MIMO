@@ -19,7 +19,7 @@ declare global {
 }
 
 /**
- * Botón de PayPal para aportar a una colecta grupal — mismo mecanismo de
+ * Botón de PayPal para aportar a una cabuda — mismo mecanismo de
  * dos pasos que el checkout (`checkout/paypal-button.tsx`), pero mucho más
  * chico: acá no hay carrito ni dirección, solo un nombre y un monto.
  */
@@ -72,7 +72,7 @@ export function ContributePaypalButton({
           style: { layout: "horizontal", height: 40 },
           createOrder: async () => {
             setError(null);
-            const response = await fetch(`/api/colectas/${slug}/aportar`, {
+            const response = await fetch(`/api/cabudas/${slug}/aportar`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ contributorName, amount }),
@@ -88,7 +88,7 @@ export function ContributePaypalButton({
             return body.data.paypalOrderId as string;
           },
           onApprove: async (data) => {
-            const response = await fetch(`/api/colectas/${slug}/confirmar`, {
+            const response = await fetch(`/api/cabudas/${slug}/confirmar`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ contributionId, paypalOrderId: data.orderID }),

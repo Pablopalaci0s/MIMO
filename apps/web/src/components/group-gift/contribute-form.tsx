@@ -19,7 +19,7 @@ export function ContributeForm({ slug, suggestedAmount }: { slug: string; sugges
     return (
       <div className="flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
         <CheckCircle2 className="size-5 shrink-0" />
-        ¡Gracias por tu aporte! Ya se sumó a la colecta.
+        ¡Gracias por tu aporte! Ya se sumó a la cabuda.
       </div>
     );
   }

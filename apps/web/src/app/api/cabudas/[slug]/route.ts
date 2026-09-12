@@ -6,7 +6,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   try {
     const { slug } = await params;
     const gift = await getPublicGroupGift(slug);
-    if (!gift) return apiError("NOT_FOUND", "No encontramos esa colecta.", 404);
+    if (!gift) return apiError("NOT_FOUND", "No encontramos esa cabuda.", 404);
     return apiSuccess(gift);
   } catch (error) {
     return apiErrorFromException(error);

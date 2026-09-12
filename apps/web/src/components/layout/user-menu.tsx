@@ -140,8 +140,8 @@ export function UserMenu({ user, variant = "icon" }: { user: AuthSessionUser; va
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild className={ITEM_CLASS}>
-            <Link href="/perfil/colectas">
-              <MenuIcon icon={PartyPopper} tone="brand" /> Colectas grupales
+            <Link href="/perfil/cabudas">
+              <MenuIcon icon={PartyPopper} tone="brand" /> Cabudas
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild className={ITEM_CLASS}>

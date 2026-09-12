@@ -9,7 +9,7 @@ import {
 
 export const metadata: Metadata = {
   title: "Ayuda",
-  description: "Preguntas frecuentes sobre pedidos, entregas, pagos y negocios en MIMO.",
+  description: "Preguntas frecuentes sobre pedidos, entregas, pagos, regalos y negocios en MIMO.",
 };
 
 const FAQ_GROUPS: { title: string; items: { question: string; answer: string }[] }[] = [
@@ -44,7 +44,12 @@ const FAQ_GROUPS: { title: string; items: { question: string; answer: string }[]
       {
         question: "¿Qué métodos de pago aceptan?",
         answer:
-          "Por ahora, solo pago contra entrega en efectivo. Tarjeta y PayPal están planeados pero todavía no están activos — se muestran deshabilitados como \"próximamente\" en el checkout para que no haya sorpresas.",
+          "Podés pagar contra entrega en efectivo, o con PayPal — el checkout de PayPal también acepta tarjeta sin necesidad de tener una cuenta. El pago con tarjeta directo dentro de MIMO todavía no está activo.",
+      },
+      {
+        question: "¿Cómo uso un cupón de descuento?",
+        answer:
+          "Si tenés un código, ingresalo en el campo de cupón durante el checkout — el descuento se aplica al total antes de confirmar el pago.",
       },
       {
         question: "¿El costo de envío es fijo?",
@@ -54,12 +59,27 @@ const FAQ_GROUPS: { title: string; items: { question: string; answer: string }[]
     ],
   },
   {
+    title: "Regalos",
+    items: [
+      {
+        question: "¿Qué es una lista de regalos?",
+        answer:
+          "Armá una lista de productos para una ocasión (cumpleaños, baby shower, etc.) y compartí el link — quien quiera puede marcar qué le gustaría regalarte para que nadie repita. Reservar un producto es un aviso entre las personas, no un pago ni un apartado: quien reserva igual tiene que comprarlo por su cuenta.",
+      },
+      {
+        question: "¿Qué es una cabuda?",
+        answer:
+          "Es juntar plata entre varias personas para un regalo más grande. Armá una cabuda para un producto puntual, compartí el link, y cada quien aporta lo que quiera por PayPal. Cuando la cerrás, te mandamos todo lo recaudado para que hagas la compra vos.",
+      },
+    ],
+  },
+  {
     title: "Reseñas y reportes",
     items: [
       {
         question: "¿Cómo dejo una reseña?",
         answer:
-          "Una vez que un producto de tu pedido está marcado como \"Entregado\", vas a ver la opción de dejar reseña en la página de ese pedido. Las reseñas pasan por una revisión antes de publicarse.",
+          "Una vez que un producto de tu pedido está marcado como \"Entregado\", vas a ver la opción de dejar reseña en la página de ese pedido. Podés agregar hasta 4 fotos. Las reseñas pasan por una revisión antes de publicarse.",
       },
       {
         question: "¿Cómo reporto un problema con un producto, negocio o reseña?",
@@ -80,6 +100,11 @@ const FAQ_GROUPS: { title: string; items: { question: string; answer: string }[]
         question: "¿Cuánto cobra MIMO por venta?",
         answer:
           "El modelo de comisiones y planes para negocios todavía está en definición — te lo contamos en detalle cuando coordinemos el alta.",
+      },
+      {
+        question: "¿Puedo exportar mis pedidos?",
+        answer:
+          "Sí — en el panel de negocio, dentro de \"Pedidos\", hay un botón para exportar a CSV. Te sirve para llevar tu contabilidad o pasarlo a otra herramienta.",
       },
     ],
   },

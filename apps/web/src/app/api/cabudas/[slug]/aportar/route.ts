@@ -10,7 +10,7 @@ import { createContributionOrder } from "@/lib/services/group-gift-service";
  */
 export async function POST(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
-    const limited = rateLimitResponse(request, "aportar-colecta", 10, 60 * 60 * 1000);
+    const limited = rateLimitResponse(request, "aportar-cabuda", 10, 60 * 60 * 1000);
     if (limited) return limited;
 
     const { slug } = await params;

@@ -19,7 +19,7 @@ export function GroupGiftManager({ gift }: { gift: GroupGiftManageDTO }) {
   const [loading, setLoading] = useState<"finalize" | "cancel" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const publicUrl = typeof window !== "undefined" ? `${window.location.origin}/colectas/${gift.slug}` : "";
+  const publicUrl = typeof window !== "undefined" ? `${window.location.origin}/cabudas/${gift.slug}` : "";
   const progress = Math.min(100, Math.round((gift.collectedAmount / gift.targetAmount) * 100));
 
   function copyLink() {
@@ -31,7 +31,7 @@ export function GroupGiftManager({ gift }: { gift: GroupGiftManageDTO }) {
   async function runAction(action: "finalize" | "cancel") {
     setLoading(action);
     setError(null);
-    const response = await fetch(`/api/perfil/colectas/${gift.id}`, {
+    const response = await fetch(`/api/perfil/cabudas/${gift.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action }),
@@ -73,7 +73,7 @@ export function GroupGiftManager({ gift }: { gift: GroupGiftManageDTO }) {
       {gift.status === "OPEN" && (
         <div className="flex flex-col gap-2 rounded-2xl border border-neutral-200 p-4">
           <p className="text-sm text-neutral-600">
-            Cuando estés listo, cerrá la colecta — te mandamos todo lo recaudado (${gift.collectedAmount.toFixed(2)})
+            Cuando estés listo, cerrá la cabuda — te mandamos todo lo recaudado (${gift.collectedAmount.toFixed(2)})
             a <span className="font-medium">{gift.organizerPaypalEmail}</span> por PayPal, y vos hacés la compra
             real de <span className="font-medium">{gift.productName}</span>.
           </p>
@@ -87,7 +87,7 @@ export function GroupGiftManager({ gift }: { gift: GroupGiftManageDTO }) {
               {loading === "finalize" ? <Loader2 className="size-4 animate-spin" /> : "Cerrar y recibir el dinero"}
             </Button>
             <Button type="button" variant="outline" disabled={loading !== null} onClick={() => runAction("cancel")}>
-              {loading === "cancel" ? <Loader2 className="size-4 animate-spin" /> : "Cancelar colecta"}
+              {loading === "cancel" ? <Loader2 className="size-4 animate-spin" /> : "Cancelar cabuda"}
             </Button>
           </div>
         </div>

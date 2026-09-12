@@ -4,9 +4,9 @@ import { auth } from "@mimo/auth";
 import { GroupGiftManager } from "@/components/account/group-gift-manager";
 import { getGroupGiftForManage } from "@/lib/services/group-gift-service";
 
-export const metadata: Metadata = { title: "Editar colecta" };
+export const metadata: Metadata = { title: "Editar cabuda" };
 
-export default async function ManageGroupGiftPage({ params }: PageProps<"/perfil/colectas/[id]">) {
+export default async function ManageGroupGiftPage({ params }: PageProps<"/perfil/cabudas/[id]">) {
   const session = await auth();
   if (!session?.user) redirect("/iniciar-sesion");
 
