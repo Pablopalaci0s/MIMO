@@ -41,10 +41,19 @@ export const checkoutInputSchema = z.object({
   isSurpriseMode: z.boolean(),
   hideBuyerFromRecipient: z.boolean(),
   surpriseInstructions: z.string().trim().max(300).optional(),
-  // Solo CASH está activo esta fase — ver README, sección "Diseño: pagos y
-  // seguimiento de pedidos". CARD/PAYPAL se validan igual para no romper el
-  // tipo compartido con la futura app móvil, pero el servicio los rechaza.
+  // CASH y PAYPAL están activos — ver README, sección "Diseño: pagos con
+  // PayPal". CARD/OTHER se validan igual para no romper el tipo compartido
+  // con la futura app móvil, pero el servicio los rechaza.
   paymentProvider: z.enum(["CARD", "PAYPAL", "CASH", "OTHER"]),
+  paypalOrderId: z.string().trim().min(1).optional(),
+}).superRefine((data, ctx) => {
+  if (data.paymentProvider === "PAYPAL" && !data.paypalOrderId) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["paypalOrderId"],
+      message: "Falta la orden de PayPal aprobada.",
+    });
+  }
 });
 
 export type CheckoutInputParsed = z.infer<typeof checkoutInputSchema>;

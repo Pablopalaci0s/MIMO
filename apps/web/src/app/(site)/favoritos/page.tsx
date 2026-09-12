@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@mimo/auth";
 import { FavoritesList } from "@/components/account/favorites-list";
 
-export const metadata: Metadata = { title: "Mis favoritos — MIMO" };
+export const metadata: Metadata = { title: "Mis favoritos" };
 
 export default async function FavoritesPage() {
   const session = await auth();

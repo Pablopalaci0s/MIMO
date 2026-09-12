@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@mimo/auth";
 import { ImportantDatesManager } from "@/components/account/important-dates-manager";
 
-export const metadata: Metadata = { title: "Fechas importantes — MIMO" };
+export const metadata: Metadata = { title: "Fechas importantes" };
 
 export default async function ImportantDatesPage() {
   const session = await auth();

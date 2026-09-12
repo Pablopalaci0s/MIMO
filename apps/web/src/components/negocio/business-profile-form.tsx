@@ -20,6 +20,7 @@ export function BusinessProfileForm({ profile }: { profile: BusinessProfileDTO }
   const [facebook, setFacebook] = useState(profile.facebook ?? "");
   const [tiktok, setTiktok] = useState(profile.tiktok ?? "");
   const [addressLine, setAddressLine] = useState(profile.addressLine ?? "");
+  const [paypalEmail, setPaypalEmail] = useState(profile.paypalEmail ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -40,6 +41,7 @@ export function BusinessProfileForm({ profile }: { profile: BusinessProfileDTO }
       facebook,
       tiktok,
       addressLine,
+      paypalEmail,
     };
 
     const response = await fetch("/api/negocio/perfil", {
@@ -144,6 +146,22 @@ export function BusinessProfileForm({ profile }: { profile: BusinessProfileDTO }
             onChange={(e) => setTiktok(e.target.value)}
           />
         </div>
+      </div>
+
+      <div className="flex flex-col gap-1.5 rounded-2xl border border-neutral-200 p-4">
+        <Label htmlFor="business-paypal">Correo de PayPal para cobrar</Label>
+        <Input
+          id="business-paypal"
+          type="email"
+          placeholder="tu-negocio@correo.com"
+          value={paypalEmail}
+          onChange={(e) => setPaypalEmail(e.target.value)}
+        />
+        <p className="text-xs text-neutral-500">
+          Cuando confirmás un pedido pagado con PayPal, te mandamos tu parte automáticamente a este
+          correo (menos la comisión de MIMO, {profile.commissionRate}%). Sin este dato no podemos
+          pagarte.
+        </p>
       </div>
 
       {error && <p className="text-sm text-destructive">{error}</p>}

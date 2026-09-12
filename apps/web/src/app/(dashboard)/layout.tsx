@@ -6,7 +6,7 @@ import { Providers } from "../providers";
 
 export const viewport: Viewport = pwaViewport;
 
-export const metadata: Metadata = { ...pwaMetadata, title: "MIMO" };
+export const metadata: Metadata = { ...pwaMetadata, title: "MIMO", robots: { index: false, follow: false } };
 
 export default function DashboardRootLayout({ children }: { children: React.ReactNode }) {
   return (

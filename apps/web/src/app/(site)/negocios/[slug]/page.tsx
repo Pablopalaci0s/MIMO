@@ -15,10 +15,22 @@ export async function generateMetadata({
 }: PageProps<"/negocios/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   const business = await getBusinessBySlug(slug);
-  if (!business) return { title: "Negocio no encontrado — MIMO" };
+  if (!business) return { title: "Negocio no encontrado" };
+  const image = business.coverUrl ?? business.logoUrl ?? undefined;
   return {
-    title: `${business.name} — MIMO`,
+    title: business.name,
     description: business.description ?? undefined,
+    openGraph: {
+      title: business.name,
+      description: business.description ?? undefined,
+      images: image ? [{ url: image }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: business.name,
+      description: business.description ?? undefined,
+      images: image ? [image] : undefined,
+    },
   };
 }
 

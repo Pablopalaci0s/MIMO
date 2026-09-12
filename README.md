@@ -171,22 +171,14 @@ puede confirmar/entregar su parte sin depender de los demás. GPS en vivo y
 repartidores propios (sección 41) quedan para cuando haya volumen que lo
 justifique.
 
-**Pago: autorizar primero, capturar al confirmar — no cobrar en el checkout.**
-El problema real: si se cobra en el momento del checkout, un negocio puede
-recibir una plata que ya no puede reembolsar fácilmente si no puede cumplir
-el pedido. La solución adoptada es autorizar la tarjeta (hold) en el
-checkout pero *no* capturar el cobro; el negocio tiene una ventana corta
-(ej. 30–60 min) para confirmar que puede cumplirlo, y recién ahí se captura.
-Si no confirma a tiempo, el pedido se cancela automáticamente y no se cobra
-nada. Esto requiere un proveedor que soporte auth/capture por separado
-(Stripe lo hace nativamente) y un job programado que cancele pedidos sin
-confirmar. **Estado actual de la implementación:** todavía no hay un
-proveedor de pagos real integrado, así que el checkout de esta fase solo
-ofrece **pago contra entrega (efectivo)**, que no necesita auth/capture.
-Tarjeta y PayPal se muestran en la UI como "Próximamente" — el modelo
-`Payment` (`status`: `PENDING/PAID/FAILED/REFUNDED`) y el flujo de
-confirmación del negocio (Fase 5) ya están pensados para que integrar
-Stripe después sea un cambio localizado, no un rediseño.
+**Pago: en esta fase, solo efectivo contra entrega.** El checkout de esta
+fase ofrece **pago contra entrega (efectivo)**. Tarjeta se muestra en la UI
+como "Próximamente". El modelo `Payment` (`status`:
+`PENDING/PAID/FAILED/REFUNDED/PARTIALLY_REFUNDED`) y el flujo de
+confirmación del negocio (Fase 5) quedaron pensados desde acá para que
+integrar un proveedor real después fuera un cambio localizado — ver
+"Diseño: pagos con PayPal" (post-Fase 11) para cómo se resolvió finalmente
+el "no cobrar si el negocio no confirma".
 
 ## Diseño: IA para dedicatorias (Fase 8)
 
@@ -780,6 +772,123 @@ sondea solo. Para el caso de uso (una aclaración puntual sobre una
 entrega, no una conversación activa de ida y vuelta rápida) alcanza; si
 en algún momento hace falta más inmediatez, el mismo patrón de
 `NewOrderWatcher` (polling) se podría reusar acá.
+
+## Diseño: pagos con PayPal (post-Fase 11)
+
+Se investigó primero con Wompi (la pasarela de Bancoagrícola, la más usada
+en El Salvador): su respuesta directa por correo confirmó que sus términos
+no permiten cobrar y repartir plata entre negocios con giros distintos al
+registrado — bloqueante para un marketplace multi-negocio como MIMO.
+Bancoagrícola/Nequi son la misma entidad, así que no son una alternativa
+independiente. Se evaluaron dLocal, Niu y Stripe: Stripe se descartó
+directo (no se puede abrir cuenta de plataforma desde El Salvador, solo
+Brasil/México en la región); dLocal y Niu quedaron anotados como
+candidatos pendientes de confirmar (mismo tema: si su producto de
+marketplace/split aplica para cuentas salvadoreñas). **PayPal fue la única
+opción confirmada y disponible de inmediato**, con tarifas reales
+verificadas desde la propia cuenta: 5.40% + $0.30 por cobro, y Payouts al
+2% (tope $1) para repartir a cada negocio.
+
+**Por qué no se usó el modelo "autorizar y capturar después" pensado en la
+Fase 4.** PayPal sí soporta autorizar sin cobrar, pero varias capturas
+parciales sobre una misma autorización (necesario para un carrito
+multi-negocio) tiene reportes reales de fallas en su comunidad de
+desarrolladores. En cambio, los reembolsos parciales sobre un cobro ya
+hecho son una operación mucho más común y confiable. Por eso el modelo
+final es: **se cobra el total completo al momento del checkout** (a la
+cuenta de MIMO, no hay split automático en el cobro porque eso requiere
+ser "Partner" de PayPal — un trámite de onboarding aparte que no se hizo);
+si un negocio no confirma su parte dentro de la ventana (45 min), se le
+reembolsa automáticamente esa parte específica al comprador. Para el
+comprador el resultado es el mismo que "no cobrar si no confirma" — solo
+cambia el mecanismo interno.
+
+- **`Business.commissionRate`** (%, default 10) y **`Business.paypalEmail`**
+  (a dónde se le manda su parte) son nuevos. La comisión se fija sola al
+  aprobar un negocio (`updateAdminBusiness`): los primeros 10 negocios
+  reales entran en una prueba a **0%**, del 11 en adelante entran a
+  **10%** — pedido explícito del dueño del producto. El admin puede editar
+  el % de cualquier negocio después (ej. para sacarlo de la prueba antes).
+  Reactivar un negocio suspendido no le toca la comisión que ya tenía.
+- **`PaymentSplit`** es el registro de cuánto de un `Payment` (que puede
+  cubrir varios negocios del carrito) le toca a cada uno: su bruto, la
+  comisión (con el % *congelado* al momento del pago, para que un cambio
+  de tarifa después no reescriba pedidos viejos), el neto, y qué pasó
+  (`PENDING → PAID_OUT` al confirmar y pagarle, o `→ REFUNDED` si no
+  confirmó a tiempo; `PAYOUT_FAILED` si confirmó pero no se le pudo pagar
+  — ej. no cargó su correo de PayPal).
+- **`paypal-service.ts`** es el único lugar que le habla a la REST API de
+  PayPal (OAuth de client credentials con el token cacheado en memoria,
+  Orders v2 para cobrar, Payments v2 para reembolsar, Payouts v1 para
+  pagarle a un negocio). `payment-split-service.ts` decide QUÉ hacer
+  (repartir o reembolsar) sin saber nada de HTTP.
+- El checkout de PayPal es un flujo de dos pasos, no un solo POST como
+  CASH: `/api/payments/paypal/order` recalcula el total desde la base de
+  datos y crea la orden en PayPal (todavía sin cobrar) para que el botón
+  de PayPal la muestre; recién cuando el comprador aprueba, el `onApprove`
+  del botón manda el checkout completo a `/api/orders` con el
+  `paypalOrderId` ya aprobado, y ahí `createOrder` captura el cobro real
+  ANTES de crear el pedido — si el cobro falla, nunca se crea un `Order`.
+- **`/api/cron/expirar-pedidos`** (cada 15 min, mismo esquema de
+  `CRON_SECRET` que el cron de fechas importantes) es el job que cumple la
+  ventana de 45 min: cancela los `OrderItem` que siguen `PENDING` de un
+  pedido pagado con PayPal y dispara el reembolso de esa parte. Como el
+  carrito es multi-tienda, agrupa por negocio (no por ítem) para no
+  reembolsar la misma parte dos veces si un negocio tiene más de un
+  producto en el pedido.
+- Sin `PAYPAL_CLIENT_ID`/`PAYPAL_CLIENT_SECRET` configuradas, el botón de
+  PayPal del checkout muestra "no disponible" en vez de fingir que
+  funciona (regla del proyecto) — se probó apagando las claves a propósito.
+- **Verificado en vivo contra credenciales sandbox reales**: checkout →
+  botón de PayPal → login con una cuenta sandbox de comprador → cobro real
+  capturado → `PaymentSplit` calculado con la comisión correcta → negocio
+  confirma → Payout real enviado (con ID de PayPal real de vuelta). Ciclo
+  completo probado de punta a punta, no solo por partes sueltas.
+
+## Diseño: SEO básico y Sentry en el cliente (post-Fase 11)
+
+Dos deudas técnicas encontradas al revisar qué falta para producción real
+(ninguna de las dos rompía nada, pero un usuario real las iba a notar).
+
+**Sentry nunca se inicializaba en el navegador.** Ya se sabía que
+`NEXT_PUBLIC_*` no llega al cliente si vive solo en el `.env` de la raíz
+(ver "Gotchas reales encontrados" en CLAUDE.md), pero el primer intento de
+arreglarlo — la opción `env: {...}` de `next.config.ts`, la forma
+"oficial" según la documentación de Next — **se probó y no funcionó bajo
+Turbopack**: se verificó poniendo un DSN de prueba y confirmando que no
+aparecía en el bundle compilado, solo un `process.env` polyfill vacío en
+tiempo de ejecución. Lo único que funcionó de verdad (mismo método de
+verificación): que la variable viva en un `.env` físico dentro de
+`apps/web/`. Por eso `NEXT_PUBLIC_SENTRY_DSN` ahora es la única variable
+que NO vive en el `.env` de la raíz — tiene su propio
+`apps/web/.env.example` con la explicación de por qué.
+
+**SEO nunca se había tocado.** No había Open Graph, ni `sitemap.xml`, ni
+`robots.txt` en ninguna fase anterior. Se agregó:
+- `metadataBase` + Open Graph/Twitter por defecto en el layout de `(site)`,
+  con una imagen generada al vuelo (`opengraph-image.tsx`, vía
+  `next/og` — nada de assets estáticos que se puedan desactualizar).
+- Producto y negocio pisan esa imagen por defecto con su propia foto real
+  en su `generateMetadata`.
+- `title.template` centralizado ("%s — MIMO") en el layout — **al
+  agregarlo aparecieron títulos duplicados** ("Checkout — MIMO — MIMO")
+  en cada página que ya traía el "— MIMO" escrito a mano; se encontró
+  probando en el navegador (no solo mirando el código) y se limpiaron los
+  ~15 archivos afectados.
+- `sitemap.ts` con las páginas estáticas más todos los productos activos y
+  negocios aprobados (consulta directo a Prisma, no a través de un
+  `*-service.ts` — es una proyección de solo lectura para un archivo
+  especial de Next, no lógica de negocio).
+- `robots.ts` que bloquea `/admin`, `/negocio`, `/checkout`, `/pedidos` y
+  el resto de páginas con datos personales — más `robots: {index:false}`
+  a nivel de metadata en el layout de `(dashboard)` como refuerzo.
+
+**Se probó además el alta de un negocio nuevo de punta a punta** (no solo
+negocios demo/seed): registro → panel con aviso de "pendiente de
+aprobación" → admin aprueba → comisión de prueba (0%) asignada sola por
+ser el primer negocio real → notificación de aprobación al dueño →
+negocio visible públicamente. Sin bugs nuevos aparte del de los títulos
+duplicados de arriba (que salió a la luz justo en esta prueba).
 
 ## Diseño: paneles como app separada (post-Fase 6, rediseño)
 

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { GiftFinder } from "@/components/gift-finder/gift-finder";
 
 export const metadata: Metadata = {
-  title: "Ayúdame a elegir — MIMO",
+  title: "Ayúdame a elegir",
   description: "Decinos qué querés transmitir y te ayudamos a encontrar el detalle perfecto.",
 };
 

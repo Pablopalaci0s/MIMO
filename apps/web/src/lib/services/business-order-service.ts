@@ -3,6 +3,7 @@ import type { BusinessOrderItemDTO, NotificationType, PersonalizationInput } fro
 import { AppError } from "@/lib/errors";
 import { createNotification } from "./notification-service";
 import { computeOrderStatus, isValidTransition } from "./order-status-logic";
+import { resolvePaymentSplitOnCancel, resolvePaymentSplitOnConfirm } from "./payment-split-service";
 
 const BUSINESS_ORDER_ITEM_INCLUDE = {
   product: { include: { images: { orderBy: { position: "asc" as const }, take: 1 } } },
@@ -25,6 +26,7 @@ function toBusinessOrderItemDTO(item: BusinessOrderItemRow): BusinessOrderItemDT
     unitPrice: Number(item.unitPrice),
     personalization: (item.personalization as PersonalizationInput | null) ?? null,
     status: item.status,
+    paymentNote: null,
     createdAt: item.createdAt.toISOString(),
     buyerName: item.order.buyerName,
     buyerPhone: item.order.buyerPhone,
@@ -113,5 +115,15 @@ export async function updateBusinessOrderItemStatus(
     });
   }
 
-  return toBusinessOrderItemDTO(updated);
+  // Si el pedido se pagó con PayPal, esto reparte (al confirmar) o
+  // reembolsa (al cancelar) la parte de ESTE negocio — ver
+  // `payment-split-service.ts`. No hace nada para pagos en efectivo.
+  let paymentNote: string | null = null;
+  if (nextStatus === "CONFIRMED") {
+    paymentNote = await resolvePaymentSplitOnConfirm(item.orderId, businessId);
+  } else if (nextStatus === "CANCELLED") {
+    paymentNote = await resolvePaymentSplitOnCancel(item.orderId, businessId);
+  }
+
+  return { ...toBusinessOrderItemDTO(updated), paymentNote };
 }

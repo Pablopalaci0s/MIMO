@@ -12,23 +12,27 @@ import { AppError } from "@/lib/errors";
 
 const EMPTY_WEEK: WeeklyHours = Object.fromEntries(WEEK_DAYS.map((day) => [day, null])) as WeeklyHours;
 
+const PROFILE_SELECT = {
+  name: true,
+  description: true,
+  logoUrl: true,
+  coverUrl: true,
+  phone: true,
+  whatsapp: true,
+  instagram: true,
+  facebook: true,
+  tiktok: true,
+  addressLine: true,
+  paypalEmail: true,
+  commissionRate: true,
+} satisfies Prisma.BusinessSelect;
+
 export async function getBusinessProfile(businessId: string): Promise<BusinessProfileDTO> {
   const business = await prisma.business.findUniqueOrThrow({
     where: { id: businessId },
-    select: {
-      name: true,
-      description: true,
-      logoUrl: true,
-      coverUrl: true,
-      phone: true,
-      whatsapp: true,
-      instagram: true,
-      facebook: true,
-      tiktok: true,
-      addressLine: true,
-    },
+    select: PROFILE_SELECT,
   });
-  return business;
+  return { ...business, commissionRate: Number(business.commissionRate) };
 }
 
 export async function updateBusinessProfile(
@@ -47,21 +51,11 @@ export async function updateBusinessProfile(
       ...(input.facebook !== undefined ? { facebook: input.facebook || null } : {}),
       ...(input.tiktok !== undefined ? { tiktok: input.tiktok || null } : {}),
       ...(input.addressLine !== undefined ? { addressLine: input.addressLine || null } : {}),
+      ...(input.paypalEmail !== undefined ? { paypalEmail: input.paypalEmail || null } : {}),
     },
-    select: {
-      name: true,
-      description: true,
-      logoUrl: true,
-      coverUrl: true,
-      phone: true,
-      whatsapp: true,
-      instagram: true,
-      facebook: true,
-      tiktok: true,
-      addressLine: true,
-    },
+    select: PROFILE_SELECT,
   });
-  return business;
+  return { ...business, commissionRate: Number(business.commissionRate) };
 }
 
 export async function getBusinessHours(businessId: string): Promise<BusinessHoursDTO> {

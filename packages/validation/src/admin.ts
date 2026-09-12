@@ -4,6 +4,7 @@ import { imageUrlSchema } from "./business";
 export const adminBusinessUpdateSchema = z.object({
   status: z.enum(["PENDING", "APPROVED", "SUSPENDED", "REJECTED"]).optional(),
   verified: z.boolean().optional(),
+  commissionRate: z.coerce.number().min(0).max(100).optional(),
 });
 
 export const adminUserUpdateSchema = z.object({

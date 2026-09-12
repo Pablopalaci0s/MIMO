@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Términos y condiciones — MIMO",
+  title: "Términos y condiciones",
   description: "Términos y condiciones de uso de MIMO.",
 };
 

@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@mimo/auth";
 import { listMyOrders } from "@/lib/services/order-service";
 
-export const metadata: Metadata = { title: "Mis pedidos — MIMO" };
+export const metadata: Metadata = { title: "Mis pedidos" };
 
 const STATUS_LABEL: Record<string, string> = {
   PENDING: "Pendiente",

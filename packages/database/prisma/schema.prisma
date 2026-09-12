@@ -83,6 +83,22 @@ enum PaymentStatus {
   PAID
   FAILED
   REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+/** Cuánto de un `Payment` (que puede cubrir varios negocios en un carrito
+ * multi-tienda) le corresponde a cada negocio, y qué pasó con esa parte:
+ * PENDING hasta que el negocio confirma o cancela su parte del pedido;
+ * PAID_OUT cuando ya se le mandó por PayPal Payouts; PAYOUT_FAILED si
+ * confirmó pero no se le pudo pagar (ej. no tiene `paypalEmail` cargado, ver
+ * `Business.paypalEmail`); REFUNDED si no confirmó a tiempo y se le
+ * reembolsó esa parte al comprador. Solo aplica a pagos ya capturados
+ * (PayPal hoy) — CASH no genera `PaymentSplit`. */
+enum PaymentSplitStatus {
+  PENDING
+  PAID_OUT
+  PAYOUT_FAILED
+  REFUNDED
 }
 
 enum ModerationStatus {
@@ -353,6 +369,16 @@ model Business {
   isDemo   Boolean        @default(false)
   plan     BusinessPlan   @default(FREE)
 
+  // % que se queda MIMO de cada venta (0-100). Se fija al aprobar el negocio
+  // (ver `updateAdminBusiness`: los primeros 10 negocios reales aprobados
+  // entran en 0% de prueba, del 11 en adelante entran directo en 10%) y el
+  // admin lo puede editar después para mover a un negocio de la prueba a
+  // comisión plena. `paypalEmail` es a dónde le mandamos su parte con
+  // PayPal Payouts cuando confirma un pedido — ver "Diseño: pagos con
+  // PayPal" en el README.
+  commissionRate Decimal @default(10) @db.Decimal(5, 2)
+  paypalEmail    String?
+
   municipalityId       String?  @db.Uuid
   municipality         Municipality? @relation(fields: [municipalityId], references: [id])
   addressLine          String?
@@ -368,6 +394,7 @@ model Business {
   favorites        Favorite[]
   promotions       Promotion[]
   coverageRequests CoverageRequest[]
+  paymentSplits    PaymentSplit[]
 
   ratingAvg   Float @default(0)
   ratingCount Int   @default(0)
@@ -665,12 +692,38 @@ model Payment {
   status     PaymentStatus   @default(PENDING)
   amount     Decimal         @db.Decimal(10, 2)
   currency   String          @default("USD")
-  providerReference String?
+  providerOrderId   String? // id de orden de PayPal (checkout), previo a la captura
+  providerReference String? // id de la captura de PayPal una vez cobrado
   paidAt     DateTime?
   createdAt  DateTime        @default(now())
   updatedAt  DateTime        @updatedAt
 
+  splits PaymentSplit[]
+
   @@map("payments")
+}
+
+model PaymentSplit {
+  id         String  @id @default(uuid()) @db.Uuid
+  paymentId  String  @db.Uuid
+  payment    Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  businessId String  @db.Uuid
+  business   Business @relation(fields: [businessId], references: [id])
+
+  grossAmount      Decimal            @db.Decimal(10, 2)
+  commissionRate   Decimal            @db.Decimal(5, 2)
+  commissionAmount Decimal            @db.Decimal(10, 2)
+  netAmount        Decimal            @db.Decimal(10, 2)
+  status           PaymentSplitStatus @default(PENDING)
+  payoutReference  String?
+  refundReference  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([paymentId, businessId])
+  @@index([businessId])
+  @@map("payment_splits")
 }
 
 // ─────────────────────────────────────────────────────────────────────────
