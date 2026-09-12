@@ -19,7 +19,7 @@ export async function Header() {
           className="group flex items-center gap-1.5 text-lg font-semibold tracking-tight text-neutral-900"
         >
           MIMO
-          <MimoMark className="size-4 text-[#f98079] transition-transform duration-300 group-hover:scale-125" />
+          <MimoMark className="size-6 animate-pulse text-[#f98079] transition-transform duration-300 group-hover:scale-125" />
         </Link>
 
         <NavLinks />
