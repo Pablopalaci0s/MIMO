@@ -1,4 +1,4 @@
-import { Building2, GalleryHorizontal, LayoutDashboard, MapPin, MessageSquareWarning, Star, Tags, Users } from "lucide-react";
+import { Building2, GalleryHorizontal, LayoutDashboard, MapPin, MessageSquareWarning, Star, Tags, TicketPercent, Users } from "lucide-react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@mimo/auth";
@@ -12,6 +12,7 @@ const NAV_ITEMS: DashboardNavItem[] = [
   { href: "/admin/usuarios", label: "Usuarios", icon: <Users className="size-4" /> },
   { href: "/admin/categorias", label: "Categorías", icon: <Tags className="size-4" /> },
   { href: "/admin/banners", label: "Banners", icon: <GalleryHorizontal className="size-4" /> },
+  { href: "/admin/cupones", label: "Cupones", icon: <TicketPercent className="size-4" /> },
   { href: "/admin/reportes", label: "Reportes", icon: <MessageSquareWarning className="size-4" /> },
   { href: "/admin/resenas", label: "Reseñas", icon: <Star className="size-4" /> },
   { href: "/admin/cobertura", label: "Cobertura", icon: <MapPin className="size-4" /> },

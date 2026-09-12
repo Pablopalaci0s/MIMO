@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { StarRating } from "@/components/ui/star-rating";
 import { ReportButton } from "@/components/reports/report-button";
 import type { ReviewDTO } from "@mimo/types";
@@ -28,6 +29,21 @@ export function ReviewList({
               <ReportButton targetType="REVIEW" targetId={review.id} />
             </div>
             {review.comment && <p className="text-sm text-neutral-600">{review.comment}</p>}
+            {review.images.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {review.images.map((url) => (
+                  <a
+                    key={url}
+                    href={url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="relative size-16 overflow-hidden rounded-lg bg-neutral-100 transition-opacity hover:opacity-90"
+                  >
+                    <Image src={url} alt="" fill className="object-cover" />
+                  </a>
+                ))}
+              </div>
+            )}
             <p className="text-xs text-neutral-400">
               {new Date(review.createdAt).toLocaleDateString("es-SV", { day: "numeric", month: "short", year: "numeric" })}
             </p>

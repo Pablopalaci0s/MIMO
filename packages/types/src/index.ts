@@ -13,3 +13,5 @@ export * from "./favorite";
 export * from "./important-date";
 export * from "./notification";
 export * from "./banner";
+export * from "./gift-registry";
+export * from "./group-gift";

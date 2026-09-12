@@ -98,6 +98,12 @@ export default async function OrderDetailPage({
           <span>Envío</span>
           <span>${order.deliveryFee.toFixed(2)}</span>
         </div>
+        {order.discountAmount > 0 && (
+          <div className="mt-1 flex justify-between text-sm text-emerald-600">
+            <span>Cupón {order.couponCode}</span>
+            <span>-${order.discountAmount.toFixed(2)}</span>
+          </div>
+        )}
         <div className="mt-2 flex justify-between border-t border-neutral-200 pt-2 text-base font-semibold text-neutral-900">
           <span>Total</span>
           <span>${order.total.toFixed(2)}</span>

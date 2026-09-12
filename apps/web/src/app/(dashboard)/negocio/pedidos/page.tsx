@@ -1,3 +1,4 @@
+import { Download } from "lucide-react";
 import Link from "next/link";
 import { cn } from "cn";
 import { OrderItemCard } from "@/components/negocio/order-item-card";
@@ -39,9 +40,18 @@ export default async function BusinessOrdersPage({ searchParams }: PageProps<"/n
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-semibold tracking-tight text-neutral-900">Pedidos</h1>
-        <p className="text-sm text-neutral-500">{items.length} pedidos en este estado.</p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-xl font-semibold tracking-tight text-neutral-900">Pedidos</h1>
+          <p className="text-sm text-neutral-500">{items.length} pedidos en este estado.</p>
+        </div>
+        <a
+          href={`/api/negocio/pedidos/export${activeFilter === "ALL" ? "" : `?status=${activeFilter}`}`}
+          className="flex shrink-0 items-center gap-1.5 rounded-full border border-neutral-200 px-3.5 py-1.5 text-sm font-medium text-neutral-600 transition-colors hover:border-neutral-300 hover:bg-neutral-50"
+        >
+          <Download className="size-3.5" />
+          Exportar CSV
+        </a>
       </div>
 
       <div className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0">

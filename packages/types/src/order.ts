@@ -63,6 +63,16 @@ export interface CheckoutInput {
    * ya aprobada por el comprador (ver `/api/payments/paypal/order`), que el
    * servidor captura al crear el pedido. */
   paypalOrderId?: string;
+  /** Código de cupón ya validado en el checkout (ver `/api/coupons/apply`)
+   * — el servidor lo vuelve a validar y calcular al crear el pedido, nunca
+   * confía en el descuento que mande el cliente. */
+  couponCode?: string;
+}
+
+export interface CouponPreviewDTO {
+  code: string;
+  description: string | null;
+  discountAmount: number;
 }
 
 export type PaymentProvider = "CARD" | "PAYPAL" | "CASH" | "OTHER";
@@ -91,6 +101,8 @@ export interface OrderDTO {
   status: OrderStatus;
   subtotal: number;
   deliveryFee: number;
+  discountAmount: number;
+  couponCode: string | null;
   total: number;
   currency: string;
   items: OrderItemDTO[];
