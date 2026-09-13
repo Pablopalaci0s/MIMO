@@ -79,7 +79,7 @@ export function UserMenu({ user, variant = "icon" }: { user: AuthSessionUser; va
         {variant === "tab" ? (
           <>
             <Avatar size="sm" className="size-5">
-              <AvatarFallback className="bg-neutral-900 text-[9px] text-white">
+              <AvatarFallback className="bg-neutral-900 text-[9px] text-neutral-50">
                 {initials(user)}
               </AvatarFallback>
             </Avatar>
@@ -88,7 +88,7 @@ export function UserMenu({ user, variant = "icon" }: { user: AuthSessionUser; va
         ) : (
           <>
             <Avatar size="sm">
-              <AvatarFallback className="bg-neutral-900 text-xs text-white">
+              <AvatarFallback className="bg-neutral-900 text-xs text-neutral-50">
                 {initials(user)}
               </AvatarFallback>
             </Avatar>

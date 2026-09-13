@@ -16,7 +16,7 @@ export default function OfflinePage() {
       </div>
       <button
         onClick={() => window.location.reload()}
-        className="rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-neutral-700"
+        className="rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-medium text-neutral-50 transition-colors hover:bg-neutral-700"
       >
         Reintentar
       </button>

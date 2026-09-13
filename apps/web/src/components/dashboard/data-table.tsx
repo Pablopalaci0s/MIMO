@@ -26,7 +26,7 @@ export function DataTable({
   }
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-neutral-200 bg-white">
+    <div className="overflow-x-auto rounded-2xl border border-neutral-200 bg-white dark:bg-neutral-100">
       <table className="w-full min-w-[720px] text-left text-sm">
         <thead>
           <tr className="border-b border-neutral-200 text-xs font-medium tracking-wide text-neutral-400 uppercase">

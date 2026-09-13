@@ -41,7 +41,7 @@ function SidebarNav({
             onClick={onNavigate}
             className={cn(
               "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
-              isActive ? "bg-neutral-900 text-white" : "text-neutral-600 hover:bg-neutral-100",
+              isActive ? "bg-neutral-900 text-neutral-50" : "text-neutral-600 hover:bg-neutral-100",
             )}
           >
             {item.icon}
@@ -71,7 +71,7 @@ export function DashboardShell({
 
   return (
     <div className="flex min-h-screen">
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-neutral-200 bg-white lg:flex">
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-neutral-200 bg-white lg:flex dark:bg-neutral-100">
         <div className="flex h-16 items-center border-b border-neutral-200 px-5">
           <Link href="/" className="text-lg font-semibold tracking-tight text-neutral-900">
             MIMO
@@ -99,7 +99,7 @@ export function DashboardShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-14 items-center justify-between border-b border-neutral-200 bg-white px-4 lg:hidden">
+        <header className="flex h-14 items-center justify-between border-b border-neutral-200 bg-white px-4 lg:hidden dark:bg-neutral-100">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" aria-label="Abrir menú">

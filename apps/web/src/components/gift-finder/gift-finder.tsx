@@ -93,7 +93,7 @@ export function GiftFinder({ initialQuery = "" }: { initialQuery?: string }) {
   return (
     <div className="flex flex-col gap-8">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex w-full items-center gap-2 rounded-full border border-neutral-200 bg-white p-1.5 pl-5 shadow-sm transition-shadow focus-within:border-neutral-300 focus-within:shadow-md">
+        <div className="flex w-full items-center gap-2 rounded-full border border-neutral-200 bg-white p-1.5 pl-5 dark:bg-neutral-100 shadow-sm transition-shadow focus-within:border-neutral-300 focus-within:shadow-md">
           <Search className="size-4 shrink-0 text-neutral-400" strokeWidth={2} />
           <input
             value={message}

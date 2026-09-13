@@ -2,6 +2,8 @@ import { MessageCircleHeart, Star, Truck, Zap } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import type { GiftRecommendation } from "@mimo/types";
+import { MediaPlaceholder } from "@/components/ui/media-placeholder";
+import { getCategoryIcon } from "@/lib/category-icons";
 
 export function RecommendationCard({
   recommendation,
@@ -14,7 +16,7 @@ export function RecommendationCard({
 
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-neutral-200 p-4 sm:flex-row">
-      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-semibold text-white">
+      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-semibold text-neutral-50">
         {position}
       </span>
 
@@ -22,7 +24,7 @@ export function RecommendationCard({
         href={`/productos/${product.slug}`}
         className="group relative aspect-square w-full shrink-0 overflow-hidden rounded-xl bg-neutral-100 sm:w-32"
       >
-        {product.coverImageUrl && (
+        {product.coverImageUrl ? (
           <Image
             src={product.coverImageUrl}
             alt={product.name}
@@ -30,6 +32,8 @@ export function RecommendationCard({
             sizes="128px"
             className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
+        ) : (
+          <MediaPlaceholder icon={getCategoryIcon(product.categorySlug)} iconClassName="size-7" />
         )}
       </Link>
 

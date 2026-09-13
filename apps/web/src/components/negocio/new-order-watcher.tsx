@@ -105,7 +105,7 @@ export function NewOrderWatcher() {
   if (!toastItem) return null;
 
   return (
-    <div className="fixed inset-x-4 top-4 z-50 mx-auto flex max-w-sm items-start gap-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-[0_12px_28px_-8px_rgba(0,0,0,0.25)] sm:right-4 sm:left-auto">
+    <div className="fixed inset-x-4 top-4 z-50 mx-auto flex max-w-sm items-start gap-3 rounded-2xl border border-neutral-200 bg-white p-4 dark:bg-neutral-100 shadow-[0_12px_28px_-8px_rgba(0,0,0,0.25)] sm:right-4 sm:left-auto">
       <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand">
         <Bell className="size-4" />
       </span>

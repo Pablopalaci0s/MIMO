@@ -8,6 +8,8 @@ import { FavoriteButton } from "@/components/catalog/favorite-button";
 import { ProductCard } from "@/components/catalog/product-card";
 import { ReportButton } from "@/components/reports/report-button";
 import { ReviewList } from "@/components/reviews/review-list";
+import { MediaPlaceholder } from "@/components/ui/media-placeholder";
+import { getCategoryIcon } from "@/lib/category-icons";
 import { formatPreparationTime } from "@/lib/format";
 import { getProductBySlug, listRelatedProducts } from "@/lib/services/product-service";
 import { listApprovedReviews } from "@/lib/services/review-service";
@@ -58,7 +60,9 @@ export default async function ProductPage({ params }: PageProps<"/productos/[slu
               className="object-cover"
               priority
             />
-          ) : null}
+          ) : (
+            <MediaPlaceholder icon={getCategoryIcon(product.categorySlug)} iconClassName="size-16" />
+          )}
           <FavoriteButton targetType="PRODUCT" targetId={product.id} size="lg" className="absolute top-3 right-3" />
         </div>
 

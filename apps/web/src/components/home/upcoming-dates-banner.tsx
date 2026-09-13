@@ -20,7 +20,7 @@ export function UpcomingDatesBanner({ dates }: { dates: ImportantDateDTO[] }) {
         href="/ayudame-a-elegir"
         className="group flex items-center gap-3 rounded-2xl border border-brand/20 bg-brand-soft/50 px-4 py-3 shadow-sm transition-all hover:bg-brand-soft hover:shadow-[0_10px_24px_-14px_var(--brand)]"
       >
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white text-brand shadow-sm">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white text-brand shadow-sm dark:bg-neutral-100">
           <CalendarHeart className="size-4" />
         </span>
         <p className="flex-1 text-sm text-neutral-800">
