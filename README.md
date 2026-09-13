@@ -103,6 +103,10 @@ También crea 10 negocios ficticios (marcados `isDemo`) con 57 productos en
 total, repartidos en las 12 categorías, con zonas de entrega y ratings
 aleatorios — ver `packages/database/prisma/seed-data/demo-catalog.ts`.
 
+⚠️ Estas contraseñas son públicas (están en este README). El script se
+niega a correr si `NODE_ENV=production` — nunca lo corras contra una base
+de datos real sin cambiar antes esas contraseñas.
+
 ## 6. Iniciar desarrollo
 
 ```bash
@@ -480,7 +484,10 @@ pendientes:
 - **Secrets y base de datos de producción** — hoy todo corre con valores
   de desarrollo.
 - **Datos de demo** (`admin@mimo.sv` con contraseña conocida, negocios
-  `isDemo`) no pueden quedar en un ambiente real.
+  `isDemo`) no pueden quedar en un ambiente real — `db:seed` ya se niega a
+  correr con `NODE_ENV=production` (ver sección "5. Cargar datos demo"),
+  pero igual hay que cambiar esas contraseñas si alguna vez se corrió
+  contra una base que después se promovió a producción.
 
 ## Diseño: login con Google y Facebook (post-Fase 11)
 
