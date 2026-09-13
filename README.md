@@ -1009,8 +1009,12 @@ apareciera, sin prometer nada en la política de privacidad que no
 estuviera implementado de verdad. El audit encontró que la mayoría de
 medidas ya estaban bien (hash de contraseñas, tokens de reset de un
 solo uso, rate limiting, validación con Zod, Prisma sin SQL crudo,
-captura de pago siempre server-side) — ver "Diseño: seguridad" en la
-propia página `/privacidad`. Lo que sí faltaba, y se agregó acá:
+captura de pago siempre server-side) — ver el detalle completo en la
+página `/seguridad` del Sitio (separada de `/privacidad` a pedido del
+usuario: una explica qué datos se recolectan y para qué, la otra cómo
+se protegen — mezclarlas hace que la política de privacidad termine
+hablando de CSP/HSTS, que no es su tema). Lo que sí faltaba, y se
+agregó acá:
 
 - **Encabezados de seguridad HTTP** (`next.config.ts`, función
   `headers()`): CSP, `X-Content-Type-Options: nosniff`,
