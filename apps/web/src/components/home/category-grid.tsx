@@ -36,7 +36,7 @@ export function CategoryGrid({ categories }: { categories: CategoryDTO[] }) {
           variants={container}
           initial="hidden"
           animate="show"
-          className="scrollbar-hide -mx-4 flex snap-x gap-6 overflow-x-auto px-4 sm:gap-8"
+          className="scrollbar-hide -mx-4 -my-3 flex snap-x gap-6 overflow-x-auto px-4 py-3 sm:gap-8"
         >
           {categories.map((category) => {
             const Icon = getCategoryIcon(category.slug);
@@ -50,11 +50,11 @@ export function CategoryGrid({ categories }: { categories: CategoryDTO[] }) {
                     whileHover={{ scale: 1.08, rotate: -4 }}
                     whileTap={{ scale: 0.96 }}
                     transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                    className="flex size-16 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 shadow-sm ring-0 ring-brand-soft transition-all duration-200 group-hover:bg-neutral-900 group-hover:text-neutral-50 group-hover:ring-4"
+                    className="flex size-16 items-center justify-center rounded-full border border-neutral-200/80 bg-gradient-to-br from-neutral-50 to-neutral-100 text-neutral-700 shadow-sm transition-all duration-200 group-hover:border-brand/60 group-hover:from-brand/20 group-hover:to-brand/10 group-hover:text-brand group-hover:shadow-[0_10px_24px_-12px_var(--brand)]"
                   >
-                    <Icon className="size-6" strokeWidth={1.6} />
+                    <Icon className="size-6" strokeWidth={1.75} />
                   </motion.span>
-                  <span className="text-xs font-medium whitespace-nowrap text-neutral-600">
+                  <span className="text-xs font-medium whitespace-nowrap text-neutral-600 transition-colors duration-200 group-hover:text-brand">
                     {category.name}
                   </span>
                 </Link>
