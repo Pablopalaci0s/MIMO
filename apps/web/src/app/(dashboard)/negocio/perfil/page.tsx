@@ -15,7 +15,7 @@ export default async function BusinessProfilePage() {
         <h1 className="text-xl font-semibold tracking-tight text-neutral-900">Perfil</h1>
         <p className="text-sm text-neutral-500">Así te ven los clientes en tu página pública.</p>
       </div>
-      <div className="max-w-2xl rounded-2xl border border-neutral-200 bg-white p-5">
+      <div className="max-w-2xl rounded-2xl border border-neutral-200 bg-white p-5 dark:bg-neutral-100">
         <BusinessProfileForm profile={profile} />
       </div>
     </div>

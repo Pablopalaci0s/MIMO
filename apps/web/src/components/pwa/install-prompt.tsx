@@ -69,7 +69,7 @@ export function InstallPrompt() {
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-x-4 bottom-20 z-50 mx-auto flex max-w-sm items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-3 shadow-[0_12px_28px_-8px_rgba(0,0,0,0.18)] sm:right-4 sm:bottom-4 sm:left-auto">
+    <div className="fixed inset-x-4 bottom-20 z-50 mx-auto flex max-w-sm items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-3 dark:bg-neutral-100 shadow-[0_12px_28px_-8px_rgba(0,0,0,0.18)] sm:right-4 sm:bottom-4 sm:left-auto">
       <Image src="/icons/icon-192.png" alt="" width={40} height={40} className="size-10 shrink-0 rounded-xl" />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium text-neutral-900">Instalá MIMO</p>
@@ -77,7 +77,7 @@ export function InstallPrompt() {
       </div>
       <button
         onClick={handleInstall}
-        className="flex shrink-0 items-center gap-1.5 rounded-full bg-neutral-900 px-3.5 py-2 text-xs font-medium text-white hover:bg-neutral-700"
+        className="flex shrink-0 items-center gap-1.5 rounded-full bg-neutral-900 px-3.5 py-2 text-xs font-medium text-neutral-50 hover:bg-neutral-700"
       >
         <Download className="size-3.5" />
         Instalar

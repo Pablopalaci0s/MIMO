@@ -55,7 +55,7 @@ export function Hero() {
   }
 
   return (
-    <section className="relative isolate overflow-hidden bg-white">
+    <section className="relative isolate overflow-hidden bg-white dark:bg-neutral-50">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-[-16rem] -z-10 flex justify-center blur-3xl"
@@ -66,7 +66,7 @@ export function Hero() {
         aria-hidden
         className="pointer-events-none absolute top-16 right-[-6rem] -z-10 blur-3xl sm:right-[-2rem]"
       >
-        <div className="aspect-square w-72 rounded-full bg-gradient-to-tr from-amber-100 via-brand-soft/50 to-transparent opacity-70" />
+        <div className="aspect-square w-72 rounded-full bg-gradient-to-tr from-amber-100 via-brand-soft/50 to-transparent opacity-70 dark:from-amber-900/20" />
       </div>
 
       {/* Íconos decorativos flotantes — solo desde sm, opacidad baja para no competir con el contenido */}
@@ -151,7 +151,7 @@ export function Hero() {
         <motion.form
           variants={item}
           onSubmit={handleSubmit}
-          className="mt-2 flex w-full max-w-xl items-center gap-2 rounded-full border border-neutral-200 bg-white p-2 pl-5 shadow-md transition-all duration-200 focus-within:border-brand/30 focus-within:shadow-[0_0_0_5px_var(--brand-soft),0_12px_28px_-14px_rgba(0,0,0,0.25)]"
+          className="mt-2 flex w-full max-w-xl items-center gap-2 rounded-full border border-neutral-200 bg-white p-2 pl-5 dark:bg-neutral-100 shadow-md transition-all duration-200 focus-within:border-brand/30 focus-within:shadow-[0_0_0_5px_var(--brand-soft),0_12px_28px_-14px_rgba(0,0,0,0.25)]"
         >
           <Search className="size-4 shrink-0 text-neutral-400" strokeWidth={2} />
           <span className="relative h-11 min-w-0 flex-1 overflow-hidden">

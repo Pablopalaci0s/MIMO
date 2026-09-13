@@ -12,7 +12,7 @@ const STEPS: { status: OrderStatus; label: string }[] = [
 export function OrderStatusTimeline({ status }: { status: OrderStatus }) {
   if (status === "CANCELLED") {
     return (
-      <div className="flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+      <div className="flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600 dark:bg-red-950/30 dark:text-red-400">
         <X className="size-4" />
         Este pedido fue cancelado.
       </div>
@@ -31,7 +31,7 @@ export function OrderStatusTimeline({ status }: { status: OrderStatus }) {
             <div className="flex w-full items-center">
               <span
                 className={`flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-medium transition-colors ${
-                  done ? "bg-neutral-900 text-white" : "bg-neutral-100 text-neutral-400"
+                  done ? "bg-neutral-900 text-neutral-50" : "bg-neutral-100 text-neutral-400"
                 }`}
               >
                 {done ? <Check className="size-3.5" /> : index + 1}

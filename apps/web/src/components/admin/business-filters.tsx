@@ -53,7 +53,7 @@ export function BusinessFilters() {
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Buscar por nombre..."
-          className="h-9 w-full rounded-lg border border-neutral-200 bg-white pr-8 pl-8 text-sm text-neutral-900 outline-none transition-colors placeholder:text-neutral-400 focus:border-neutral-300"
+          className="h-9 w-full rounded-lg border border-neutral-200 bg-white pr-8 pl-8 dark:bg-neutral-100 text-sm text-neutral-900 outline-none transition-colors placeholder:text-neutral-400 focus:border-neutral-300"
         />
         {query && (
           <button

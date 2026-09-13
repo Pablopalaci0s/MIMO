@@ -1,6 +1,8 @@
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { ProductRowActions } from "@/components/negocio/product-row-actions";
+import { MediaPlaceholder } from "@/components/ui/media-placeholder";
+import { getCategoryIcon } from "@/lib/category-icons";
 import type { BusinessProductDTO } from "@mimo/types";
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
@@ -21,8 +23,10 @@ export function ProductRow({ product }: { product: BusinessProductDTO }) {
       <td className="py-2.5 pl-4">
         <div className="flex items-center gap-3">
           <div className="relative size-11 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
-            {product.images[0] && (
+            {product.images[0] ? (
               <Image src={product.images[0].url} alt={product.name} fill className="object-cover" />
+            ) : (
+              <MediaPlaceholder icon={getCategoryIcon(product.categorySlug)} iconClassName="size-4" />
             )}
           </div>
           <span className="line-clamp-1 font-medium text-neutral-900">{product.name}</span>

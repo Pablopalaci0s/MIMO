@@ -49,7 +49,7 @@ export default async function BusinessPage({ params }: PageProps<"/negocios/[slu
 
       <div className="-mt-10 flex flex-col gap-4 px-2 sm:-mt-12 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex items-end gap-4">
-          <div className="relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-neutral-900 text-2xl font-semibold text-white shadow-sm sm:size-24">
+          <div className="relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-neutral-900 text-2xl font-semibold text-neutral-50 shadow-sm dark:border-neutral-50 sm:size-24">
             {business.logoUrl ? (
               <Image src={business.logoUrl} alt={business.name} fill className="object-cover" />
             ) : (
@@ -87,7 +87,7 @@ export default async function BusinessPage({ params }: PageProps<"/negocios/[slu
               href={whatsappHref(business.whatsapp)}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-full bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-neutral-700"
+              className="flex items-center gap-2 rounded-full bg-neutral-900 px-4 py-2.5 text-sm font-medium text-neutral-50 transition-colors hover:bg-neutral-700"
             >
               <MessageCircle className="size-4" />
               Escribir por WhatsApp

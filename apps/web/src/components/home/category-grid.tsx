@@ -50,7 +50,7 @@ export function CategoryGrid({ categories }: { categories: CategoryDTO[] }) {
                     whileHover={{ scale: 1.08, rotate: -4 }}
                     whileTap={{ scale: 0.96 }}
                     transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                    className="flex size-16 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 shadow-sm ring-0 ring-brand-soft transition-all duration-200 group-hover:bg-neutral-900 group-hover:text-white group-hover:ring-4"
+                    className="flex size-16 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 shadow-sm ring-0 ring-brand-soft transition-all duration-200 group-hover:bg-neutral-900 group-hover:text-neutral-50 group-hover:ring-4"
                   >
                     <Icon className="size-6" strokeWidth={1.6} />
                   </motion.span>
@@ -65,10 +65,10 @@ export function CategoryGrid({ categories }: { categories: CategoryDTO[] }) {
       </div>
 
       {canScrollLeft && (
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white to-transparent dark:from-neutral-50" />
       )}
       {canScrollRight && (
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white to-transparent dark:from-neutral-50" />
       )}
     </section>
   );

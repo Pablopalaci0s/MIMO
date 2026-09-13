@@ -1,10 +1,11 @@
 "use client";
 
-import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { Gift, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { MediaPlaceholder } from "@/components/ui/media-placeholder";
 import {
   Sheet,
   SheetContent,
@@ -75,7 +76,7 @@ export function CartSheet({ variant = "icon" }: { variant?: "icon" | "tab" }) {
                     {businessItems.map((item) => (
                       <div key={item.productId} className="flex gap-3">
                         <div className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
-                          {item.imageUrl && (
+                          {item.imageUrl ? (
                             <Image
                               src={item.imageUrl}
                               alt={item.productName}
@@ -83,6 +84,8 @@ export function CartSheet({ variant = "icon" }: { variant?: "icon" | "tab" }) {
                               sizes="64px"
                               className="object-cover"
                             />
+                          ) : (
+                            <MediaPlaceholder icon={Gift} iconClassName="size-5" />
                           )}
                         </div>
                         <div className="flex flex-1 flex-col gap-1">
@@ -110,7 +113,7 @@ export function CartSheet({ variant = "icon" }: { variant?: "icon" | "tab" }) {
                             </div>
                             <button
                               onClick={() => removeItem(item.productId)}
-                              className="flex size-6 items-center justify-center rounded-full text-neutral-400 hover:bg-red-50 hover:text-red-600"
+                              className="flex size-6 items-center justify-center rounded-full text-neutral-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40 dark:hover:text-red-400"
                               aria-label="Quitar del carrito"
                             >
                               <Trash2 className="size-3.5" />

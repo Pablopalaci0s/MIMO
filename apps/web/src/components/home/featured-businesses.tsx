@@ -1,10 +1,11 @@
 "use client";
 
-import { ArrowRight, ArrowUpRight, ShieldCheck, Star, Truck } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Gift, ShieldCheck, Star, Truck } from "lucide-react";
 import { motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import type { FeaturedBusinessDTO } from "@mimo/types";
+import { MediaPlaceholder } from "@/components/ui/media-placeholder";
 
 const container = {
   hidden: {},
@@ -47,10 +48,10 @@ export function FeaturedBusinesses({ businesses }: { businesses: FeaturedBusines
             <motion.div key={business.id} variants={item} className="w-64 shrink-0 snap-start sm:w-auto">
               <Link
                 href={`/negocios/${business.slug}`}
-                className="group flex h-full flex-col overflow-hidden rounded-3xl border border-neutral-200/80 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-brand/25 hover:shadow-[0_18px_36px_-16px_rgba(0,0,0,0.22)]"
+                className="group flex h-full flex-col overflow-hidden rounded-3xl border border-neutral-200/80 bg-white transition-all dark:bg-neutral-100 duration-300 hover:-translate-y-1 hover:border-brand/25 hover:shadow-[0_18px_36px_-16px_rgba(0,0,0,0.22)]"
               >
-                <div className="relative aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-brand-soft to-neutral-100">
-                  {business.previewImageUrl && (
+                <div className="relative aspect-[4/3] w-full overflow-hidden">
+                  {business.previewImageUrl ? (
                     <Image
                       src={business.previewImageUrl}
                       alt={business.name}
@@ -58,6 +59,8 @@ export function FeaturedBusinesses({ businesses }: { businesses: FeaturedBusines
                       sizes="(max-width: 640px) 256px, (max-width: 1024px) 50vw, 33vw"
                       className="object-cover transition-transform duration-500 ease-out group-hover:scale-110"
                     />
+                  ) : (
+                    <MediaPlaceholder icon={Gift} />
                   )}
                   <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/35 to-transparent" />
                   {business.verified && (

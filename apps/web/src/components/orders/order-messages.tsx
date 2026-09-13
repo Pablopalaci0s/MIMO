@@ -100,7 +100,7 @@ export function OrderMessages({
                     <div
                       className={cn(
                         "max-w-[85%] rounded-2xl px-3 py-2 text-sm",
-                        isMine ? "bg-neutral-900 text-white" : "bg-neutral-100 text-neutral-800",
+                        isMine ? "bg-neutral-900 text-neutral-50" : "bg-neutral-100 text-neutral-800",
                       )}
                     >
                       {message.body}
@@ -125,13 +125,13 @@ export function OrderMessages({
               onChange={(event) => setDraft(event.target.value)}
               placeholder="Escribí un mensaje..."
               maxLength={1000}
-              className="h-9 min-w-0 flex-1 rounded-full border border-neutral-200 bg-white px-3.5 text-sm outline-none placeholder:text-neutral-400 focus:border-neutral-300"
+              className="h-9 min-w-0 flex-1 rounded-full border border-neutral-200 bg-white px-3.5 text-sm dark:bg-neutral-100 outline-none placeholder:text-neutral-400 focus:border-neutral-300"
             />
             <button
               type="submit"
               disabled={sending || !draft.trim()}
               aria-label="Enviar mensaje"
-              className="flex size-9 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-white transition-transform disabled:opacity-40"
+              className="flex size-9 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-neutral-50 transition-transform disabled:opacity-40"
             >
               {sending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
             </button>

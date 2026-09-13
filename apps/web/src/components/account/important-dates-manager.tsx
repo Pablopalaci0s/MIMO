@@ -241,7 +241,7 @@ export function ImportantDatesManager() {
               </button>
               <button
                 onClick={() => handleDelete(date.id)}
-                className="flex size-8 shrink-0 items-center justify-center rounded-full text-neutral-400 hover:bg-red-50 hover:text-red-600"
+                className="flex size-8 shrink-0 items-center justify-center rounded-full text-neutral-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40 dark:hover:text-red-400"
                 aria-label="Eliminar fecha"
               >
                 <Trash2 className="size-3.5" />

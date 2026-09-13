@@ -41,7 +41,7 @@ export function CookieAiNotice() {
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-x-4 bottom-36 z-50 mx-auto flex max-w-sm flex-col gap-2 rounded-2xl border border-neutral-200 bg-white p-4 shadow-[0_12px_28px_-8px_rgba(0,0,0,0.18)] sm:right-auto sm:bottom-4 sm:left-4 sm:mx-0">
+    <div className="fixed inset-x-4 bottom-36 z-50 mx-auto flex max-w-sm flex-col gap-2 rounded-2xl border border-neutral-200 bg-white p-4 dark:bg-neutral-100 shadow-[0_12px_28px_-8px_rgba(0,0,0,0.18)] sm:right-auto sm:bottom-4 sm:left-4 sm:mx-0">
       <p className="text-xs leading-relaxed text-neutral-600">
         Usamos una <strong className="text-neutral-900">cookie de sesión</strong> para mantenerte
         conectado/a, y funciones de <strong className="text-neutral-900">inteligencia artificial</strong>{" "}

@@ -8,6 +8,7 @@ import { EmailVerificationBanner } from "@/components/account/email-verification
 import { PasswordForm } from "@/components/account/password-form";
 import { ProfileForm } from "@/components/account/profile-form";
 import { PushNotificationsToggle } from "@/components/account/push-notifications-toggle";
+import { ThemeToggle } from "@/components/account/theme-toggle";
 import { Separator } from "@/components/ui/separator";
 import type { UserDTO } from "@mimo/types";
 
@@ -55,7 +56,10 @@ export default async function ProfilePage() {
 
       <Separator className="my-8" />
 
-      <PushNotificationsToggle />
+      <div className="flex flex-col gap-3">
+        <ThemeToggle />
+        <PushNotificationsToggle />
+      </div>
 
       <Separator className="my-8" />
 

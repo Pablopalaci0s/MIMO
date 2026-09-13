@@ -599,19 +599,27 @@ async function main() {
         },
       });
 
-      const existingImage = await prisma.productImage.findFirst({
-        where: { productId: product.id },
-      });
-      if (!existingImage) {
-        await prisma.productImage.create({
-          data: {
-            productId: product.id,
-            url: categoryImageUrl(demoProduct.categorySlug, demoProduct.name),
-            altText: demoProduct.name,
-            position: 0,
-          },
-        });
-      }
+      // Decisión de producto (2026-09-11): los productos de demo se dejan
+      // SIN foto a propósito — la UI ya tiene un estado "sin foto" propio
+      // (ícono de categoría + degradé de marca, ver MediaPlaceholder) en vez
+      // de simular una foto real con un placeholder de texto o una foto de
+      // stock genérica. `categoryImageUrl` (fotos de Unsplash verificadas a
+      // mano, arriba en este archivo) queda intacta por si el equipo decide
+      // activarla más adelante — para eso, descomentar el bloque de abajo.
+      //
+      // const existingImage = await prisma.productImage.findFirst({
+      //   where: { productId: product.id },
+      // });
+      // if (!existingImage) {
+      //   await prisma.productImage.create({
+      //     data: {
+      //       productId: product.id,
+      //       url: categoryImageUrl(demoProduct.categorySlug, demoProduct.name),
+      //       altText: demoProduct.name,
+      //       position: 0,
+      //     },
+      //   });
+      // }
 
       for (const occasionSlug of demoProduct.occasionSlugs) {
         const occasion = occasionBySlug.get(occasionSlug);

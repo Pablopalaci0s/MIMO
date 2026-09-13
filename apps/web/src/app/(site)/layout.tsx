@@ -40,7 +40,11 @@ export const metadata: Metadata = {
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es-SV" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html
+      lang="es-SV"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
+    >
       <body className="flex min-h-full min-w-0 flex-col overflow-x-hidden">
         <Providers>
           <Header />
