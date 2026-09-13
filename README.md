@@ -1002,6 +1002,50 @@ la compra él mismo, con el método que quiera.
   falla, no traba la cancelación de los demás, queda visible para
   resolver a mano.
 
+## Diseño: brechas de seguridad cerradas (post-Fase 11)
+
+Se pidió auditar el código real (no adivinar) y cerrar cada brecha que
+apareciera, sin prometer nada en la política de privacidad que no
+estuviera implementado de verdad. El audit encontró que la mayoría de
+medidas ya estaban bien (hash de contraseñas, tokens de reset de un
+solo uso, rate limiting, validación con Zod, Prisma sin SQL crudo,
+captura de pago siempre server-side) — ver "Diseño: seguridad" en la
+propia página `/privacidad`. Lo que sí faltaba, y se agregó acá:
+
+- **Encabezados de seguridad HTTP** (`next.config.ts`, función
+  `headers()`): CSP, `X-Content-Type-Options: nosniff`,
+  `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy` sin
+  cámara/micrófono/ubicación, y HSTS. La CSP y el HSTS solo se activan
+  con `NODE_ENV === "production"` — en dev, Turbopack necesita eval y
+  WebSockets de HMR que una CSP estricta rompería, y no protege nada
+  mientras el sitio corre solo en la máquina de un desarrollador. La
+  lista de dominios permitidos (`script-src`, `connect-src`,
+  `frame-src`) se armó grepeando el código real en busca de qué
+  dominios externos se usan de verdad (PayPal y Sentry, nada más) en
+  vez de copiar una plantilla genérica — probado con un build de
+  producción real (`next build && next start`) cargando el home, el
+  catálogo y el SDK de PayPal para confirmar que nada se bloqueaba.
+- **Registro de auditoría de administradores** (modelo `AdminActionLog`
+  + `admin-audit-service.ts`, página `/admin/auditoria`): cada acción
+  sensible del panel admin (suspender/cambiar rol a un usuario,
+  aprobar/suspender un negocio, moderar una reseña o un reporte,
+  crear/editar/borrar cupones, categorías y banners) queda registrada
+  con quién, qué, sobre qué y cuándo. El registro se escribe desde el
+  mismo `*-service.ts` que hace el cambio (nunca desde la ruta), para
+  que sea imposible hacer la acción sin dejar rastro — y si el logueo
+  fallara por algún motivo, no tumba la acción que audita, solo lo
+  reporta a consola.
+- **No se tocó** el rate limiting en memoria (documentado como
+  limitación de una sola instancia desde que se implementó, y el
+  proyecto ya requiere una sola instancia por las fotos en disco local
+  — pasarlo a un store compartido sería resolver un problema que no
+  existe hoy) ni se agregó un redirect HTTP→HTTPS a mano: cualquier
+  hosting real (Vercel, Railway, etc.) ya lo hace antes de que la
+  petición llegue a la app, y hacerlo en el middleware de Next
+  obligaría a correr el chequeo de sesión (con su consulta a la base
+  para revisar cuentas suspendidas) en cada request del sitio, no solo
+  en `/negocio` y `/admin` como hoy.
+
 ## Diseño: paneles como app separada (post-Fase 6, rediseño)
 
 `/negocio` y `/admin` dejaron de ser páginas más del sitio con pestañas

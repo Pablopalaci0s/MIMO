@@ -166,6 +166,16 @@ export default function PrivacidadPage() {
             para ver o modificar datos de otra cuenta o negocio.
           </li>
           <li>
+            <strong>Encabezados de seguridad:</strong> el Sitio usa protecciones estándar del
+            navegador (como CSP y HSTS) para reducir el riesgo de ataques comunes como
+            clickjacking o inyección de scripts de terceros.
+          </li>
+          <li>
+            <strong>Auditoría interna:</strong> las acciones sensibles que hace nuestro equipo
+            desde el panel administrativo (suspender una cuenta, aprobar un negocio, moderar una
+            reseña) quedan registradas — quién, qué y cuándo — para poder revisar el uso del panel.
+          </li>
+          <li>
             <strong>Monitoreo:</strong> usamos Sentry para enterarnos rápido si algo falla en el
             Sitio.
           </li>

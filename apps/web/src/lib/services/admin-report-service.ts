@@ -1,6 +1,7 @@
 import { Prisma, prisma } from "@mimo/database";
 import type { AdminReportDTO } from "@mimo/types";
 import { AppError } from "@/lib/errors";
+import { logAdminAction } from "./admin-audit-service";
 
 const REPORT_INCLUDE = {
   reporter: true,
@@ -59,6 +60,7 @@ export async function listAdminReports(): Promise<AdminReportDTO[]> {
 export async function updateAdminReportStatus(
   reportId: string,
   status: AdminReportDTO["status"],
+  adminId: string,
 ): Promise<AdminReportDTO> {
   const existing = await prisma.report.findUnique({ where: { id: reportId } });
   if (!existing) throw new AppError("NOT_FOUND", "No encontramos ese reporte.", 404);
@@ -68,5 +70,14 @@ export async function updateAdminReportStatus(
     data: { status },
     include: REPORT_INCLUDE,
   });
+
+  await logAdminAction({
+    adminId,
+    action: "report.update_status",
+    targetType: "REPORT",
+    targetId: reportId,
+    metadata: { status },
+  });
+
   return toAdminReportDTO(report);
 }

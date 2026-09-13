@@ -1,6 +1,7 @@
 import { Prisma, prisma } from "@mimo/database";
 import type { AdminCouponDTO, AdminCouponInput } from "@mimo/types";
 import { AppError } from "@/lib/errors";
+import { logAdminAction } from "./admin-audit-service";
 
 function toAdminCouponDTO(coupon: Prisma.CouponGetPayload<Record<string, never>>): AdminCouponDTO {
   return {
@@ -40,9 +41,16 @@ function toData(input: AdminCouponInput) {
   };
 }
 
-export async function createAdminCoupon(input: AdminCouponInput): Promise<AdminCouponDTO> {
+export async function createAdminCoupon(input: AdminCouponInput, adminId: string): Promise<AdminCouponDTO> {
   try {
     const coupon = await prisma.coupon.create({ data: toData(input) });
+    await logAdminAction({
+      adminId,
+      action: "coupon.create",
+      targetType: "COUPON",
+      targetId: coupon.id,
+      metadata: { code: coupon.code },
+    });
     return toAdminCouponDTO(coupon);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
@@ -52,12 +60,23 @@ export async function createAdminCoupon(input: AdminCouponInput): Promise<AdminC
   }
 }
 
-export async function updateAdminCoupon(id: string, input: AdminCouponInput): Promise<AdminCouponDTO> {
+export async function updateAdminCoupon(
+  id: string,
+  input: AdminCouponInput,
+  adminId: string,
+): Promise<AdminCouponDTO> {
   const existing = await prisma.coupon.findUnique({ where: { id } });
   if (!existing) throw new AppError("NOT_FOUND", "No encontramos ese cupón.", 404);
 
   try {
     const coupon = await prisma.coupon.update({ where: { id }, data: toData(input) });
+    await logAdminAction({
+      adminId,
+      action: "coupon.update",
+      targetType: "COUPON",
+      targetId: id,
+      metadata: { code: coupon.code, isActive: coupon.isActive },
+    });
     return toAdminCouponDTO(coupon);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
@@ -67,8 +86,15 @@ export async function updateAdminCoupon(id: string, input: AdminCouponInput): Pr
   }
 }
 
-export async function deleteAdminCoupon(id: string): Promise<void> {
+export async function deleteAdminCoupon(id: string, adminId: string): Promise<void> {
   const existing = await prisma.coupon.findUnique({ where: { id } });
   if (!existing) throw new AppError("NOT_FOUND", "No encontramos ese cupón.", 404);
   await prisma.coupon.delete({ where: { id } });
+  await logAdminAction({
+    adminId,
+    action: "coupon.delete",
+    targetType: "COUPON",
+    targetId: id,
+    metadata: { code: existing.code },
+  });
 }

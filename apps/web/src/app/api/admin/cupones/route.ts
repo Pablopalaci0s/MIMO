@@ -16,11 +16,11 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAdmin();
+    const adminId = await requireAdmin();
     const body = await request.json();
     const input = adminCouponInputSchema.parse(body);
 
-    const coupon = await createAdminCoupon(input);
+    const coupon = await createAdminCoupon(input, adminId);
     return apiSuccess(coupon, 201);
   } catch (error) {
     return apiErrorFromException(error);

@@ -1,6 +1,7 @@
 import { prisma } from "@mimo/database";
 import type { AdminBannerDTO, AdminBannerInput } from "@mimo/types";
 import { AppError } from "@/lib/errors";
+import { logAdminAction } from "./admin-audit-service";
 
 function toAdminBannerDTO(banner: {
   id: string;
@@ -29,7 +30,7 @@ export async function listAdminBanners(): Promise<AdminBannerDTO[]> {
   return banners.map(toAdminBannerDTO);
 }
 
-export async function createAdminBanner(input: AdminBannerInput): Promise<AdminBannerDTO> {
+export async function createAdminBanner(input: AdminBannerInput, adminId: string): Promise<AdminBannerDTO> {
   const banner = await prisma.banner.create({
     data: {
       title: input.title,
@@ -39,10 +40,23 @@ export async function createAdminBanner(input: AdminBannerInput): Promise<AdminB
       position: input.position,
     },
   });
+
+  await logAdminAction({
+    adminId,
+    action: "banner.create",
+    targetType: "BANNER",
+    targetId: banner.id,
+    metadata: { title: banner.title },
+  });
+
   return toAdminBannerDTO(banner);
 }
 
-export async function updateAdminBanner(bannerId: string, input: AdminBannerInput): Promise<AdminBannerDTO> {
+export async function updateAdminBanner(
+  bannerId: string,
+  input: AdminBannerInput,
+  adminId: string,
+): Promise<AdminBannerDTO> {
   const existing = await prisma.banner.findUnique({ where: { id: bannerId } });
   if (!existing) throw new AppError("NOT_FOUND", "No encontramos ese banner.", 404);
 
@@ -56,12 +70,28 @@ export async function updateAdminBanner(bannerId: string, input: AdminBannerInpu
       position: input.position,
     },
   });
+
+  await logAdminAction({
+    adminId,
+    action: "banner.update",
+    targetType: "BANNER",
+    targetId: bannerId,
+    metadata: { title: banner.title, isActive: banner.isActive },
+  });
+
   return toAdminBannerDTO(banner);
 }
 
-export async function deleteAdminBanner(bannerId: string): Promise<void> {
+export async function deleteAdminBanner(bannerId: string, adminId: string): Promise<void> {
   const existing = await prisma.banner.findUnique({ where: { id: bannerId } });
   if (!existing) throw new AppError("NOT_FOUND", "No encontramos ese banner.", 404);
 
   await prisma.banner.delete({ where: { id: bannerId } });
+  await logAdminAction({
+    adminId,
+    action: "banner.delete",
+    targetType: "BANNER",
+    targetId: bannerId,
+    metadata: { title: existing.title },
+  });
 }
