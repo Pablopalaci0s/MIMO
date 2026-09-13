@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { imageUrlSchema } from "./business";
 
 const rating = z.coerce.number().int().min(1).max(5);
 
@@ -11,6 +12,7 @@ export const reviewInputSchema = z
     businessRating: rating.optional(),
     deliveryRating: rating.optional(),
     comment: z.string().trim().max(1000).optional(),
+    images: z.array(imageUrlSchema).max(4, "Máximo 4 fotos").optional(),
   })
   .refine(
     (value) => value.productRating !== undefined || value.businessRating !== undefined || value.deliveryRating !== undefined,

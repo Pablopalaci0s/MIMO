@@ -890,6 +890,118 @@ ser el primer negocio real → notificación de aprobación al dueño →
 negocio visible públicamente. Sin bugs nuevos aparte del de los títulos
 duplicados de arriba (que salió a la luz justo en esta prueba).
 
+## Diseño: cupones de descuento (post-Fase 11)
+
+Cupones de **plataforma**, no por negocio — un código aplica al subtotal
+de todo el carrito sin importar cuántos negocios tenga (más simple para
+esta escala; un cupón por-negocio queda para si algún negocio grande lo
+pide puntualmente).
+
+- `Coupon`: `discountType` (`PERCENTAGE` o `FIXED_AMOUNT`), `minSubtotal`,
+  `maxUses` (total) y `maxUsesPerUser` opcionales, `startsAt`/`expiresAt`.
+  `Order.couponCode` guarda el código como texto plano (no una relación) a
+  propósito — así el historial de un pedido no se rompe si el cupón se
+  borra después.
+- **El descuento se reparte proporcionalmente entre los negocios del
+  carrito**, no lo absorbe uno solo ni la comisión de MIMO. Ejemplo real
+  probado: carrito de $52.99 entre 2 negocios + $5 de envío total, cupón
+  de $5 fijos → cada negocio ve su parte reducida en la misma proporción
+  ($5/$52.99 ≈ 9.4%) antes de calcular su comisión. Así ningún negocio en
+  la prueba de 0% deja a MIMO pagando de su bolsillo un descuento que no
+  puede cubrir con comisión.
+- La validación (¿existe?, ¿activo?, ¿vencido?, ¿llegó al mínimo?, ¿esta
+  persona ya lo usó?) vive en `coupon-service.ts` y la usan tanto la vista
+  previa del checkout (`/api/coupons/apply`, no "gasta" el cupón) como la
+  creación real del pedido (si a esa altura ya no es válido — por ejemplo
+  alguien más agotó los usos totales mientras tanto — el pedido no se crea).
+  El contador de usos (`usedCount`) solo se incrementa al crear el pedido
+  de verdad, dentro de la misma transacción.
+- Con PayPal, el total ya con descuento es el que se cobra — probado de
+  punta a punta creando una orden real de PayPal por el monto exacto
+  esperado a mano ($53.68 en el ejemplo de arriba).
+- Admin nuevo en `/admin/cupones`: crear, activar/desactivar, borrar. Sin
+  edición de campos ya creados más allá de activo/inactivo por ahora — si
+  hace falta cambiar el valor de un cupón ya usado, se crea uno nuevo (más
+  simple que decidir qué pasa con pedidos que ya usaron el valor viejo).
+
+## Diseño: exportar pedidos a CSV (post-Fase 11)
+
+Los negocios chicos llevan sus cuentas en Excel — `/api/negocio/pedidos/export`
+genera un CSV (con BOM UTF-8 para que Excel en Windows no rompa tildes/ñ,
+y escapado RFC 4180 real, no un `.join(",")` ingenuo) respetando el mismo
+filtro de estado que ya tenía la vista de pedidos. Botón "Exportar CSV" al
+lado del título en `/negocio/pedidos`.
+
+## Diseño: reseñas con fotos (post-Fase 11)
+
+`Review.images` es un `String[]` simple (no una tabla aparte como
+`ProductImage`, que sí necesita posición/alt-text) — hasta 4 fotos,
+subidas con el mismo `ImageUploadField`/`/api/uploads` que ya usa todo el
+resto del proyecto. Se muestran en la reseña pública, y también en la cola
+de moderación del admin (`/admin/resenas`) para que apruebe/rechace viendo
+la foto, no solo el texto.
+
+## Diseño: listas de regalos (post-Fase 11)
+
+Para bodas, baby showers, cumpleaños — alguien arma una lista pública de
+productos de MIMO y comparte el link para que no le dupliquen el regalo.
+
+- **"Reservar" es una declaración social, no un pago ni una garantía** —
+  se dice explícito en la página pública. La compra real se sigue
+  haciendo por el catálogo normal de MIMO (o donde sea); la lista solo
+  coordina quién dice que va a traer qué. Fingir que reservar "aparta" el
+  producto de verdad hubiera violado la regla de no simular funcionalidad
+  que no existe.
+- **La página pública nunca dice quién reservó cada regalo** (mantiene
+  algo de sorpresa entre los invitados) — pero el dueño de la lista sí ve
+  el nombre en su panel privado de administración. Es la única asimetría
+  publico/privado de todo el proyecto hecha a propósito por privacidad.
+  Probado en vivo: reservé desde una pestaña sin sesión, la pública mostró
+  solo "Reservado", el panel del dueño mostró "Reservado por Ana Amiga".
+  También se probó que un segundo intento de reservar lo mismo se rechaza
+  (409 `ALREADY_RESERVED`).
+- Se buscan productos para agregar reusando `/api/products?q=...` (el
+  mismo buscador del catálogo) en vez de armar un buscador nuevo.
+
+## Diseño: cabudas (post-Fase 11)
+
+La más grande de las funcionalidades post-Fase 11 y la que más cuidado
+pidió para no fingir algo que no existe. Varias personas aportan plata
+real para un regalo puntual (ej. "juntemos para el ramo de Ana").
+
+**Por qué NO arma un pedido automático al completarse.** La opción obvia
+—"cuando se junta la meta, se crea el pedido solo"— se descartó a
+propósito: el checkout normal cobra el envío recién al elegir la
+dirección de entrega, y los aportes solo cubren el precio del producto en
+el momento en que se hicieron. Mezclar fondos ya cobrados de varias
+personas con ese flujo (¿quién paga el envío? ¿y si el precio cambió?)
+hubiera significado simular una integración prolija que en realidad
+tendría descuadres de plata reales. En cambio, al cerrar la cabuda se le
+manda TODO lo recaudado al organizador por **PayPal Payouts** (el mismo
+mecanismo ya construido y probado para pagarle a los negocios, ver
+"Diseño: pagos con PayPal") — el organizador recibe la plata real y hace
+la compra él mismo, con el método que quiera.
+
+- Cada aporte es un cobro de PayPal real e independiente (mismo patrón de
+  dos pasos que el checkout: `crear orden` → el aportante aprueba →
+  `confirmar`/capturar) — nunca se marca "pagado" sin una captura real
+  confirmada. Probado en vivo: un `confirmar` con una orden de PayPal
+  jamás aprobada se rechazó con el mismo error que en el checkout
+  principal, y el aporte quedó en `PENDING`, no en `PAID`.
+  **Verificado con un Payout real de PayPal** (ID de batch real devuelto
+  por la API) al cerrar una cabuda de prueba.
+- A diferencia de la lista de regalos, acá la página pública **sí**
+  muestra quién aportó cuánto — es parte del efecto social de una
+  cabuda (como cualquier vaquita/crowdfunding), no hay nada que ocultar.
+- El organizador carga su correo de PayPal al crear la cabuda (no hay
+  todavía un campo de PayPal a nivel de `User` como sí existe en
+  `Business` — se pidió puntual en el formulario de creación).
+- Cancelar una cabuda reembolsa cada aporte `PAID` por separado
+  (`refundPaypalCapture`, mismo mecanismo que el reembolso automático de
+  pedidos de PayPal sin confirmar) — si el reembolso de un aporte puntual
+  falla, no traba la cancelación de los demás, queda visible para
+  resolver a mano.
+
 ## Diseño: paneles como app separada (post-Fase 6, rediseño)
 
 `/negocio` y `/admin` dejaron de ser páginas más del sitio con pestañas

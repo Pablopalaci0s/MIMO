@@ -1,11 +1,15 @@
 import Link from "next/link";
+import { MimoMark } from "@/components/brand/mimo-mark";
 
 export function Footer() {
   return (
     <footer className="border-t border-neutral-200 bg-white pb-16 dark:bg-neutral-50 sm:pb-0">
       <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-14 sm:flex-row sm:items-start sm:justify-between sm:px-6">
         <div>
-          <p className="text-lg font-semibold tracking-tight text-neutral-900">MIMO</p>
+          <p className="flex items-center gap-1.5 text-lg font-semibold tracking-tight text-neutral-900">
+            MIMO
+            <MimoMark className="size-4 text-[#f98079]" />
+          </p>
           <p className="mt-2 max-w-xs text-sm text-neutral-500">
             Regalos para hacerle el día a alguien. Hecho en El Salvador 🇸🇻
           </p>

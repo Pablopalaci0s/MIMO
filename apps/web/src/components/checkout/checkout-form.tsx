@@ -20,7 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { apiErrorMessage } from "@/lib/api-error-message";
 import { useCart } from "@/lib/cart/cart-context";
 import { PaypalButton } from "./paypal-button";
-import type { CheckoutInput, DeliveryCoverageResult, DeliveryWindow } from "@mimo/types";
+import type { CheckoutInput, CouponPreviewDTO, DeliveryCoverageResult, DeliveryWindow } from "@mimo/types";
 import type { MunicipalityDTO } from "@mimo/types";
 
 const DELIVERY_WINDOWS: { value: DeliveryWindow; label: string }[] = [
@@ -61,6 +61,11 @@ export function CheckoutForm({
   const [paymentMethod, setPaymentMethod] = useState<"CASH" | "PAYPAL">("CASH");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<CouponPreviewDTO | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
 
   const [coverage, setCoverage] = useState<DeliveryCoverageResult[] | null>(null);
   const [coverageKeyChecked, setCoverageKeyChecked] = useState<string | null>(null);
@@ -120,6 +125,36 @@ export function CheckoutForm({
     setRequestedCoverageFor((prev) => [...prev, businessId]);
   }
 
+  async function applyCoupon() {
+    if (!couponInput.trim()) return;
+    setCouponLoading(true);
+    setCouponError(null);
+
+    const response = await fetch("/api/coupons/apply", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        code: couponInput.trim(),
+        items: items.map((item) => ({ productId: item.productId, quantity: item.quantity })),
+      }),
+    });
+    const body = await response.json();
+    setCouponLoading(false);
+
+    if (!body.success) {
+      setAppliedCoupon(null);
+      setCouponError(apiErrorMessage(body, "No pudimos aplicar ese código."));
+      return;
+    }
+    setAppliedCoupon(body.data);
+  }
+
+  function removeCoupon() {
+    setAppliedCoupon(null);
+    setCouponInput("");
+    setCouponError(null);
+  }
+
   if (isHydrated && items.length === 0) {
     return (
       <div className="flex flex-col items-center gap-3 py-20 text-center">
@@ -161,6 +196,7 @@ export function CheckoutForm({
       isSurpriseMode,
       hideBuyerFromRecipient: isSurpriseMode,
       surpriseInstructions: isSurpriseMode ? surpriseInstructions || undefined : undefined,
+      couponCode: appliedCoupon?.code,
     };
   }
 
@@ -450,6 +486,54 @@ export function CheckoutForm({
         ) : (
           <p className="mt-1 text-xs text-neutral-400">El costo de envío se calcula al elegir tu municipio.</p>
         )}
+
+        {appliedCoupon && (
+          <div className="mt-1 flex justify-between text-sm text-emerald-600">
+            <span>Cupón {appliedCoupon.code}</span>
+            <span>-${appliedCoupon.discountAmount.toFixed(2)}</span>
+          </div>
+        )}
+
+        {deliveryFeeEstimate !== null && (
+          <div className="mt-2 flex justify-between border-t border-neutral-200 pt-2 text-base font-semibold text-neutral-900">
+            <span>Total</span>
+            <span>${Math.max(0, subtotal + deliveryFeeEstimate - (appliedCoupon?.discountAmount ?? 0)).toFixed(2)}</span>
+          </div>
+        )}
+
+        <div className="mt-3">
+          {appliedCoupon ? (
+            <div className="flex items-center justify-between rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+              <span>
+                Código <span className="font-semibold">{appliedCoupon.code}</span> aplicado
+              </span>
+              <button type="button" onClick={removeCoupon} className="text-xs font-medium underline">
+                Quitar
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1.5">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Código de descuento"
+                  value={couponInput}
+                  onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                  className="h-9"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-9 shrink-0"
+                  disabled={couponLoading || !couponInput.trim()}
+                  onClick={applyCoupon}
+                >
+                  {couponLoading ? <Loader2 className="size-4 animate-spin" /> : "Aplicar"}
+                </Button>
+              </div>
+              {couponError && <p className="text-xs text-destructive">{couponError}</p>}
+            </div>
+          )}
+        </div>
 
         {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
 

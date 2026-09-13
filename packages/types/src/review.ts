@@ -5,6 +5,7 @@ export interface ReviewDTO {
   businessRating: number | null;
   deliveryRating: number | null;
   comment: string | null;
+  images: string[];
   createdAt: string;
 }
 
@@ -16,6 +17,7 @@ export interface ReviewInput {
   businessRating?: number;
   deliveryRating?: number;
   comment?: string;
+  images?: string[];
 }
 
 /** Un `OrderItem` entregado del usuario que todavía no tiene reseña — la

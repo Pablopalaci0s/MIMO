@@ -10,3 +10,6 @@ export * from "./delivery";
 export * from "./favorite";
 export * from "./important-date";
 export * from "./push";
+export * from "./coupon";
+export * from "./gift-registry";
+export * from "./group-gift";

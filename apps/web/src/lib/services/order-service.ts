@@ -3,6 +3,7 @@ import type { CheckoutInputParsed } from "@mimo/validation";
 import type { OrderDTO, OrderItemDTO, PersonalizationInput, ProductSummaryDTO } from "@mimo/types";
 import { AppError } from "@/lib/errors";
 import { parseUtcDateOnly, utcDateOnly } from "@/lib/date-utils";
+import { validateCoupon } from "./coupon-service";
 import { resolveDeliveryCoverage, sumDeliveryFees } from "./delivery-coverage-logic";
 import { capturePaypalOrder } from "./paypal-service";
 import { PRODUCT_LIST_INCLUDE, toProductSummaryDTO } from "./product-service";
@@ -37,6 +38,8 @@ function toOrderDTO(order: OrderWithItems): OrderDTO {
     status: order.status,
     subtotal: Number(order.subtotal),
     deliveryFee: Number(order.deliveryFee),
+    discountAmount: Number(order.discountAmount),
+    couponCode: order.couponCode,
     total: Number(order.total),
     currency: order.currency,
     items,
@@ -65,11 +68,45 @@ interface OrderPricing {
   }[];
   subtotal: number;
   deliveryFee: number;
+  discountAmount: number;
+  couponId: string | null;
+  couponCode: string | null;
   total: number;
   businessIds: string[];
   /** Cuánto del total le corresponde a cada negocio (su subtotal + su
-   * propio fee de envío) — la base para repartir un pago con PayPal. */
+   * propio fee de envío) — la base para repartir un pago con PayPal. Ya
+   * tiene descontada la parte proporcional del cupón (si hay uno), para
+   * que ni un negocio ni la comisión de MIMO "absorban" todo el descuento
+   * — ver README, "Diseño: cupones de descuento". */
   grossByBusiness: Map<string, number>;
+}
+
+/** Subtotal real (precios de la base de datos, no del carrito del cliente)
+ * de un conjunto de ítems — sin envío ni cupón. Lo usa la vista previa de
+ * un cupón en el checkout (`/api/coupons/apply`), que no necesita la
+ * dirección de entrega para calcular cuánto descuenta. */
+export async function computeCartSubtotal(
+  items: Pick<CheckoutInputParsed, "items">["items"],
+): Promise<number> {
+  const productIds = [...new Set(items.map((item) => item.productId))];
+  const products = await prisma.product.findMany({
+    where: { id: { in: productIds }, status: "ACTIVE", deletedAt: null },
+  });
+  const productById = new Map(products.map((product) => [product.id, product]));
+
+  let subtotal = 0;
+  for (const item of items) {
+    const product = productById.get(item.productId);
+    if (!product) {
+      throw new AppError(
+        "PRODUCT_UNAVAILABLE",
+        "Uno de los productos de tu carrito ya no está disponible. Actualizalo e intentá de nuevo.",
+        409,
+      );
+    }
+    subtotal += Number(product.price) * item.quantity;
+  }
+  return round2(subtotal);
 }
 
 /**
@@ -80,7 +117,8 @@ interface OrderPricing {
  * total ANTES de que el comprador la apruebe.
  */
 async function computeOrderPricing(
-  input: Pick<CheckoutInputParsed, "items" | "address">,
+  userId: string,
+  input: Pick<CheckoutInputParsed, "items" | "address" | "couponCode">,
 ): Promise<OrderPricing> {
   const productIds = [...new Set(input.items.map((item) => item.productId))];
   const products = await prisma.product.findMany({
@@ -156,7 +194,21 @@ async function computeOrderPricing(
   });
 
   const deliveryFee = sumDeliveryFees(businessIds, feeByBusiness);
-  const total = subtotal + deliveryFee;
+
+  let discountAmount = 0;
+  let couponId: string | null = null;
+  let couponCode: string | null = null;
+  if (input.couponCode) {
+    const result = await validateCoupon(prisma, userId, input.couponCode, subtotal);
+    discountAmount = result.discountAmount;
+    couponId = result.couponId;
+    couponCode = result.code;
+  }
+
+  const total = round2(subtotal + deliveryFee - discountAmount);
+  // El % del subtotal que "se fue" en descuento — se aplica por igual a
+  // cada negocio para que nadie pague el cupón entero solo (ver README).
+  const discountRatio = subtotal > 0 ? discountAmount / subtotal : 0;
 
   const grossByBusiness = new Map<string, number>();
   for (const businessId of businessIds) {
@@ -164,19 +216,22 @@ async function computeOrderPricing(
       .filter((item) => item.businessId === businessId)
       .reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
     const fee = feeByBusiness.get(businessId)?.deliveryFee ?? 0;
-    grossByBusiness.set(businessId, round2(itemsSubtotal + fee));
+    const gross = itemsSubtotal * (1 - discountRatio) + fee;
+    grossByBusiness.set(businessId, round2(gross));
   }
 
-  return { itemsData, subtotal, deliveryFee, total, businessIds, grossByBusiness };
+  return { itemsData, subtotal, deliveryFee, discountAmount, couponId, couponCode, total, businessIds, grossByBusiness };
 }
 
-/** Calcula el total de un carrito para crear la orden de PayPal en el
- * checkout, antes de que exista ningún `Order` en MIMO. */
+/** Calcula el total de un carrito (y el descuento de un cupón, si hay uno)
+ * para crear la orden de PayPal en el checkout, antes de que exista ningún
+ * `Order` en MIMO. */
 export async function getCheckoutTotal(
-  input: Pick<CheckoutInputParsed, "items" | "address">,
-): Promise<{ total: number }> {
-  const pricing = await computeOrderPricing(input);
-  return { total: pricing.total };
+  userId: string,
+  input: Pick<CheckoutInputParsed, "items" | "address" | "couponCode">,
+): Promise<{ total: number; discountAmount: number }> {
+  const pricing = await computeOrderPricing(userId, input);
+  return { total: pricing.total, discountAmount: pricing.discountAmount };
 }
 
 /**
@@ -189,8 +244,9 @@ export async function getCheckoutTotal(
  * después, por negocio, cuando confirma su parte (`payment-split-service`).
  */
 export async function createOrder(userId: string, input: CheckoutInputParsed): Promise<OrderDTO> {
-  const pricing = await computeOrderPricing(input);
-  const { itemsData, subtotal, deliveryFee, total, businessIds, grossByBusiness } = pricing;
+  const pricing = await computeOrderPricing(userId, input);
+  const { itemsData, subtotal, deliveryFee, discountAmount, couponId, couponCode, total, businessIds, grossByBusiness } =
+    pricing;
 
   let paymentData: Prisma.PaymentCreateWithoutOrderInput;
   if (input.paymentProvider === "CASH") {
@@ -234,6 +290,8 @@ export async function createOrder(userId: string, input: CheckoutInputParsed): P
         status: "PENDING",
         subtotal,
         deliveryFee,
+        discountAmount,
+        couponCode,
         total,
         isSurpriseMode: input.isSurpriseMode,
         hideBuyerFromRecipient: input.hideBuyerFromRecipient,
@@ -264,6 +322,10 @@ export async function createOrder(userId: string, input: CheckoutInputParsed): P
         }),
       ),
     );
+
+    if (couponId) {
+      await tx.coupon.update({ where: { id: couponId }, data: { usedCount: { increment: 1 } } });
+    }
 
     if (input.paymentProvider === "PAYPAL") {
       const businesses = await tx.business.findMany({

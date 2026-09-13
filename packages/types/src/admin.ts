@@ -106,6 +106,37 @@ export interface AdminBannerInput {
   position: number;
 }
 
+export type CouponDiscountType = "PERCENTAGE" | "FIXED_AMOUNT";
+
+export interface AdminCouponDTO {
+  id: string;
+  code: string;
+  description: string | null;
+  discountType: CouponDiscountType;
+  discountValue: number;
+  minSubtotal: number | null;
+  maxUses: number | null;
+  maxUsesPerUser: number | null;
+  usedCount: number;
+  startsAt: string | null;
+  expiresAt: string | null;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface AdminCouponInput {
+  code: string;
+  description?: string | null;
+  discountType: CouponDiscountType;
+  discountValue: number;
+  minSubtotal?: number | null;
+  maxUses?: number | null;
+  maxUsesPerUser?: number | null;
+  startsAt?: string | null;
+  expiresAt?: string | null;
+  isActive: boolean;
+}
+
 export interface AdminReviewDTO {
   id: string;
   userName: string;
@@ -115,6 +146,7 @@ export interface AdminReviewDTO {
   businessRating: number | null;
   deliveryRating: number | null;
   comment: string | null;
+  images: string[];
   status: ModerationStatus;
   createdAt: string;
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { Loader2, Star } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -62,6 +63,16 @@ export function ReviewRow({ review }: { review: AdminReviewDTO }) {
       </div>
 
       {review.comment && <p className="text-sm text-neutral-700">&ldquo;{review.comment}&rdquo;</p>}
+
+      {review.images.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {review.images.map((url) => (
+            <a key={url} href={url} target="_blank" rel="noreferrer" className="relative size-16 overflow-hidden rounded-lg bg-neutral-100">
+              <Image src={url} alt="" fill className="object-cover" />
+            </a>
+          ))}
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-2 pt-1">
         <Button

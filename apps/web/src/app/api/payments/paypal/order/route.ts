@@ -9,6 +9,7 @@ import { createPaypalCheckoutOrder } from "@/lib/services/paypal-service";
 const bodySchema = z.object({
   items: z.array(cartItemInputSchema).min(1),
   address: checkoutAddressSchema,
+  couponCode: z.string().trim().min(1).optional(),
 });
 
 /**
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const input = bodySchema.parse(body);
 
-    const { total } = await getCheckoutTotal(input);
+    const { total } = await getCheckoutTotal(session.user.id, input);
     const paypalOrderId = await createPaypalCheckoutOrder(total);
 
     return apiSuccess({ paypalOrderId, total });

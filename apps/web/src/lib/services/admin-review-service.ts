@@ -20,6 +20,7 @@ function toAdminReviewDTO(review: ReviewRow): AdminReviewDTO {
     businessRating: review.businessRating,
     deliveryRating: review.deliveryRating,
     comment: review.comment,
+    images: review.images,
     status: review.status,
     createdAt: review.createdAt.toISOString(),
   };

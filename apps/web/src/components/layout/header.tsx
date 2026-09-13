@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { auth } from "@mimo/auth";
+import { MimoMark } from "@/components/brand/mimo-mark";
 import { Button } from "@/components/ui/button";
 import { CartSheet } from "./cart-sheet";
 import { NavLinks } from "./nav-links";
@@ -15,10 +16,10 @@ export async function Header() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
         <Link
           href="/"
-          className="group flex items-center text-lg font-semibold tracking-tight text-neutral-900"
+          className="group flex items-center gap-1.5 text-lg font-semibold tracking-tight text-neutral-900"
         >
           MIMO
-          <span className="ml-0.5 size-1.5 translate-y-[-0.55rem] rounded-full bg-brand transition-transform duration-300 group-hover:scale-125" />
+          <MimoMark className="size-6 animate-pulse text-[#f98079] transition-transform duration-300 group-hover:scale-125" />
         </Link>
 
         <NavLinks />

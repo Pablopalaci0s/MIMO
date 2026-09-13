@@ -11,6 +11,7 @@ function toReviewDTO(review: Prisma.ReviewGetPayload<{ include: { user: true } }
     businessRating: review.businessRating,
     deliveryRating: review.deliveryRating,
     comment: review.comment,
+    images: review.images,
     createdAt: review.createdAt.toISOString(),
   };
 }
@@ -115,6 +116,7 @@ export async function createReview(userId: string, input: ReviewInput): Promise<
       businessRating: input.businessRating,
       deliveryRating: input.deliveryRating,
       comment: input.comment,
+      images: input.images ?? [],
       status: "PENDING",
     },
     include: { user: true },

@@ -84,7 +84,7 @@ export function PaypalButton({
             const response = await fetch("/api/payments/paypal/order", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ items: payload.items, address: payload.address }),
+              body: JSON.stringify({ items: payload.items, address: payload.address, couponCode: payload.couponCode }),
             });
             const body = await response.json();
             if (!body.success) {

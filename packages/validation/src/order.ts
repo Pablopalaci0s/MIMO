@@ -46,6 +46,7 @@ export const checkoutInputSchema = z.object({
   // con la futura app móvil, pero el servicio los rechaza.
   paymentProvider: z.enum(["CARD", "PAYPAL", "CASH", "OTHER"]),
   paypalOrderId: z.string().trim().min(1).optional(),
+  couponCode: z.string().trim().min(1).max(40).optional(),
 }).superRefine((data, ctx) => {
   if (data.paymentProvider === "PAYPAL" && !data.paypalOrderId) {
     ctx.addIssue({

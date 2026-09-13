@@ -1,4 +1,4 @@
-import { Calendar, ChevronRight, Heart } from "lucide-react";
+import { Calendar, ChevronRight, Gift, Heart, PartyPopper } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -71,6 +71,26 @@ export default async function ProfilePage() {
           <span className="flex items-center gap-3 text-sm font-medium text-neutral-900">
             <Calendar className="size-4 text-neutral-500" />
             Fechas importantes
+          </span>
+          <ChevronRight className="size-4 text-neutral-400" />
+        </Link>
+        <Link
+          href="/perfil/listas"
+          className="flex items-center justify-between rounded-xl border border-neutral-200 px-4 py-3 transition-colors hover:border-neutral-300"
+        >
+          <span className="flex items-center gap-3 text-sm font-medium text-neutral-900">
+            <Gift className="size-4 text-neutral-500" />
+            Listas de regalos
+          </span>
+          <ChevronRight className="size-4 text-neutral-400" />
+        </Link>
+        <Link
+          href="/perfil/cabudas"
+          className="flex items-center justify-between rounded-xl border border-neutral-200 px-4 py-3 transition-colors hover:border-neutral-300"
+        >
+          <span className="flex items-center gap-3 text-sm font-medium text-neutral-900">
+            <PartyPopper className="size-4 text-neutral-500" />
+            Cabudas
           </span>
           <ChevronRight className="size-4 text-neutral-400" />
         </Link>
