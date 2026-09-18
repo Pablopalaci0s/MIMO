@@ -671,7 +671,11 @@ día. **No hace nada todavía**: hasta que el sitio esté desplegado, no hay
 `APP_URL` real a la cual pegarle — hace falta configurar los secrets
 `APP_URL` y `CRON_SECRET` en GitHub una vez elegido el hosting. El workflow
 también se puede correr a mano desde la pestaña Actions
-(`workflow_dispatch`) para probarlo.
+(`workflow_dispatch`) para probarlo. El `schedule:` de ambos workflows
+(este y `cron-expirar-pedidos.yml`) está comentado a propósito — sin los
+secrets, cada corrida fallaba y GitHub manda un correo por cada falla de
+un cron programado (con el de cada 15 min, ~96 correos por día). Hay que
+descomentarlo cuando el sitio esté desplegado de verdad.
 
 **Notificaciones push reales.** Se agregó Web Push de verdad (paquete
 `web-push`, claves VAPID) — no solo las notificaciones dentro de la app
