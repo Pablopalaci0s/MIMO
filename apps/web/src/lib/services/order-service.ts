@@ -1,6 +1,12 @@
 import { Prisma, prisma } from "@mimo/database";
 import type { CheckoutInputParsed } from "@mimo/validation";
-import type { OrderDTO, OrderItemDTO, PersonalizationInput, ProductSummaryDTO } from "@mimo/types";
+import type {
+  OrderDTO,
+  OrderItemDTO,
+  PersonalizationInput,
+  ProductSummaryDTO,
+  RecentAddressDTO,
+} from "@mimo/types";
 import { AppError } from "@/lib/errors";
 import { parseUtcDateOnly, utcDateOnly } from "@/lib/date-utils";
 import { validateCoupon } from "./coupon-service";
@@ -399,4 +405,42 @@ export async function listRecentlyOrderedProducts(
     if (products.length >= limit) break;
   }
   return products;
+}
+
+/**
+ * Direcciones de entrega distintas de pedidos anteriores del usuario, para
+ * el botón "Usar esta dirección" del checkout — mismo criterio que
+ * `listRecentlyOrderedProducts`: nunca inventa nada, solo lee pedidos
+ * reales. Se deduplica por dirección + municipio (case-insensitive) para
+ * no repetir la misma dirección varias veces si el usuario le manda
+ * regalos seguido a la misma persona.
+ */
+export async function listRecentDeliveryAddresses(
+  userId: string,
+  limit = 3,
+): Promise<RecentAddressDTO[]> {
+  const addresses = await prisma.orderAddress.findMany({
+    where: { order: { buyerId: userId } },
+    include: { municipality: true },
+    orderBy: { createdAt: "desc" },
+    take: limit * 3,
+  });
+
+  const seen = new Set<string>();
+  const result: RecentAddressDTO[] = [];
+  for (const address of addresses) {
+    const key = `${address.addressLine.trim().toLowerCase()}::${address.municipalityId ?? ""}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push({
+      recipientName: address.recipientName,
+      recipientPhone: address.recipientPhone,
+      addressLine: address.addressLine,
+      reference: address.reference,
+      municipalityId: address.municipalityId,
+      municipalityName: address.municipality?.name ?? null,
+    });
+    if (result.length >= limit) break;
+  }
+  return result;
 }

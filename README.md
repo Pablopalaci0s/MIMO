@@ -1033,6 +1033,28 @@ cards por producto, sin cambiar la lógica del carrito (sigue en
   ("Subtotal (3 productos)") y aclara que el envío se calcula recién en
   el checkout, para que no se lea como que el envío ya está incluido.
 
+## Diseño: direcciones recientes en el checkout (post-Fase 11)
+
+Surgió de un análisis de UX pedido por el usuario (ver `Notes_MIMO/`, no
+se sube al repo): el checkout ya separa bien Comprador/Destinatario, pero
+había que retipear nombre, teléfono, dirección y municipio del
+destinatario en cada pedido nuevo, aunque fuera a la misma persona de
+siempre (mamá, pareja, etc.) — el caso de uso más común de un marketplace
+de regalos.
+
+- `order-service.listRecentDeliveryAddresses(userId)` lee las últimas
+  direcciones de entrega de pedidos reales del usuario (nunca inventa
+  nada — si no tiene pedidos, no muestra nada, mismo criterio que
+  `listRecentlyOrderedProducts` para "Volver a pedir" en el home) y las
+  deduplica por dirección + municipio para no repetir la misma varias
+  veces.
+- En `/checkout`, arriba del formulario de Destinatario, aparecen hasta 3
+  chips ("Ana Pérez · Calle Los Almendros #123, San Salvador") — un click
+  llena nombre, teléfono, dirección, referencia y municipio, sin tocar
+  fecha/horario de entrega (esos son del pedido nuevo, no se copian).
+- Nuevo tipo `RecentAddressDTO` en `@mimo/types`, reutilizando la forma de
+  `CheckoutAddressInput` menos los campos que no aplican.
+
 ## Diseño: brechas de seguridad cerradas (post-Fase 11)
 
 Se pidió auditar el código real (no adivinar) y cerrar cada brecha que
