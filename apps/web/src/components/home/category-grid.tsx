@@ -54,7 +54,11 @@ export function CategoryGrid({ categories }: { categories: CategoryDTO[] }) {
                   >
                     <Icon className="size-6" strokeWidth={1.75} />
                   </motion.span>
-                  <span className="text-xs font-medium whitespace-nowrap text-neutral-600 transition-colors duration-200 group-hover:text-brand">
+                  {/* Ancho fijo (un poco más que el círculo) para que los nombres
+                      largos no corran el espaciado entre ítems — si no entran en
+                      una línea, pasan a una segunda en vez de salirse y pisar al
+                      de al lado. */}
+                  <span className="block w-24 text-center text-xs font-medium break-words text-neutral-600 transition-colors duration-200 group-hover:text-brand">
                     {category.name}
                   </span>
                 </Link>
