@@ -239,6 +239,7 @@ model User {
   orderMessages       OrderMessage[]
   giftRegistries      GiftRegistry[]
   groupGifts          GroupGift[]
+  adminActionLogs     AdminActionLog[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -1092,4 +1093,32 @@ model Banner {
 
   @@index([isActive, position])
   @@map("banners")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// AUDITORÍA
+// ─────────────────────────────────────────────────────────────────────────
+
+/**
+ * Registro de cada acción sensible que hace un admin (suspender/cambiar rol
+ * a un usuario, aprobar/suspender un negocio, moderar reseñas y reportes,
+ * crear/editar/borrar cupones, categorías y banners) — quién, qué, sobre
+ * qué, y cuándo. Se escribe desde el mismo *-service.ts que hace el cambio
+ * (ver `admin-audit-service.ts`), nunca desde la ruta, para que sea
+ * imposible hacer el cambio sin dejar el registro.
+ */
+model AdminActionLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  adminId    String   @db.Uuid
+  admin      User     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  action     String
+  targetType String
+  targetId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([adminId])
+  @@index([targetType, targetId])
+  @@index([createdAt])
+  @@map("admin_action_logs")
 }

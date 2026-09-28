@@ -1,6 +1,7 @@
 import { Prisma, prisma } from "@mimo/database";
 import type { AdminReviewDTO } from "@mimo/types";
 import { AppError } from "@/lib/errors";
+import { logAdminAction } from "./admin-audit-service";
 
 const REVIEW_INCLUDE = {
   user: true,
@@ -42,6 +43,7 @@ export async function listAdminReviews(): Promise<AdminReviewDTO[]> {
 export async function updateAdminReviewStatus(
   reviewId: string,
   status: AdminReviewDTO["status"],
+  adminId: string,
 ): Promise<AdminReviewDTO> {
   const existing = await prisma.review.findUnique({ where: { id: reviewId } });
   if (!existing) throw new AppError("NOT_FOUND", "No encontramos esa reseña.", 404);
@@ -61,6 +63,14 @@ export async function updateAdminReviewStatus(
     }
 
     return updated;
+  });
+
+  await logAdminAction({
+    adminId,
+    action: "review.update_status",
+    targetType: "REVIEW",
+    targetId: reviewId,
+    metadata: { status },
   });
 
   return toAdminReviewDTO(review);

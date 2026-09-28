@@ -1,6 +1,7 @@
 import { Prisma, prisma } from "@mimo/database";
 import type { AdminUserDTO, AdminUserUpdateInput, UserRole } from "@mimo/types";
 import { AppError } from "@/lib/errors";
+import { logAdminAction } from "./admin-audit-service";
 
 export interface AdminUserFilters {
   q?: string;
@@ -77,5 +78,14 @@ export async function updateAdminUser(
     },
     include: ADMIN_USER_INCLUDE,
   });
+
+  await logAdminAction({
+    adminId: adminUserId,
+    action: "user.update",
+    targetType: "USER",
+    targetId: userId,
+    metadata: { role: input.role, isSuspended: input.isSuspended },
+  });
+
   return toAdminUserDTO(user);
 }

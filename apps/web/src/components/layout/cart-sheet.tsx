@@ -1,6 +1,6 @@
 "use client";
 
-import { Gift, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { Gift, Minus, Plus, ShoppingBag, Store, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -60,41 +60,62 @@ export function CartSheet({ variant = "icon" }: { variant?: "icon" | "tab" }) {
         </SheetHeader>
 
         {items.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-2 px-4 text-center">
-            <ShoppingBag className="size-8 text-neutral-300" />
-            <p className="text-sm text-neutral-500">Todavía no agregaste nada.</p>
+          <div className="flex flex-1 flex-col items-center justify-center gap-3 px-4 text-center">
+            <span className="flex size-14 items-center justify-center rounded-full bg-neutral-100 text-neutral-400">
+              <ShoppingBag className="size-6" />
+            </span>
+            <div>
+              <p className="text-sm font-medium text-neutral-900">Todavía no agregaste nada.</p>
+              <p className="mt-0.5 text-sm text-neutral-500">Los productos que elijas van a aparecer acá.</p>
+            </div>
+            <Button variant="outline" className="mt-1 rounded-full" onClick={() => setOpen(false)} asChild>
+              <Link href="/regalos">Explorar catálogo</Link>
+            </Button>
           </div>
         ) : (
           <>
             <div className="flex-1 overflow-y-auto px-4">
               {Object.entries(groupedByBusiness).map(([businessName, businessItems]) => (
                 <div key={businessName} className="mb-5">
-                  <p className="mb-2 text-xs font-medium tracking-wide text-neutral-400 uppercase">
+                  <p className="mb-2 flex items-center gap-1.5 text-xs font-medium tracking-wide text-neutral-400 uppercase">
+                    <Store className="size-3.5" />
                     {businessName}
                   </p>
                   <div className="flex flex-col gap-3">
                     {businessItems.map((item) => (
-                      <div key={item.productId} className="flex gap-3">
-                        <div className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
+                      <div
+                        key={item.productId}
+                        className="flex gap-3 rounded-2xl border border-neutral-200 p-3"
+                      >
+                        <div className="relative size-18 shrink-0 overflow-hidden rounded-xl bg-neutral-100">
                           {item.imageUrl ? (
                             <Image
                               src={item.imageUrl}
                               alt={item.productName}
                               fill
-                              sizes="64px"
+                              sizes="72px"
                               className="object-cover"
                             />
                           ) : (
                             <MediaPlaceholder icon={Gift} iconClassName="size-5" />
                           )}
                         </div>
-                        <div className="flex flex-1 flex-col gap-1">
-                          <p className="line-clamp-1 text-sm font-medium text-neutral-900">
-                            {item.productName}
-                          </p>
-                          <p className="text-sm text-neutral-500">${item.unitPrice.toFixed(2)}</p>
-                          <div className="flex items-center gap-2">
-                            <div className="flex items-center gap-2 rounded-full border border-neutral-200 px-1">
+                        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="line-clamp-2 text-sm font-medium text-neutral-900">
+                              {item.productName}
+                            </p>
+                            <button
+                              onClick={() => removeItem(item.productId)}
+                              className="flex size-6 shrink-0 items-center justify-center rounded-full text-neutral-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40 dark:hover:text-red-400"
+                              aria-label="Quitar del carrito"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </button>
+                          </div>
+                          <p className="text-xs text-neutral-500">${item.unitPrice.toFixed(2)} c/u</p>
+                          <div className="mt-auto flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-1 rounded-full border border-neutral-200 px-1">
                               <button
                                 onClick={() => updateQuantity(item.productId, item.quantity - 1)}
                                 className="flex size-6 items-center justify-center rounded-full hover:bg-neutral-100"
@@ -111,13 +132,9 @@ export function CartSheet({ variant = "icon" }: { variant?: "icon" | "tab" }) {
                                 <Plus className="size-3" />
                               </button>
                             </div>
-                            <button
-                              onClick={() => removeItem(item.productId)}
-                              className="flex size-6 items-center justify-center rounded-full text-neutral-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40 dark:hover:text-red-400"
-                              aria-label="Quitar del carrito"
-                            >
-                              <Trash2 className="size-3.5" />
-                            </button>
+                            <span className="text-sm font-semibold text-neutral-900">
+                              ${(item.unitPrice * item.quantity).toFixed(2)}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -128,10 +145,13 @@ export function CartSheet({ variant = "icon" }: { variant?: "icon" | "tab" }) {
             </div>
 
             <div className="border-t border-neutral-200 px-4 py-4">
-              <div className="mb-3 flex items-center justify-between text-sm">
-                <span className="text-neutral-500">Subtotal</span>
+              <div className="mb-1 flex items-center justify-between text-sm">
+                <span className="text-neutral-500">
+                  Subtotal ({count} {count === 1 ? "producto" : "productos"})
+                </span>
                 <span className="font-semibold text-neutral-900">${subtotal.toFixed(2)}</span>
               </div>
+              <p className="mb-3 text-xs text-neutral-400">El envío se calcula en el checkout.</p>
               <Button asChild className="h-11 w-full" onClick={() => setOpen(false)}>
                 <Link href="/checkout">Ir a pagar</Link>
               </Button>

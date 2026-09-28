@@ -6,12 +6,12 @@ import { requireAdmin } from "@/lib/services/admin-service";
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireAdmin();
+    const adminId = await requireAdmin();
     const { id } = await params;
     const body = await request.json();
     const input = adminCategoryInputSchema.parse(body);
 
-    const category = await updateAdminCategory(id, input);
+    const category = await updateAdminCategory(id, input, adminId);
     return apiSuccess(category);
   } catch (error) {
     return apiErrorFromException(error);
@@ -20,9 +20,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
 export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireAdmin();
+    const adminId = await requireAdmin();
     const { id } = await params;
-    await deleteAdminCategory(id);
+    await deleteAdminCategory(id, adminId);
     return apiSuccess({ id });
   } catch (error) {
     return apiErrorFromException(error);

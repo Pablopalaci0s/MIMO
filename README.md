@@ -103,6 +103,10 @@ También crea 10 negocios ficticios (marcados `isDemo`) con 57 productos en
 total, repartidos en las 12 categorías, con zonas de entrega y ratings
 aleatorios — ver `packages/database/prisma/seed-data/demo-catalog.ts`.
 
+⚠️ Estas contraseñas son públicas (están en este README). El script se
+niega a correr si `NODE_ENV=production` — nunca lo corras contra una base
+de datos real sin cambiar antes esas contraseñas.
+
 ## 6. Iniciar desarrollo
 
 ```bash
@@ -480,7 +484,10 @@ pendientes:
 - **Secrets y base de datos de producción** — hoy todo corre con valores
   de desarrollo.
 - **Datos de demo** (`admin@mimo.sv` con contraseña conocida, negocios
-  `isDemo`) no pueden quedar en un ambiente real.
+  `isDemo`) no pueden quedar en un ambiente real — `db:seed` ya se niega a
+  correr con `NODE_ENV=production` (ver sección "5. Cargar datos demo"),
+  pero igual hay que cambiar esas contraseñas si alguna vez se corrió
+  contra una base que después se promovió a producción.
 
 ## Diseño: login con Google y Facebook (post-Fase 11)
 
@@ -664,7 +671,11 @@ día. **No hace nada todavía**: hasta que el sitio esté desplegado, no hay
 `APP_URL` real a la cual pegarle — hace falta configurar los secrets
 `APP_URL` y `CRON_SECRET` en GitHub una vez elegido el hosting. El workflow
 también se puede correr a mano desde la pestaña Actions
-(`workflow_dispatch`) para probarlo.
+(`workflow_dispatch`) para probarlo. El `schedule:` de ambos workflows
+(este y `cron-expirar-pedidos.yml`) está comentado a propósito — sin los
+secrets, cada corrida fallaba y GitHub manda un correo por cada falla de
+un cron programado (con el de cada 15 min, ~96 correos por día). Hay que
+descomentarlo cuando el sitio esté desplegado de verdad.
 
 **Notificaciones push reales.** Se agregó Web Push de verdad (paquete
 `web-push`, claves VAPID) — no solo las notificaciones dentro de la app
@@ -1001,6 +1012,54 @@ la compra él mismo, con el método que quiera.
   pedidos de PayPal sin confirmar) — si el reembolso de un aporte puntual
   falla, no traba la cancelación de los demás, queda visible para
   resolver a mano.
+
+## Diseño: brechas de seguridad cerradas (post-Fase 11)
+
+Se pidió auditar el código real (no adivinar) y cerrar cada brecha que
+apareciera, sin prometer nada en la política de privacidad que no
+estuviera implementado de verdad. El audit encontró que la mayoría de
+medidas ya estaban bien (hash de contraseñas, tokens de reset de un
+solo uso, rate limiting, validación con Zod, Prisma sin SQL crudo,
+captura de pago siempre server-side) — ver el detalle completo en la
+página `/seguridad` del Sitio (separada de `/privacidad` a pedido del
+usuario: una explica qué datos se recolectan y para qué, la otra cómo
+se protegen — mezclarlas hace que la política de privacidad termine
+hablando de CSP/HSTS, que no es su tema). Lo que sí faltaba, y se
+agregó acá:
+
+- **Encabezados de seguridad HTTP** (`next.config.ts`, función
+  `headers()`): CSP, `X-Content-Type-Options: nosniff`,
+  `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy` sin
+  cámara/micrófono/ubicación, y HSTS. La CSP y el HSTS solo se activan
+  con `NODE_ENV === "production"` — en dev, Turbopack necesita eval y
+  WebSockets de HMR que una CSP estricta rompería, y no protege nada
+  mientras el sitio corre solo en la máquina de un desarrollador. La
+  lista de dominios permitidos (`script-src`, `connect-src`,
+  `frame-src`) se armó grepeando el código real en busca de qué
+  dominios externos se usan de verdad (PayPal y Sentry, nada más) en
+  vez de copiar una plantilla genérica — probado con un build de
+  producción real (`next build && next start`) cargando el home, el
+  catálogo y el SDK de PayPal para confirmar que nada se bloqueaba.
+- **Registro de auditoría de administradores** (modelo `AdminActionLog`
+  + `admin-audit-service.ts`, página `/admin/auditoria`): cada acción
+  sensible del panel admin (suspender/cambiar rol a un usuario,
+  aprobar/suspender un negocio, moderar una reseña o un reporte,
+  crear/editar/borrar cupones, categorías y banners) queda registrada
+  con quién, qué, sobre qué y cuándo. El registro se escribe desde el
+  mismo `*-service.ts` que hace el cambio (nunca desde la ruta), para
+  que sea imposible hacer la acción sin dejar rastro — y si el logueo
+  fallara por algún motivo, no tumba la acción que audita, solo lo
+  reporta a consola.
+- **No se tocó** el rate limiting en memoria (documentado como
+  limitación de una sola instancia desde que se implementó, y el
+  proyecto ya requiere una sola instancia por las fotos en disco local
+  — pasarlo a un store compartido sería resolver un problema que no
+  existe hoy) ni se agregó un redirect HTTP→HTTPS a mano: cualquier
+  hosting real (Vercel, Railway, etc.) ya lo hace antes de que la
+  petición llegue a la app, y hacerlo en el middleware de Next
+  obligaría a correr el chequeo de sesión (con su consulta a la base
+  para revisar cuentas suspendidas) en cada request del sitio, no solo
+  en `/negocio` y `/admin` como hoy.
 
 ## Diseño: paneles como app separada (post-Fase 6, rediseño)
 

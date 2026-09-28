@@ -48,6 +48,9 @@ export function Footer() {
             <Link href="/privacidad" className="transition-colors hover:text-neutral-900">
               Privacidad
             </Link>
+            <Link href="/seguridad" className="transition-colors hover:text-neutral-900">
+              Seguridad
+            </Link>
           </div>
         </nav>
       </div>
@@ -60,6 +63,9 @@ export function Footer() {
           </Link>
           <Link href="/privacidad" className="hover:text-neutral-600">
             Privacidad
+          </Link>
+          <Link href="/seguridad" className="hover:text-neutral-600">
+            Seguridad
           </Link>
         </span>
       </div>

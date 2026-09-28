@@ -1,6 +1,7 @@
 import { Prisma, prisma } from "@mimo/database";
 import type { AdminCategoryDTO, AdminCategoryInput } from "@mimo/types";
 import { AppError } from "@/lib/errors";
+import { logAdminAction } from "./admin-audit-service";
 
 const ADMIN_CATEGORY_INCLUDE = {
   _count: { select: { products: true } },
@@ -35,7 +36,10 @@ async function assertUniqueSlug(slug: string, excludeId?: string): Promise<void>
   if (existing) throw new AppError("SLUG_TAKEN", "Ya existe una categoría con ese slug.", 409);
 }
 
-export async function createAdminCategory(input: AdminCategoryInput): Promise<AdminCategoryDTO> {
+export async function createAdminCategory(
+  input: AdminCategoryInput,
+  adminId: string,
+): Promise<AdminCategoryDTO> {
   await assertUniqueSlug(input.slug);
   const category = await prisma.category.create({
     data: {
@@ -47,12 +51,22 @@ export async function createAdminCategory(input: AdminCategoryInput): Promise<Ad
     },
     include: ADMIN_CATEGORY_INCLUDE,
   });
+
+  await logAdminAction({
+    adminId,
+    action: "category.create",
+    targetType: "CATEGORY",
+    targetId: category.id,
+    metadata: { name: category.name, slug: category.slug },
+  });
+
   return toAdminCategoryDTO(category);
 }
 
 export async function updateAdminCategory(
   categoryId: string,
   input: AdminCategoryInput,
+  adminId: string,
 ): Promise<AdminCategoryDTO> {
   const existing = await prisma.category.findUnique({ where: { id: categoryId } });
   if (!existing) throw new AppError("NOT_FOUND", "No encontramos esa categoría.", 404);
@@ -72,10 +86,19 @@ export async function updateAdminCategory(
     },
     include: ADMIN_CATEGORY_INCLUDE,
   });
+
+  await logAdminAction({
+    adminId,
+    action: "category.update",
+    targetType: "CATEGORY",
+    targetId: categoryId,
+    metadata: { name: category.name, slug: category.slug },
+  });
+
   return toAdminCategoryDTO(category);
 }
 
-export async function deleteAdminCategory(categoryId: string): Promise<void> {
+export async function deleteAdminCategory(categoryId: string, adminId: string): Promise<void> {
   const existing = await prisma.category.findUnique({
     where: { id: categoryId },
     include: ADMIN_CATEGORY_INCLUDE,
@@ -90,4 +113,11 @@ export async function deleteAdminCategory(categoryId: string): Promise<void> {
   }
 
   await prisma.category.delete({ where: { id: categoryId } });
+  await logAdminAction({
+    adminId,
+    action: "category.delete",
+    targetType: "CATEGORY",
+    targetId: categoryId,
+    metadata: { name: existing.name, slug: existing.slug },
+  });
 }

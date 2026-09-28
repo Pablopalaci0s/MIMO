@@ -412,7 +412,28 @@ function slugify(text: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
+/**
+ * Este script crea (upsert) cuentas demo con contraseñas fijas y públicas
+ * (documentadas en el README para que cualquiera pueda probar el proyecto)
+ * — admin@mimo.sv / Admin123!, cliente@mimo.sv / Cliente123!, negocio@mimo.sv
+ * / Negocio123!. Correrlo contra una base de producción crearía ese mismo
+ * acceso de administrador ahí, con una contraseña que ya es pública. Sin
+ * ALLOW_SEED_IN_PRODUCTION=true de forma explícita, no corre si
+ * NODE_ENV=production.
+ */
+function assertNotProduction() {
+  if (process.env.NODE_ENV === "production" && process.env.ALLOW_SEED_IN_PRODUCTION !== "true") {
+    throw new Error(
+      "db:seed crea cuentas demo con contraseñas públicas (ver README) — " +
+        "está bloqueado con NODE_ENV=production. Si de verdad querés correrlo " +
+        "acá (ej. un staging que no es público), repetí el comando con " +
+        "ALLOW_SEED_IN_PRODUCTION=true.",
+    );
+  }
+}
+
 async function main() {
+  assertNotProduction();
   console.log("Seeding MIMO — ubicaciones, categorías y ocasiones...");
 
   for (const [departmentName, municipalities] of Object.entries(DEPARTMENTS)) {

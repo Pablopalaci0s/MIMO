@@ -6,12 +6,12 @@ import { requireAdmin } from "@/lib/services/admin-service";
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireAdmin();
+    const adminId = await requireAdmin();
     const { id } = await params;
     const body = await request.json();
     const { status } = adminReviewStatusUpdateSchema.parse(body);
 
-    const review = await updateAdminReviewStatus(id, status);
+    const review = await updateAdminReviewStatus(id, status, adminId);
     return apiSuccess(review);
   } catch (error) {
     return apiErrorFromException(error);

@@ -1,6 +1,7 @@
 import { Prisma, prisma } from "@mimo/database";
 import type { AdminBusinessDTO, AdminBusinessUpdateInput, BusinessStatus } from "@mimo/types";
 import { AppError } from "@/lib/errors";
+import { logAdminAction } from "./admin-audit-service";
 import { createNotification } from "./notification-service";
 
 export interface AdminBusinessFilters {
@@ -64,6 +65,7 @@ export async function listAdminBusinesses(filters: AdminBusinessFilters = {}): P
 export async function updateAdminBusiness(
   businessId: string,
   input: AdminBusinessUpdateInput,
+  adminId: string,
 ): Promise<AdminBusinessDTO> {
   const existing = await prisma.business.findFirst({ where: { id: businessId, deletedAt: null } });
   if (!existing) throw new AppError("NOT_FOUND", "No encontramos ese negocio.", 404);
@@ -105,6 +107,14 @@ export async function updateAdminBusiness(
       });
     }
   }
+
+  await logAdminAction({
+    adminId,
+    action: "business.update",
+    targetType: "BUSINESS",
+    targetId: businessId,
+    metadata: { status: input.status, verified: input.verified, commissionRate: input.commissionRate },
+  });
 
   return toAdminBusinessDTO(business);
 }

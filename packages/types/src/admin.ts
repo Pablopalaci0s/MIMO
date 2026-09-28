@@ -150,3 +150,13 @@ export interface AdminReviewDTO {
   status: ModerationStatus;
   createdAt: string;
 }
+
+export interface AdminActionLogDTO {
+  id: string;
+  adminName: string;
+  action: string;
+  targetType: string;
+  targetId: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+}

@@ -9,9 +9,15 @@ name: Cron — fechas importantes
 # Sin esos secrets, este workflow corre igual pero el curl falla (esperado
 # — no hay URL real todavía). "workflow_dispatch" permite además correrlo a
 # mano desde la pestaña Actions de GitHub para probarlo sin esperar al cron.
+#
+# El "schedule" queda comentado a propósito: cada falla de un cron
+# programado le manda un correo al dueño del repo, y sin los secrets
+# (sitio sin desplegar) fallaba todos los días. Descomentar el bloque
+# "schedule" recién cuando el sitio esté desplegado y los dos secrets
+# estén configurados.
 on:
-  schedule:
-    - cron: "0 12 * * *" # 6:00 AM America/El_Salvador (UTC-6), todos los días
+  # schedule:
+  #   - cron: "0 12 * * *" # 6:00 AM America/El_Salvador (UTC-6), todos los días
   workflow_dispatch: {}
 
 jobs:
