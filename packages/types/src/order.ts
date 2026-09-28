@@ -69,6 +69,20 @@ export interface CheckoutInput {
   couponCode?: string;
 }
 
+/** Dirección de entrega reusada de un pedido anterior del comprador —
+ * para el botón "Usar esta dirección" del checkout. Mismos campos que
+ * `CheckoutAddressInput` salvo `deliveryDate`/`deliveryWindow` (esas son
+ * del pedido nuevo, no se copian) y `municipalityName` (para mostrarla sin
+ * tener que cruzarla contra la lista de municipios del formulario). */
+export interface RecentAddressDTO {
+  recipientName: string;
+  recipientPhone: string;
+  addressLine: string;
+  reference: string | null;
+  municipalityId: string | null;
+  municipalityName: string | null;
+}
+
 export interface CouponPreviewDTO {
   code: string;
   description: string | null;

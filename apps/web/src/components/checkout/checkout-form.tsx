@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Loader2, MapPinOff, ShoppingBag } from "lucide-react";
+import { CheckCircle2, History, Loader2, MapPinOff, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
@@ -20,7 +20,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { apiErrorMessage } from "@/lib/api-error-message";
 import { useCart } from "@/lib/cart/cart-context";
 import { PaypalButton } from "./paypal-button";
-import type { CheckoutInput, CouponPreviewDTO, DeliveryCoverageResult, DeliveryWindow } from "@mimo/types";
+import type {
+  CheckoutInput,
+  CouponPreviewDTO,
+  DeliveryCoverageResult,
+  DeliveryWindow,
+  RecentAddressDTO,
+} from "@mimo/types";
 import type { MunicipalityDTO } from "@mimo/types";
 
 const DELIVERY_WINDOWS: { value: DeliveryWindow; label: string }[] = [
@@ -37,9 +43,11 @@ function todayISO(): string {
 
 export function CheckoutForm({
   municipalities,
+  recentAddresses,
   defaultBuyer,
 }: {
   municipalities: MunicipalityDTO[];
+  recentAddresses: RecentAddressDTO[];
   defaultBuyer: { name: string; email: string };
 }) {
   const router = useRouter();
@@ -153,6 +161,14 @@ export function CheckoutForm({
     setAppliedCoupon(null);
     setCouponInput("");
     setCouponError(null);
+  }
+
+  function applyRecentAddress(address: RecentAddressDTO) {
+    setRecipientName(address.recipientName);
+    setRecipientPhone(address.recipientPhone);
+    setAddressLine(address.addressLine);
+    setReference(address.reference ?? "");
+    if (address.municipalityId) setMunicipalityId(address.municipalityId);
   }
 
   if (isHydrated && items.length === 0) {
@@ -270,6 +286,31 @@ export function CheckoutForm({
 
         <section className="flex flex-col gap-4">
           <h2 className="text-sm font-semibold tracking-wide text-neutral-400 uppercase">Destinatario</h2>
+
+          {recentAddresses.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <p className="flex items-center gap-1.5 text-xs font-medium text-neutral-500">
+                <History className="size-3.5" />
+                Direcciones de pedidos anteriores
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {recentAddresses.map((address, index) => (
+                  <button
+                    key={`${address.addressLine}-${index}`}
+                    type="button"
+                    onClick={() => applyRecentAddress(address)}
+                    className="rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-left text-xs text-neutral-600 shadow-sm transition-colors hover:border-brand/60 hover:bg-brand/10 hover:text-brand dark:bg-neutral-100"
+                  >
+                    <span className="font-medium text-neutral-900">{address.recipientName}</span>
+                    {" · "}
+                    {address.addressLine}
+                    {address.municipalityName ? `, ${address.municipalityName}` : ""}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="recipient-name">Nombre</Label>
