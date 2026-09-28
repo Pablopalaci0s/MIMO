@@ -1013,6 +1013,26 @@ la compra él mismo, con el método que quiera.
   falla, no traba la cancelación de los demás, queda visible para
   resolver a mano.
 
+## Diseño: rediseño del carrito (post-Fase 11)
+
+`CartSheet` (`components/layout/cart-sheet.tsx`) pasó de filas planas a
+cards por producto, sin cambiar la lógica del carrito (sigue en
+`localStorage`, ver **Notas técnicas** más abajo sobre `useSyncExternalStore`):
+
+- Cada producto es ahora una card con borde (`rounded-2xl border`) en vez
+  de una fila suelta, con el subtotal por línea (cantidad × precio unitario)
+  junto al stepper — antes había que calcularlo a mano contra el subtotal
+  general.
+- El botón de quitar producto se movió junto al nombre (arriba a la
+  derecha de la card) para dejar el renglón del stepper solo con
+  cantidad y precio.
+- Estado vacío: ícono dentro de un círculo + texto en dos niveles + botón
+  "Explorar catálogo" hacia `/regalos`, en vez de un solo párrafo sin
+  ninguna acción para salir del carrito vacío.
+- El footer del subtotal ahora cuenta cuántos productos hay
+  ("Subtotal (3 productos)") y aclara que el envío se calcula recién en
+  el checkout, para que no se lea como que el envío ya está incluido.
+
 ## Diseño: brechas de seguridad cerradas (post-Fase 11)
 
 Se pidió auditar el código real (no adivinar) y cerrar cada brecha que
