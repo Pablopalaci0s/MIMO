@@ -1,11 +1,12 @@
-import { MessageCircle } from "lucide-react";
 import type { Metadata } from "next";
+import { auth } from "@mimo/auth";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { SupportForm } from "@/components/help/support-form";
 
 export const metadata: Metadata = {
   title: "Ayuda",
@@ -110,7 +111,9 @@ const FAQ_GROUPS: { title: string; items: { question: string; answer: string }[]
   },
 ];
 
-export default function HelpPage() {
+export default async function HelpPage() {
+  const session = await auth();
+
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-10 sm:px-6">
       <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">Centro de ayuda</h1>
@@ -136,14 +139,8 @@ export default function HelpPage() {
         ))}
       </div>
 
-      <div className="mt-10 flex items-center gap-3 rounded-2xl border border-neutral-200 p-4">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-600">
-          <MessageCircle className="size-4" />
-        </span>
-        <div>
-          <p className="text-sm font-medium text-neutral-900">¿Seguís con dudas?</p>
-          <p className="text-sm text-neutral-500">Escribinos a cualquier negocio por WhatsApp desde su página.</p>
-        </div>
+      <div className="mt-10">
+        <SupportForm defaultName={session?.user?.name ?? ""} defaultEmail={session?.user?.email ?? ""} />
       </div>
     </div>
   );

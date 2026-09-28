@@ -76,6 +76,37 @@ export function buildPasswordResetEmail(resetUrl: string): { subject: string; ht
   };
 }
 
+/** Nombre, correo y mensaje vienen de un formulario público sin login —
+ * a diferencia del resto de estos builders (que solo interpolan URLs
+ * armadas por el servidor), acá hay que escapar el HTML del usuario antes
+ * de meterlo en el correo. */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+export function buildSupportRequestEmail(
+  fromName: string,
+  fromEmail: string,
+  message: string,
+): { subject: string; html: string } {
+  return {
+    subject: `Consulta de soporte — ${fromName}`,
+    html: emailLayout(
+      "Nueva consulta desde /ayuda",
+      `
+        <p style="font-size: 14px; line-height: 1.5;">
+          <strong>${escapeHtml(fromName)}</strong> (${escapeHtml(fromEmail)}) escribió:
+        </p>
+        <p style="font-size: 14px; line-height: 1.5; white-space: pre-wrap; background: #f5f5f5; padding: 12px; border-radius: 8px;">${escapeHtml(message)}</p>
+      `,
+    ),
+  };
+}
+
 export function buildVerifyEmailEmail(verifyUrl: string): { subject: string; html: string } {
   return {
     subject: "Confirmá tu correo en MIMO",
