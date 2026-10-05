@@ -23,18 +23,18 @@ export const loginSchema = z.object({
 export type LoginInput = z.infer<typeof loginSchema>;
 
 export const registerBusinessSchema = z.object({
-  businessName: z.string().trim().min(2).max(120),
-  ownerName: z.string().trim().min(2).max(100),
-  email: z.string().trim().toLowerCase().email(),
-  phone: z.string().trim().regex(/^[267]\d{7}$/, "Teléfono salvadoreño inválido"),
+  businessName: z.string().trim().min(2, "El nombre del negocio es muy corto").max(120, "El nombre del negocio es muy largo"),
+  ownerName: z.string().trim().min(2, "Tu nombre es muy corto").max(100, "Tu nombre es muy largo"),
+  email: z.string().trim().toLowerCase().email("Correo inválido"),
+  phone: z.string().trim().regex(/^[267]\d{7}$/, "Teléfono salvadoreño inválido (8 dígitos)"),
   whatsapp: z.string().trim().optional(),
   municipalityId: z.string().uuid("Selecciona un municipio válido"),
-  addressLine: z.string().trim().min(5).max(255),
+  addressLine: z.string().trim().min(5, "La dirección es muy corta").max(255, "La dirección es muy larga"),
   password: z
     .string()
-    .min(8)
-    .regex(/[A-Z]/)
-    .regex(/[0-9]/),
+    .min(8, "La contraseña debe tener al menos 8 caracteres")
+    .regex(/[A-Z]/, "La contraseña debe incluir al menos una mayúscula")
+    .regex(/[0-9]/, "La contraseña debe incluir al menos un número"),
   // Versión del Acuerdo MIMO ↔ negocio que la persona leyó y aceptó (la
   // casilla del formulario). El servidor la compara con la vigente.
   acceptedAgreementVersion: z.string().trim().min(1, "Tenés que aceptar el acuerdo para negocios"),

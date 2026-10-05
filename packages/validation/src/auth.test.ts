@@ -84,6 +84,16 @@ describe("registerBusinessSchema", () => {
     expect(() => registerBusinessSchema.parse(rest)).toThrow();
   });
 
+  it("explica en español qué le falta a la contraseña (nunca un \"Invalid\" genérico)", () => {
+    const message = (password: string) => {
+      const result = registerBusinessSchema.safeParse({ ...valid, password });
+      return result.success ? null : result.error.flatten().fieldErrors.password?.[0];
+    };
+    expect(message("abcdefg1")).toMatch(/mayúscula/);
+    expect(message("Abcdefgh")).toMatch(/número/);
+    expect(message("Abc1")).toMatch(/8 caracteres/);
+  });
+
   it("requiere un municipalityId con formato UUID", () => {
     expect(() => registerBusinessSchema.parse({ ...valid, municipalityId: "no-es-uuid" })).toThrow();
   });
