@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "Qué datos recolecta MIMO, para qué los usa y cómo protegerlos.",
 };
 
-const LAST_UPDATED = "13 de septiembre de 2026";
+const LAST_UPDATED = "5 de octubre de 2026";
 
 export default function PrivacidadPage() {
   return (

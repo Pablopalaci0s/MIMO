@@ -28,6 +28,8 @@ export interface AdminBusinessDTO {
   ratingCount: number;
   productCount: number;
   commissionRate: number;
+  /** ¿Aceptó la versión vigente del Acuerdo MIMO ↔ negocio? */
+  agreementAccepted: boolean;
   createdAt: string;
 }
 

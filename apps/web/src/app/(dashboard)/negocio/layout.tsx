@@ -5,7 +5,10 @@ import { redirect } from "next/navigation";
 import { auth } from "@mimo/auth";
 import { Button } from "@/components/ui/button";
 import { DashboardShell, type DashboardNavItem } from "@/components/dashboard/dashboard-shell";
+import { AgreementBanner } from "@/components/negocio/agreement-banner";
 import { NewOrderWatcher } from "@/components/negocio/new-order-watcher";
+import { BUSINESS_AGREEMENT_VERSION } from "@/lib/legal/business-agreement";
+import { hasAcceptedCurrentAgreement } from "@/lib/services/business-agreement-service";
 import { getBusinessIdForUser } from "@/lib/services/business-service";
 import { prisma } from "@mimo/database";
 
@@ -25,10 +28,12 @@ export default async function BusinessDashboardLayout({ children }: { children: 
   if (!session?.user) redirect("/iniciar-sesion?callbackUrl=/negocio");
 
   let businessName: string | null = null;
+  let agreementPending = false;
   try {
     const businessId = await getBusinessIdForUser(session.user.id);
-    const business = await prisma.business.findUnique({ where: { id: businessId }, select: { name: true } });
+    const business = await prisma.business.findUnique({ where: { id: businessId }, select: { name: true, isDemo: true } });
     businessName = business?.name ?? null;
+    agreementPending = business !== null && !business.isDemo && !(await hasAcceptedCurrentAgreement(businessId));
   } catch {
     businessName = null;
   }
@@ -51,6 +56,7 @@ export default async function BusinessDashboardLayout({ children }: { children: 
   return (
     <DashboardShell brand={businessName} subtitle="Panel de negocio" navItems={NAV_ITEMS} user={session.user}>
       <NewOrderWatcher />
+      {agreementPending && <AgreementBanner version={BUSINESS_AGREEMENT_VERSION} />}
       {children}
     </DashboardShell>
   );

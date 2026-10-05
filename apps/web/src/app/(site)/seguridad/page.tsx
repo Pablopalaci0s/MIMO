@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "Las medidas técnicas que MIMO tiene implementadas hoy para proteger tus datos.",
 };
 
-const LAST_UPDATED = "13 de septiembre de 2026";
+const LAST_UPDATED = "5 de octubre de 2026";
 
 export default function SeguridadPage() {
   return (

@@ -1,7 +1,9 @@
 import { Prisma, prisma } from "@mimo/database";
 import type { AdminBusinessDTO, AdminBusinessUpdateInput, BusinessStatus } from "@mimo/types";
 import { AppError } from "@/lib/errors";
+import { BUSINESS_AGREEMENT_VERSION } from "@/lib/legal/business-agreement";
 import { logAdminAction } from "./admin-audit-service";
+import { assertCanBeApproved } from "./business-agreement-service";
 import { createNotification } from "./notification-service";
 
 export interface AdminBusinessFilters {
@@ -13,6 +15,7 @@ const ADMIN_BUSINESS_INCLUDE = {
   municipality: true,
   members: { where: { role: "OWNER" as const }, include: { user: true }, take: 1 },
   _count: { select: { products: { where: { deletedAt: null } } } },
+  agreements: { where: { version: BUSINESS_AGREEMENT_VERSION }, select: { id: true }, take: 1 },
 } satisfies Prisma.BusinessInclude;
 
 type AdminBusinessRow = Prisma.BusinessGetPayload<{ include: typeof ADMIN_BUSINESS_INCLUDE }>;
@@ -31,6 +34,7 @@ function toAdminBusinessDTO(business: AdminBusinessRow): AdminBusinessDTO {
     ratingCount: business.ratingCount,
     productCount: business._count.products,
     commissionRate: Number(business.commissionRate),
+    agreementAccepted: business.agreements.length > 0,
     createdAt: business.createdAt.toISOString(),
   };
 }
@@ -75,6 +79,12 @@ export async function updateAdminBusiness(
   // que un negocio nuevo (o rechazado) pasa a APPROVED.
   const isFirstApproval =
     input.status === "APPROVED" && existing.status !== "APPROVED" && existing.status !== "SUSPENDED";
+
+  // Requisito antes de abrirle MIMO a un negocio real: haber aceptado el
+  // Acuerdo MIMO ↔ negocio vigente (ver `business-agreement-service.ts`).
+  if (input.status === "APPROVED" && existing.status !== "APPROVED") {
+    await assertCanBeApproved(existing);
+  }
 
   const business = await prisma.business.update({
     where: { id: businessId },

@@ -147,14 +147,14 @@ export const HELP_GROUPS: HelpGroup[] = [
       {
         question: "Tengo un negocio de flores/regalos, ¿cómo lo sumo a MIMO?",
         answer:
-          "Desde \"Sumá tu negocio\" (en el menú de tu cuenta, o en la ruta /registro-negocio) completás el formulario con los datos de tu negocio. Revisamos cada solicitud antes de publicarla — mientras tanto ya podés entrar a tu panel y ver que está pendiente de aprobación.",
-        keywords: ["sumar mi negocio", "registrar negocio", "tengo un negocio", "vender en mimo", "alta de negocio", "negocio nuevo", "quiero vender"],
+          "Desde \"Sumá tu negocio\" (en el menú de tu cuenta, o en la ruta /registro-negocio) completás el formulario con los datos de tu negocio. Para enviar la solicitud tenés que aceptar el Acuerdo MIMO ↔ negocio (/terminos-negocios), que explica comisión, pagos, cancelaciones y responsabilidades. Revisamos cada solicitud antes de publicarla — mientras tanto ya podés entrar a tu panel y ver que está pendiente de aprobación.",
+        keywords: ["sumar mi negocio", "registrar negocio", "tengo un negocio", "vender en mimo", "alta de negocio", "negocio nuevo", "quiero vender", "acuerdo", "contrato negocio"],
       },
       {
         question: "¿Cuánto cobra MIMO por venta?",
         answer:
-          "El modelo de comisiones y planes para negocios todavía está en definición — te lo contamos en detalle cuando coordinemos el alta.",
-        keywords: ["comision", "cuanto cobra", "tarifa", "planes", "precio para negocios", "cuanto cobran"],
+          "MIMO cobra una comisión sobre cada pedido (productos más envío del negocio): la estándar es 10% y puede haber períodos de prueba con menos. Tu porcentaje vigente lo ves en Perfil, dentro del panel de negocio. El detalle — cuándo recibís tu dinero, qué pasa si no confirmás o cancelás — está en el Acuerdo MIMO ↔ negocio (/terminos-negocios).",
+        keywords: ["comision", "cuanto cobra", "tarifa", "planes", "precio para negocios", "cuanto cobran", "porcentaje", "cuando me pagan", "cuando cobro"],
       },
       {
         question: "¿Puedo exportar mis pedidos?",

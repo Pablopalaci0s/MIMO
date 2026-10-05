@@ -10,6 +10,7 @@ import { MunicipalityHint } from "@/components/location/municipality-hint";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { BUSINESS_AGREEMENT_VERSION } from "@/lib/legal/business-agreement";
 import {
   Select,
   SelectContent,
@@ -29,6 +30,7 @@ export function BusinessApplicationForm({ municipalities }: { municipalities: Mu
   const [municipalityId, setMunicipalityId] = useState("");
   const [addressLine, setAddressLine] = useState("");
   const [password, setPassword] = useState("");
+  const [acceptedAgreement, setAcceptedAgreement] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -49,6 +51,7 @@ export function BusinessApplicationForm({ municipalities }: { municipalities: Mu
         municipalityId,
         addressLine,
         password,
+        acceptedAgreementVersion: BUSINESS_AGREEMENT_VERSION,
       }),
     });
     const body = await response.json();
@@ -145,9 +148,26 @@ export function BusinessApplicationForm({ municipalities }: { municipalities: Mu
         <span className="text-xs text-neutral-400">Mínimo 8 caracteres, con mayúscula y número.</span>
       </div>
 
+      <label className="flex cursor-pointer items-start gap-2 text-sm text-neutral-700">
+        <input
+          type="checkbox"
+          required
+          checked={acceptedAgreement}
+          onChange={(e) => setAcceptedAgreement(e.target.checked)}
+          className="mt-0.5 size-4 shrink-0 accent-neutral-900"
+        />
+        <span>
+          Leí y acepto el{" "}
+          <Link href="/terminos-negocios" target="_blank" className="underline hover:text-neutral-900">
+            Acuerdo MIMO ↔ negocio
+          </Link>
+          : comisión, pagos, cancelaciones y responsabilidades de cada parte.
+        </span>
+      </label>
+
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      <Button type="submit" disabled={loading || !municipalityId} className="h-11">
+      <Button type="submit" disabled={loading || !municipalityId || !acceptedAgreement} className="h-11">
         {loading ? <Loader2 className="size-4 animate-spin" /> : "Enviar solicitud"}
       </Button>
       <p className="text-xs text-neutral-400">
@@ -155,7 +175,7 @@ export function BusinessApplicationForm({ municipalities }: { municipalities: Mu
         tu panel para conocerlo.
       </p>
       <p className="text-xs text-neutral-400">
-        Al enviar la solicitud aceptás nuestros{" "}
+        Además aceptás nuestros{" "}
         <Link href="/terminos" className="underline hover:text-neutral-600">
           Términos
         </Link>{" "}

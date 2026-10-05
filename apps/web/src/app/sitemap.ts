@@ -3,7 +3,7 @@ import { prisma } from "@mimo/database";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
-const STATIC_ROUTES = ["", "/regalos", "/ayuda", "/ayudame-a-elegir", "/terminos", "/privacidad"];
+const STATIC_ROUTES = ["", "/regalos", "/ayuda", "/ayudame-a-elegir", "/terminos", "/terminos-negocios", "/privacidad"];
 
 /**
  * Solo lo público e indexable: productos activos y negocios aprobados.

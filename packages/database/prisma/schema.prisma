@@ -256,6 +256,7 @@ model User {
   giftRegistries       GiftRegistry[]
   groupGifts           GroupGift[]
   adminActionLogs      AdminActionLog[]
+  agreementAcceptances BusinessAgreementAcceptance[]
 
   supportConversations         SupportConversation[] @relation("SupportConversationUser")
   assignedSupportConversations SupportConversation[] @relation("SupportConversationAgent")
@@ -370,6 +371,24 @@ model WebPushSubscription {
   @@map("web_push_subscriptions")
 }
 
+// Constancia de que un negocio aceptó una versión del Acuerdo MIMO ↔ negocio
+// (ver `lib/legal/business-agreement.ts`). Una fila por negocio y versión:
+// cuando el acuerdo cambia de versión, se necesita una fila nueva. Si se
+// borra al usuario que aceptó, la constancia queda (`acceptedById` en null).
+model BusinessAgreementAcceptance {
+  id           String   @id @default(uuid()) @db.Uuid
+  businessId   String   @db.Uuid
+  business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  acceptedById String?  @db.Uuid
+  acceptedBy   User?    @relation(fields: [acceptedById], references: [id], onDelete: SetNull)
+  version      String
+  acceptedAt   DateTime @default(now())
+
+  @@unique([businessId, version])
+  @@index([acceptedById])
+  @@map("business_agreement_acceptances")
+}
+
 // ─────────────────────────────────────────────────────────────────────────
 // NEGOCIOS
 // ─────────────────────────────────────────────────────────────────────────
@@ -418,6 +437,7 @@ model Business {
   promotions       Promotion[]
   coverageRequests CoverageRequest[]
   paymentSplits    PaymentSplit[]
+  agreements       BusinessAgreementAcceptance[]
 
   ratingAvg   Float @default(0)
   ratingCount Int   @default(0)

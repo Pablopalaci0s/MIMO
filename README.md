@@ -1184,6 +1184,54 @@ soporte" está siempre visible en el chat — nunca queda atrapado en el bot.
 - Tests: `bot-rules.test.ts`, `bot-tools.test.ts`, `support.test.ts`
   (validación) y `anthropic-provider.test.ts` (`packages/ai`).
 
+## Diseño: acuerdo MIMO ↔ negocio (post-Fase 11)
+
+Requisito antes de abrir MIMO a negocios reales: un contrato que cada
+negocio acepta y del que queda constancia. El texto vive en
+`/terminos-negocios` (23 cláusulas: comisión, cuándo se cobra, qué pasa si
+no confirma o cancela, responsabilidad sobre productos/precios/inventario,
+tiempos de preparación, entrega, devoluciones, reseñas, fotos y marca,
+suspensión, fraude, documentación, impuestos, datos de compradores,
+terminación, ley aplicable) y cada cláusula refleja lo que el sistema
+**realmente hace hoy** — no se prometió nada que el código no cumpla.
+
+- **Versionado**: `lib/legal/business-agreement.ts` guarda
+  `BUSINESS_AGREEMENT_VERSION`. Hay que subirla cada vez que cambie el
+  texto. Ese mismo archivo es la fuente de los valores que el texto cita
+  (ventana de 45 min de `order-expiry-service`, 15 días de aviso), para que
+  página y código no se contradigan.
+- **Constancia**: modelo `BusinessAgreementAcceptance` (negocio, versión,
+  fecha, quién aceptó; una fila por negocio y versión, idempotente). Si se
+  borra al usuario, la constancia queda.
+- **Registro** (`/registro-negocio`): casilla obligatoria (sin marcar de
+  entrada, el botón queda deshabilitado). El formulario manda la versión que
+  mostró y el servidor la compara con la vigente (`AGREEMENT_OUTDATED` si la
+  página quedó abierta durante un cambio). La constancia se crea en la misma
+  transacción que la cuenta y el negocio.
+- **Negocios ya registrados / versión nueva**: aviso con casilla en el panel
+  de negocio (`AgreementBanner`, `POST /api/negocio/acuerdo`). Los negocios
+  demo no lo necesitan.
+- **Aprobación**: el admin no puede aprobar ni reactivar un negocio real que
+  no aceptó la versión vigente (`AGREEMENT_PENDING`, con el motivo visible en
+  la fila). `/admin/negocios` muestra "Acuerdo aceptado / Sin aceptar el
+  acuerdo".
+- Verificado en navegador con un negocio de prueba (luego borrado): registro
+  → constancia en la base → intento de aprobar sin constancia (bloqueado) →
+  aviso en el panel → aceptar → aprobar. Tests: `business-agreement-service`
+  y los esquemas de validación.
+- **Decisiones del dueño del producto que el texto fija y conviene
+  confirmar con un abogado salvadoreño antes de abrir**: comisión estándar
+  10% sobre productos + envío; MIMO absorbe el costo de PayPal (tu neto es
+  bruto − comisión); aviso previo de 15 días para cambiar comisión o
+  acuerdo; derecho de MIMO a descontar reembolsos de pagos futuros del
+  negocio; competencia de los tribunales de San Salvador.
+- **Huecos conocidos, dichos tal cual en el contrato**: (1) la comisión de los
+  pedidos en **efectivo** no tiene mecanismo de cobro todavía — el acuerdo dice
+  que MIMO no la cobra hasta comunicar uno con 15 días de aviso; (2) solo los
+  pedidos pagados con PayPal vencen solos a los 45 min (los de efectivo sin
+  confirmar los cancela MIMO a mano); (3) la documentación del negocio (DUI,
+  NIT, permisos) se pide por soporte, no hay carga de archivos.
+
 ## Diseño: paneles como app separada (post-Fase 6, rediseño)
 
 `/negocio` y `/admin` dejaron de ser páginas más del sitio con pestañas

@@ -3,6 +3,7 @@ import {
   forgotPasswordSchema,
   loginSchema,
   passwordChangeSchema,
+  businessAgreementAcceptSchema,
   registerBusinessSchema,
   registerSchema,
   resetPasswordSchema,
@@ -65,10 +66,17 @@ describe("registerBusinessSchema", () => {
     municipalityId: "8f14e45f-ceea-467e-adf1-4e9c66c1a0d3",
     addressLine: "Colonia Escalón, calle 1",
     password: "Abcdef12",
+    acceptedAgreementVersion: "2026-10-05",
   };
 
   it("acepta datos válidos", () => {
     expect(() => registerBusinessSchema.parse(valid)).not.toThrow();
+  });
+
+  it("exige haber aceptado el acuerdo para negocios", () => {
+    const { acceptedAgreementVersion: _version, ...rest } = valid;
+    expect(() => registerBusinessSchema.parse(rest)).toThrow();
+    expect(() => registerBusinessSchema.parse({ ...valid, acceptedAgreementVersion: "  " })).toThrow();
   });
 
   it("el teléfono NO es opcional acá (a diferencia de registerSchema)", () => {
@@ -78,6 +86,14 @@ describe("registerBusinessSchema", () => {
 
   it("requiere un municipalityId con formato UUID", () => {
     expect(() => registerBusinessSchema.parse({ ...valid, municipalityId: "no-es-uuid" })).toThrow();
+  });
+});
+
+describe("businessAgreementAcceptSchema", () => {
+  it("pide la versión que se está aceptando", () => {
+    expect(businessAgreementAcceptSchema.parse({ version: " 2026-10-05 " }).version).toBe("2026-10-05");
+    expect(() => businessAgreementAcceptSchema.parse({})).toThrow();
+    expect(() => businessAgreementAcceptSchema.parse({ version: "" })).toThrow();
   });
 });
 

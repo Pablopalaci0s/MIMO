@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { apiErrorMessage } from "@/lib/api-error-message";
 import type { AdminBusinessDTO, BusinessStatus } from "@mimo/types";
 
 const STATUS_VARIANT: Record<BusinessStatus, "default" | "secondary" | "outline" | "destructive"> = {
@@ -38,20 +39,26 @@ export function BusinessRow({ business }: { business: AdminBusinessDTO }) {
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
   const [commissionRate, setCommissionRate] = useState(String(business.commissionRate));
+  const [error, setError] = useState<string | null>(null);
 
   async function update(
     input: { status?: BusinessStatus; verified?: boolean; commissionRate?: number },
     key: string,
   ) {
     setLoading(key);
+    setError(null);
     const response = await fetch(`/api/admin/negocios/${business.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(input),
     });
     setLoading(null);
-    if (!response.ok && input.commissionRate !== undefined) {
-      setCommissionRate(String(business.commissionRate));
+    if (!response.ok) {
+      // Ej. "todavía no aceptó el Acuerdo MIMO ↔ negocio": el admin tiene
+      // que ver por qué no se aprobó, no que el botón "no hizo nada".
+      const body = await response.json().catch(() => null);
+      setError(apiErrorMessage(body, "No se pudo guardar el cambio."));
+      if (input.commissionRate !== undefined) setCommissionRate(String(business.commissionRate));
       return;
     }
     router.refresh();
@@ -71,6 +78,12 @@ export function BusinessRow({ business }: { business: AdminBusinessDTO }) {
       </td>
       <td className="py-3">
         <Badge variant={STATUS_VARIANT[business.status]}>{STATUS_LABEL[business.status]}</Badge>
+        {!business.isDemo && (
+          <p className={`mt-1 text-xs ${business.agreementAccepted ? "text-neutral-400" : "text-amber-600"}`}>
+            {business.agreementAccepted ? "Acuerdo aceptado" : "Sin aceptar el acuerdo"}
+          </p>
+        )}
+        {error && <p className="mt-1 max-w-48 text-xs text-destructive">{error}</p>}
       </td>
       <td className="py-3 text-neutral-500">{business.ownerEmail ?? "—"}</td>
       <td className="py-3 text-neutral-500">{business.municipalityName ?? "—"}</td>

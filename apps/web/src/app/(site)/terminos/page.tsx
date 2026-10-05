@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -5,7 +6,7 @@ export const metadata: Metadata = {
   description: "Términos y condiciones de uso de MIMO.",
 };
 
-const LAST_UPDATED = "10 de septiembre de 2026";
+const LAST_UPDATED = "5 de octubre de 2026";
 
 export default function TerminosPage() {
   return (
@@ -41,10 +42,11 @@ export default function TerminosPage() {
         <p>
           Los precios se muestran en dólares estadounidenses (USD) e incluyen el detalle
           elegido; el costo de envío depende de la zona de entrega configurada por cada negocio y
-          se muestra antes de confirmar el pedido. Por ahora MIMO solo procesa{" "}
-          <strong>pago contra entrega en efectivo</strong> — no se captura ningún cobro al hacer
-          el pedido. Si en el futuro se habilita pago con tarjeta u otro medio, este apartado se
-          actualizará antes de activarlo.
+          se muestra antes de confirmar el pedido. Podés pagar{" "}
+          <strong>contra entrega en efectivo</strong> o <strong>en línea con PayPal</strong>. Con
+          PayPal se cobra el total al hacer el pedido, y el pago se le entrega al negocio cuando
+          confirma su parte; si un negocio no confirma su parte a tiempo, esa parte se cancela y se
+          te reembolsa automáticamente. El pago en efectivo no cobra nada al hacer el pedido.
         </p>
         <p>
           Un negocio puede no tener cobertura de entrega para tu zona; en ese caso el pedido no
@@ -70,8 +72,12 @@ export default function TerminosPage() {
         <p>
           Los negocios son responsables de la exactitud de su catálogo, precios, disponibilidad,
           y de cumplir con la normativa salvadoreña aplicable a su actividad (permisos,
-          facturación, etc.). MIMO puede suspender o rechazar negocios que no cumplan estos
-          términos o que reciban reportes reiterados.
+          facturación, etc.). Cada negocio acepta además el{" "}
+          <Link href="/terminos-negocios" className="underline">
+            Acuerdo MIMO ↔ negocio
+          </Link>
+          , que regula comisión, pagos, cancelaciones y responsabilidades. MIMO puede suspender o
+          rechazar negocios que no cumplan estos términos o que reciban reportes reiterados.
         </p>
 
         <h2>7. Límite de responsabilidad</h2>

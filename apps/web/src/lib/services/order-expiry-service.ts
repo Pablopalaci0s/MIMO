@@ -1,12 +1,15 @@
 import { prisma } from "@mimo/database";
+import { ORDER_CONFIRMATION_WINDOW_MINUTES } from "@/lib/legal/business-agreement";
 import { createNotification } from "./notification-service";
 import { computeOrderStatus } from "./order-status-logic";
 import { resolvePaymentSplitOnCancel } from "./payment-split-service";
 
 /** Cuánto tiempo tiene un negocio para confirmar su parte de un pedido ya
  * pagado con PayPal antes de que se cancele sola y se le reembolse al
- * comprador — ver README, "Diseño: pagos con PayPal". */
-const CONFIRM_WINDOW_MINUTES = 45;
+ * comprador — ver README, "Diseño: pagos con PayPal". El valor vive en
+ * `legal/business-agreement.ts` porque el Acuerdo con los negocios lo
+ * promete por escrito. */
+const CONFIRM_WINDOW_MINUTES = ORDER_CONFIRMATION_WINDOW_MINUTES;
 
 /**
  * El job programado que hace real la promesa de "si el negocio no confirma
