@@ -4,6 +4,7 @@ import { geistSans, geistMono } from "@/lib/fonts";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
+import { SupportWidgetLoader } from "@/components/support/support-widget-loader";
 import { pwaMetadata, pwaViewport } from "@/lib/pwa-metadata";
 import { Providers } from "../providers";
 
@@ -51,6 +52,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
           <main className="flex min-w-0 flex-1 flex-col">{children}</main>
           <Footer />
           <BottomNav />
+          <SupportWidgetLoader />
         </Providers>
       </body>
     </html>

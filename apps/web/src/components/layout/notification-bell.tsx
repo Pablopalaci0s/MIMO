@@ -4,6 +4,7 @@ import {
   Bell,
   CalendarHeart,
   CheckCheck,
+  LifeBuoy,
   MessageCircle,
   MessageSquareText,
   Package,
@@ -34,6 +35,7 @@ const ICON: Record<NotificationType, ReactNode> = {
   PROMOTION: <Tag className="size-4" />,
   SYSTEM: <Bell className="size-4" />,
   ORDER_MESSAGE: <MessageCircle className="size-4" />,
+  SUPPORT_MESSAGE: <LifeBuoy className="size-4" />,
 };
 
 function timeAgo(iso: string): string {

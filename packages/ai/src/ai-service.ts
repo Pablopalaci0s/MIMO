@@ -9,7 +9,7 @@ import type {
 } from "@mimo/types";
 import { toProductSummaryDTO } from "./dto";
 import { parseIntentHeuristically } from "./heuristics";
-import type { AIProvider } from "./provider";
+import type { AIProvider, ConverseRequest, ConverseResult } from "./provider";
 import { AnthropicProvider } from "./providers/anthropic-provider";
 import { explainMatch, scoreProductsForIntent } from "./scoring";
 
@@ -69,6 +69,17 @@ export class AIService {
       }
     }
     return { intent: parseIntentHeuristically(message), usedAI: false };
+  }
+
+  /**
+   * Conversación con herramientas (chat de soporte). A diferencia de los
+   * otros métodos, acá NO hay un respaldo interno: la alternativa sin IA
+   * necesita datos y reglas de la app (base de conocimiento, pedidos), así
+   * que quien llama revisa `isAIAvailable` y arma su propio respaldo.
+   */
+  async converse(request: ConverseRequest): Promise<ConverseResult> {
+    if (!this.provider) throw new Error("No hay un proveedor de IA configurado");
+    return this.provider.converse(request);
   }
 
   explainRecommendation(scored: Parameters<typeof explainMatch>[0], intent: ParsedGiftIntent): string {

@@ -86,14 +86,16 @@ enum PaymentStatus {
   PARTIALLY_REFUNDED
 }
 
-/** Cuánto de un `Payment` (que puede cubrir varios negocios en un carrito
+/**
+ * Cuánto de un `Payment` (que puede cubrir varios negocios en un carrito
  * multi-tienda) le corresponde a cada negocio, y qué pasó con esa parte:
  * PENDING hasta que el negocio confirma o cancela su parte del pedido;
  * PAID_OUT cuando ya se le mandó por PayPal Payouts; PAYOUT_FAILED si
  * confirmó pero no se le pudo pagar (ej. no tiene `paypalEmail` cargado, ver
  * `Business.paypalEmail`); REFUNDED si no confirmó a tiempo y se le
  * reembolsó esa parte al comprador. Solo aplica a pagos ya capturados
- * (PayPal hoy) — CASH no genera `PaymentSplit`. */
+ * (PayPal hoy) — CASH no genera `PaymentSplit`.
+ */
 enum PaymentSplitStatus {
   PENDING
   PAID_OUT
@@ -134,6 +136,20 @@ enum NotificationType {
   PROMOTION
   SYSTEM
   ORDER_MESSAGE
+  SUPPORT_MESSAGE
+}
+
+enum SupportConversationStatus {
+  BOT
+  WAITING_AGENT
+  WITH_AGENT
+  RESOLVED
+}
+
+enum SupportMessageRole {
+  USER
+  BOT
+  AGENT
 }
 
 enum PromotionDiscountType {
@@ -182,24 +198,24 @@ model Department {
 }
 
 model Municipality {
-  id           String         @id @default(uuid()) @db.Uuid
-  name         String
-  slug         String
-  departmentId String         @db.Uuid
-  department   Department     @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-  latitude     Float?
-  longitude    Float?
+  id               String            @id @default(uuid()) @db.Uuid
+  name             String
+  slug             String
+  departmentId     String            @db.Uuid
+  department       Department        @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  latitude         Float?
+  longitude        Float?
   // Los antiguos municipios (pre-reforma territorial 2021) que hoy quedaron
   // agrupados dentro de este municipio — solo informativo (ej. "San Salvador
   // Centro" incluye "Mejicanos", "Ciudad Delgado"...), no es una entidad
   // seleccionable propia: no hace falta un nivel más de jerarquía para que
   // un negocio elija su zona de entrega.
-  districts    String[]       @default([])
-  businesses     Business[]
-  deliveryZones  DeliveryZone[]
-  orderAddresses OrderAddress[]
+  districts        String[]          @default([])
+  businesses       Business[]
+  deliveryZones    DeliveryZone[]
+  orderAddresses   OrderAddress[]
   coverageRequests CoverageRequest[]
-  createdAt    DateTime       @default(now())
+  createdAt        DateTime          @default(now())
 
   @@unique([departmentId, slug])
   @@index([departmentId])
@@ -223,23 +239,27 @@ model User {
   accounts Account[]
   sessions Session[]
 
-  businessMemberships BusinessUser[]
-  orders              Order[]
-  reviews             Review[]
-  favorites           Favorite[]
-  importantDates      ImportantDate[]
-  notifications       Notification[]
-  aiConversations     AIConversation[]
-  aiRecommendations   AIRecommendation[]
-  reports             Report[]
-  pushTokens          PushToken[]
+  businessMemberships  BusinessUser[]
+  orders               Order[]
+  reviews              Review[]
+  favorites            Favorite[]
+  importantDates       ImportantDate[]
+  notifications        Notification[]
+  aiConversations      AIConversation[]
+  aiRecommendations    AIRecommendation[]
+  reports              Report[]
+  pushTokens           PushToken[]
   webPushSubscriptions WebPushSubscription[]
-  coverageRequests    CoverageRequest[]
-  authTokens          AuthToken[]
-  orderMessages       OrderMessage[]
-  giftRegistries      GiftRegistry[]
-  groupGifts          GroupGift[]
-  adminActionLogs     AdminActionLog[]
+  coverageRequests     CoverageRequest[]
+  authTokens           AuthToken[]
+  orderMessages        OrderMessage[]
+  giftRegistries       GiftRegistry[]
+  groupGifts           GroupGift[]
+  adminActionLogs      AdminActionLog[]
+
+  supportConversations         SupportConversation[] @relation("SupportConversationUser")
+  assignedSupportConversations SupportConversation[] @relation("SupportConversationAgent")
+  supportMessagesSent          SupportMessage[]      @relation("SupportMessageSender")
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -355,10 +375,10 @@ model WebPushSubscription {
 // ─────────────────────────────────────────────────────────────────────────
 
 model Business {
-  id          String         @id @default(uuid()) @db.Uuid
+  id          String  @id @default(uuid()) @db.Uuid
   name        String
-  slug        String         @unique
-  description String?        @db.Text
+  slug        String  @unique
+  description String? @db.Text
   logoUrl     String?
   coverUrl    String?
   phone       String?
@@ -382,13 +402,13 @@ model Business {
   commissionRate Decimal @default(10) @db.Decimal(5, 2)
   paypalEmail    String?
 
-  municipalityId       String?  @db.Uuid
-  municipality         Municipality? @relation(fields: [municipalityId], references: [id])
-  addressLine          String?
-  latitude             Float?
-  longitude            Float?
-  openingHours         Json? // { mon: ["09:00","18:00"], ... }
-  preparationTimeMinutes Int    @default(60)
+  municipalityId         String?       @db.Uuid
+  municipality           Municipality? @relation(fields: [municipalityId], references: [id])
+  addressLine            String?
+  latitude               Float?
+  longitude              Float?
+  openingHours           Json? // { mon: ["09:00","18:00"], ... }
+  preparationTimeMinutes Int           @default(60)
 
   members          BusinessUser[]
   products         Product[]
@@ -426,17 +446,17 @@ model BusinessUser {
 }
 
 model DeliveryZone {
-  id                  String        @id @default(uuid()) @db.Uuid
-  businessId          String        @db.Uuid
-  business            Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  name                String
-  municipalityId      String?       @db.Uuid
-  municipality        Municipality? @relation(fields: [municipalityId], references: [id])
-  deliveryFee         Decimal       @default(0) @db.Decimal(10, 2)
-  estimatedMinutes    Int           @default(60)
-  isActive            Boolean       @default(true)
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
+  id               String        @id @default(uuid()) @db.Uuid
+  businessId       String        @db.Uuid
+  business         Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name             String
+  municipalityId   String?       @db.Uuid
+  municipality     Municipality? @relation(fields: [municipalityId], references: [id])
+  deliveryFee      Decimal       @default(0) @db.Decimal(10, 2)
+  estimatedMinutes Int           @default(60)
+  isActive         Boolean       @default(true)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
   @@index([businessId])
   @@index([municipalityId])
@@ -475,18 +495,18 @@ model CoverageRequest {
 // ─────────────────────────────────────────────────────────────────────────
 
 model Category {
-  id          String    @id @default(uuid()) @db.Uuid
+  id          String     @id @default(uuid()) @db.Uuid
   name        String
-  slug        String    @unique
+  slug        String     @unique
   emoji       String?
   description String?
-  parentId    String?   @db.Uuid
-  parent      Category? @relation("CategoryToParent", fields: [parentId], references: [id])
+  parentId    String?    @db.Uuid
+  parent      Category?  @relation("CategoryToParent", fields: [parentId], references: [id])
   children    Category[] @relation("CategoryToParent")
-  position    Int       @default(0)
+  position    Int        @default(0)
   products    Product[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
   @@index([parentId])
   @@map("categories")
@@ -495,30 +515,30 @@ model Category {
 // Cubre tanto ocasiones (cumpleaños, aniversario) como categorías
 // emocionales (te amo, perdón, gracias) — ver sección 14.
 model Occasion {
-  id        String           @id @default(uuid()) @db.Uuid
+  id        String            @id @default(uuid()) @db.Uuid
   name      String
-  slug      String           @unique
+  slug      String            @unique
   emoji     String?
-  type      OccasionType     @default(OCCASION)
+  type      OccasionType      @default(OCCASION)
   products  ProductOccasion[]
-  createdAt DateTime         @default(now())
+  createdAt DateTime          @default(now())
 
   @@map("occasions")
 }
 
 model Product {
-  id          String        @id @default(uuid()) @db.Uuid
-  businessId  String        @db.Uuid
-  business    Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  categoryId  String        @db.Uuid
-  category    Category      @relation(fields: [categoryId], references: [id])
+  id         String   @id @default(uuid()) @db.Uuid
+  businessId String   @db.Uuid
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  categoryId String   @db.Uuid
+  category   Category @relation(fields: [categoryId], references: [id])
 
-  name        String
-  slug        String        @unique
-  description String        @db.Text
-  price       Decimal       @db.Decimal(10, 2)
-  compareAtPrice Decimal?   @db.Decimal(10, 2)
-  currency    String        @default("USD")
+  name           String
+  slug           String   @unique
+  description    String   @db.Text
+  price          Decimal  @db.Decimal(10, 2)
+  compareAtPrice Decimal? @db.Decimal(10, 2)
+  currency       String   @default("USD")
 
   stock                  Int     @default(0)
   isPersonalizable       Boolean @default(false)
@@ -526,20 +546,20 @@ model Product {
   preparationTimeMinutes Int     @default(60)
 
   status ProductStatus @default(ACTIVE)
-  isDemo Boolean        @default(false)
+  isDemo Boolean       @default(false)
 
   ratingAvg   Float @default(0)
   ratingCount Int   @default(0)
   salesCount  Int   @default(0)
 
-  images       ProductImage[]
-  occasions    ProductOccasion[]
-  orderItems   OrderItem[]
-  reviews      Review[]
-  favorites    Favorite[]
+  images          ProductImage[]
+  occasions       ProductOccasion[]
+  orderItems      OrderItem[]
+  reviews         Review[]
+  favorites       Favorite[]
   aiRecommendedIn AIRecommendationProduct[]
-  registryItems GiftRegistryItem[]
-  groupGifts    GroupGift[]
+  registryItems   GiftRegistryItem[]
+  groupGifts      GroupGift[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -620,20 +640,20 @@ model Coupon {
 // ─────────────────────────────────────────────────────────────────────────
 
 model Order {
-  id          String      @id @default(uuid()) @db.Uuid
-  orderNumber String      @unique
-  buyerId     String      @db.Uuid
-  buyer       User        @relation(fields: [buyerId], references: [id])
+  id          String @id @default(uuid()) @db.Uuid
+  orderNumber String @unique
+  buyerId     String @db.Uuid
+  buyer       User   @relation(fields: [buyerId], references: [id])
 
   buyerName  String
   buyerEmail String
   buyerPhone String
 
-  status       OrderStatus @default(PENDING)
-  subtotal     Decimal     @db.Decimal(10, 2)
-  deliveryFee  Decimal     @default(0) @db.Decimal(10, 2)
-  total        Decimal     @db.Decimal(10, 2)
-  currency     String      @default("USD")
+  status      OrderStatus @default(PENDING)
+  subtotal    Decimal     @db.Decimal(10, 2)
+  deliveryFee Decimal     @default(0) @db.Decimal(10, 2)
+  total       Decimal     @db.Decimal(10, 2)
+  currency    String      @default("USD")
 
   // Cupón de plataforma aplicado (opcional) — `couponCode` queda guardado
   // en el pedido aunque el cupón se borre/desactive después, para que el
@@ -641,15 +661,15 @@ model Order {
   couponCode     String?
   discountAmount Decimal @default(0) @db.Decimal(10, 2)
 
-  isSurpriseMode        Boolean @default(false)
-  surpriseInstructions  String? @db.Text
+  isSurpriseMode         Boolean @default(false)
+  surpriseInstructions   String? @db.Text
   hideBuyerFromRecipient Boolean @default(false)
 
-  items      OrderItem[]
-  address    OrderAddress?
-  payment    Payment?
-  reviews    Review[]
-  messages   OrderMessage[]
+  items    OrderItem[]
+  address  OrderAddress?
+  payment  Payment?
+  reviews  Review[]
+  messages OrderMessage[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -662,15 +682,15 @@ model Order {
 // Cada línea pertenece a un negocio; así el pedido queda dividido
 // internamente por vendedor aunque el carrito sea multi-tienda.
 model OrderItem {
-  id         String          @id @default(uuid()) @db.Uuid
-  orderId    String          @db.Uuid
-  order      Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId  String          @db.Uuid
-  product    Product         @relation(fields: [productId], references: [id])
-  businessId String          @db.Uuid
+  id         String  @id @default(uuid()) @db.Uuid
+  orderId    String  @db.Uuid
+  order      Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId  String  @db.Uuid
+  product    Product @relation(fields: [productId], references: [id])
+  businessId String  @db.Uuid
 
-  quantity     Int     @default(1)
-  unitPrice    Decimal @db.Decimal(10, 2)
+  quantity        Int     @default(1)
+  unitPrice       Decimal @db.Decimal(10, 2)
   personalization Json? // { message, dedication, color, size, cardText }
 
   status OrderItemStatus @default(PENDING)
@@ -726,9 +746,9 @@ model OrderAddress {
   latitude       Float?
   longitude      Float?
 
-  deliveryDate     DateTime
-  deliveryWindow   DeliveryWindow @default(ASAP)
-  deliveryInstructions String?    @db.Text
+  deliveryDate         DateTime
+  deliveryWindow       DeliveryWindow @default(ASAP)
+  deliveryInstructions String?        @db.Text
 
   createdAt DateTime @default(now())
 
@@ -736,18 +756,18 @@ model OrderAddress {
 }
 
 model Payment {
-  id         String          @id @default(uuid()) @db.Uuid
-  orderId    String          @unique @db.Uuid
-  order      Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  provider   PaymentProvider
-  status     PaymentStatus   @default(PENDING)
-  amount     Decimal         @db.Decimal(10, 2)
-  currency   String          @default("USD")
+  id                String          @id @default(uuid()) @db.Uuid
+  orderId           String          @unique @db.Uuid
+  order             Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  provider          PaymentProvider
+  status            PaymentStatus   @default(PENDING)
+  amount            Decimal         @db.Decimal(10, 2)
+  currency          String          @default("USD")
   providerOrderId   String? // id de orden de PayPal (checkout), previo a la captura
   providerReference String? // id de la captura de PayPal una vez cobrado
-  paidAt     DateTime?
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
+  paidAt            DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 
   splits PaymentSplit[]
 
@@ -755,10 +775,10 @@ model Payment {
 }
 
 model PaymentSplit {
-  id         String  @id @default(uuid()) @db.Uuid
-  paymentId  String  @db.Uuid
-  payment    Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
-  businessId String  @db.Uuid
+  id         String   @id @default(uuid()) @db.Uuid
+  paymentId  String   @db.Uuid
+  payment    Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  businessId String   @db.Uuid
   business   Business @relation(fields: [businessId], references: [id])
 
   grossAmount      Decimal            @db.Decimal(10, 2)
@@ -782,20 +802,20 @@ model PaymentSplit {
 // ─────────────────────────────────────────────────────────────────────────
 
 model Review {
-  id         String @id @default(uuid()) @db.Uuid
-  userId     String @db.Uuid
-  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orderId    String @db.Uuid
-  order      Order  @relation(fields: [orderId], references: [id])
-  productId  String? @db.Uuid
-  product    Product? @relation(fields: [productId], references: [id])
-  businessId String? @db.Uuid
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @db.Uuid
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderId    String    @db.Uuid
+  order      Order     @relation(fields: [orderId], references: [id])
+  productId  String?   @db.Uuid
+  product    Product?  @relation(fields: [productId], references: [id])
+  businessId String?   @db.Uuid
   business   Business? @relation(fields: [businessId], references: [id])
 
   productRating  Int?
   businessRating Int?
   deliveryRating Int?
-  comment        String? @db.Text
+  comment        String?  @db.Text
   images         String[] @default([])
 
   status ModerationStatus @default(PENDING)
@@ -838,15 +858,15 @@ model Favorite {
  * listas de regalos", y la regla de no fingir funcionalidad que no existe).
  */
 model GiftRegistry {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @db.Uuid
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  slug      String   @unique
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slug      String    @unique
   title     String
   eventType String?
   eventDate DateTime?
-  message   String?  @db.Text
-  isActive  Boolean  @default(true)
+  message   String?   @db.Text
+  isActive  Boolean   @default(true)
 
   items GiftRegistryItem[]
 
@@ -902,14 +922,14 @@ enum GroupGiftContributionStatus {
  * quien haga la compra real — ver README, "Diseño: cabudas".
  */
 model GroupGift {
-  id          String   @id @default(uuid()) @db.Uuid
-  organizerId String   @db.Uuid
-  organizer   User     @relation(fields: [organizerId], references: [id], onDelete: Cascade)
-  slug        String   @unique
+  id          String  @id @default(uuid()) @db.Uuid
+  organizerId String  @db.Uuid
+  organizer   User    @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+  slug        String  @unique
   title       String
-  message     String?  @db.Text
-  productId   String   @db.Uuid
-  product     Product  @relation(fields: [productId], references: [id])
+  message     String? @db.Text
+  productId   String  @db.Uuid
+  product     Product @relation(fields: [productId], references: [id])
 
   targetAmount         Decimal   @db.Decimal(10, 2)
   deadline             DateTime?
@@ -949,16 +969,16 @@ model GroupGiftContribution {
 // ─────────────────────────────────────────────────────────────────────────
 
 model ImportantDate {
-  id             String            @id @default(uuid()) @db.Uuid
-  userId         String            @db.Uuid
-  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type           ImportantDateType
-  label          String
-  date           DateTime
-  recipientName  String?
-  remindDaysBefore Int             @default(7)
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
+  id               String            @id @default(uuid()) @db.Uuid
+  userId           String            @db.Uuid
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type             ImportantDateType
+  label            String
+  date             DateTime
+  recipientName    String?
+  remindDaysBefore Int               @default(7)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 
   @@index([userId])
   @@map("important_dates")
@@ -980,20 +1000,20 @@ model Notification {
 }
 
 model Promotion {
-  id             String                @id @default(uuid()) @db.Uuid
-  businessId     String?               @db.Uuid
-  business       Business?             @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  code           String?               @unique
-  title          String
-  description    String?
-  discountType   PromotionDiscountType
-  discountValue  Decimal               @db.Decimal(10, 2)
-  isFeatured     Boolean               @default(false)
-  isActive       Boolean               @default(true)
-  startsAt       DateTime
-  endsAt         DateTime
-  createdAt      DateTime              @default(now())
-  updatedAt      DateTime              @updatedAt
+  id            String                @id @default(uuid()) @db.Uuid
+  businessId    String?               @db.Uuid
+  business      Business?             @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  code          String?               @unique
+  title         String
+  description   String?
+  discountType  PromotionDiscountType
+  discountValue Decimal               @db.Decimal(10, 2)
+  isFeatured    Boolean               @default(false)
+  isActive      Boolean               @default(true)
+  startsAt      DateTime
+  endsAt        DateTime
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
 
   @@index([businessId])
   @@index([isActive])
@@ -1020,14 +1040,14 @@ model AIConversation {
 }
 
 model AIRecommendation {
-  id             String   @id @default(uuid()) @db.Uuid
-  userId         String?  @db.Uuid
-  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  sessionId      String?
-  requestText    String   @db.Text
-  parsedIntent   Json // { recipient, relationship, occasion, budget, likes, location, date }
-  products       AIRecommendationProduct[]
-  createdAt      DateTime @default(now())
+  id           String                    @id @default(uuid()) @db.Uuid
+  userId       String?                   @db.Uuid
+  user         User?                     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  sessionId    String?
+  requestText  String                    @db.Text
+  parsedIntent Json // { recipient, relationship, occasion, budget, likes, location, date }
+  products     AIRecommendationProduct[]
+  createdAt    DateTime                  @default(now())
 
   @@index([userId])
   @@map("ai_recommendations")
@@ -1036,14 +1056,14 @@ model AIRecommendation {
 // Productos reales de la base de datos que la IA recomendó, con la
 // explicación mostrada al usuario — nunca datos inventados por el modelo.
 model AIRecommendationProduct {
-  id                 String           @id @default(uuid()) @db.Uuid
-  recommendationId   String           @db.Uuid
-  recommendation     AIRecommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
-  productId          String           @db.Uuid
-  product            Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
-  position           Int              @default(0)
-  explanation        String           @db.Text
-  createdAt          DateTime         @default(now())
+  id               String           @id @default(uuid()) @db.Uuid
+  recommendationId String           @db.Uuid
+  recommendation   AIRecommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  productId        String           @db.Uuid
+  product          Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  position         Int              @default(0)
+  explanation      String           @db.Text
+  createdAt        DateTime         @default(now())
 
   @@index([recommendationId])
   @@index([productId])
@@ -1121,4 +1141,67 @@ model AdminActionLog {
   @@index([targetType, targetId])
   @@index([createdAt])
   @@map("admin_action_logs")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// SOPORTE (CHATBOT + ESCALADA A HUMANO)
+// ─────────────────────────────────────────────────────────────────────────
+
+/**
+ * Una conversación del chat de soporte. Arranca atendida por el asistente
+ * virtual (`BOT`); si el bot no puede resolverlo, o la persona pide hablar
+ * con alguien, pasa a `WAITING_AGENT` (aparece en la bandeja de
+ * /admin/soporte) y cuando un administrador responde, a `WITH_AGENT` — a
+ * partir de ahí el bot no vuelve a hablar en esa conversación.
+ * `userId` es opcional a propósito: un visitante sin cuenta también puede
+ * preguntar. En ese caso la conversación se identifica solo por su `id`
+ * (uuid v4, no adivinable), que el navegador guarda en localStorage — y
+ * `guestName`/`guestEmail` se piden recién al escalar a una persona, para
+ * poder responderle por correo si no vuelve al chat.
+ */
+model SupportConversation {
+  id               String                    @id @default(uuid()) @db.Uuid
+  userId           String?                   @db.Uuid
+  user             User?                     @relation("SupportConversationUser", fields: [userId], references: [id], onDelete: SetNull)
+  guestName        String?
+  guestEmail       String?
+  status           SupportConversationStatus @default(BOT)
+  /// Resumen para quien atiende — lo escribe el bot al escalar, así la
+  /// persona de soporte no tiene que leer todo el chat para entender.
+  summary          String?                   @db.Text
+  escalationReason String?                   @db.Text
+  assignedToId     String?                   @db.Uuid
+  assignedTo       User?                     @relation("SupportConversationAgent", fields: [assignedToId], references: [id], onDelete: SetNull)
+  /// Calificación 1–5 que deja la persona al cerrarse la conversación.
+  rating           Int?
+  escalatedAt      DateTime?
+  resolvedAt       DateTime?
+  lastMessageAt    DateTime                  @default(now())
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+
+  messages SupportMessage[]
+
+  @@index([status, lastMessageAt])
+  @@index([userId, status])
+  @@map("support_conversations")
+}
+
+model SupportMessage {
+  id             String              @id @default(uuid()) @db.Uuid
+  conversationId String              @db.Uuid
+  conversation   SupportConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           SupportMessageRole
+  body           String              @db.Text
+  /// Administrador que escribió el mensaje (solo `AGENT`).
+  senderId       String?             @db.Uuid
+  sender         User?               @relation("SupportMessageSender", fields: [senderId], references: [id], onDelete: SetNull)
+  /// Tarjetas que acompañan un mensaje del bot (productos, estado de un
+  /// pedido, respuestas rápidas) — guardadas para que al recargar el chat
+  /// se vea lo mismo que se vio en vivo.
+  metadata       Json?
+  createdAt      DateTime            @default(now())
+
+  @@index([conversationId, createdAt])
+  @@map("support_messages")
 }

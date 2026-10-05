@@ -106,7 +106,21 @@ export default function PrivacidadPage() {
             de tu cuenta. Si no hay un proveedor de IA configurado, estas funciones igual
             funcionan con reglas internas en vez de IA.
           </li>
+          <li>
+            <strong>Anthropic (Claude) en el chat de soporte:</strong> el asistente del chat le
+            manda a este proveedor lo que escribís en la conversación. Si le pedís el estado de
+            un pedido tuyo, también le llega el estado de ese pedido (productos, estado y pago),
+            pero nunca la dirección, el teléfono ni el correo del pedido. Sin proveedor de IA
+            configurado, el chat responde con reglas internas.
+          </li>
         </ul>
+        <p>
+          <strong>Chat de soporte.</strong> Guardamos las conversaciones del chat de ayuda. Si
+          pedís hablar con una persona, el equipo de MIMO puede leer esa conversación para
+          responderte. Si no tenés sesión iniciada, te pedimos tu nombre y correo solo en ese
+          momento, para poder contestarte. Estas conversaciones se conservan con el mismo criterio
+          que el resto de los datos de tu cuenta (sección 6).
+        </p>
         <p>
           Cada uno de estos proveedores procesa los datos que le compartimos según su propia
           política de privacidad, ajena a MIMO.

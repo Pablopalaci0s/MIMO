@@ -207,4 +207,6 @@ los Server Components (páginas) como las rutas `/api/*` (para que la
 futura app móvil use exactamente la misma lógica). Nunca poner lógica de
 negocio directamente en un componente o en una ruta. Existentes:
 `catalog-service`, `product-service`, `business-service`, `order-service`,
-`location-service`.
+`location-service`, `support-service` (conversaciones del chat de soporte y
+bandeja de admin) y `support-bot-service` (respuesta del asistente: IA con
+herramientas + motor de reglas de respaldo).

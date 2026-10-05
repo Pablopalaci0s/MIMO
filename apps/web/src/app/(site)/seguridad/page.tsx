@@ -77,6 +77,13 @@ export default function SeguridadPage() {
             panel.
           </li>
           <li>
+            <strong>Chat de soporte:</strong> el asistente solo consulta pedidos de la cuenta con
+            la que iniciaste sesión (el servidor decide a quién pertenece cada consulta, no la IA),
+            nunca le pasa a la IA tu dirección, teléfono ni correo, y limita la cantidad de
+            mensajes que se pueden mandar en un rato y por conversación para evitar abusos. Los visitantes sin cuenta
+            solo pueden ver su propia conversación.
+          </li>
+          <li>
             <strong>Monitoreo:</strong> usamos Sentry para enterarnos rápido si algo falla en el
             Sitio.
           </li>

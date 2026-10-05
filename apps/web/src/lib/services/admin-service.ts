@@ -24,6 +24,7 @@ export async function getAdminStats(): Promise<AdminStatsDTO> {
     pendingReports,
     pendingReviews,
     pendingCoverageRequests,
+    pendingSupport,
   ] = await Promise.all([
     prisma.user.count({ where: { deletedAt: null } }),
     prisma.business.count({ where: { deletedAt: null } }),
@@ -34,6 +35,7 @@ export async function getAdminStats(): Promise<AdminStatsDTO> {
     prisma.report.count({ where: { status: "OPEN" } }),
     prisma.review.count({ where: { status: "PENDING" } }),
     prisma.coverageRequest.count({ where: { status: "OPEN" } }),
+    prisma.supportConversation.count({ where: { status: "WAITING_AGENT" } }),
   ]);
 
   return {
@@ -46,5 +48,6 @@ export async function getAdminStats(): Promise<AdminStatsDTO> {
     pendingReports,
     pendingReviews,
     pendingCoverageRequests,
+    pendingSupport,
   };
 }

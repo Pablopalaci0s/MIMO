@@ -1,8 +1,23 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { GenerateDedicationRequest, ParsedGiftIntent } from "@mimo/types";
-import type { AIProvider } from "../provider";
+import { AIRefusalError, type AIProvider, type ConverseRequest, type ConverseResult } from "../provider";
 
 const MODEL = "claude-opus-5";
+
+/**
+ * El chat de soporte puede usar otro modelo que el resto de la IA del
+ * producto (ej. uno más barato/rápido, dado que cada mensaje de cada
+ * visitante pasa por acá) sin tocar código — por defecto, el mismo.
+ */
+const CHAT_MODEL = process.env.SUPPORT_AI_MODEL?.trim() || MODEL;
+
+/** `output_config.effort` lo rechaza la API en modelos viejos (ej. Haiku
+ * 4.5, Sonnet 4.5) — solo se manda donde está soportado. */
+function supportsEffort(model: string): boolean {
+  return /^claude-(opus-(4-[6-9]|5)|sonnet-(4-6|5)|fable)/.test(model);
+}
+
+const DEFAULT_MAX_TOOL_ROUNDS = 5;
 
 const INTENT_SYSTEM_PROMPT = `Eres el motor de interpretación de MIMO, un marketplace salvadoreño de regalos.
 Tu única tarea es leer lo que un usuario escribe sobre un regalo que quiere enviar y extraer su intención en JSON.
@@ -44,8 +59,9 @@ function firstTextBlock(message: Anthropic.Message): string {
 export class AnthropicProvider implements AIProvider {
   private readonly client: Anthropic;
 
-  constructor(apiKey: string) {
-    this.client = new Anthropic({ apiKey });
+  /** `client` solo se pasa en tests (un cliente falso con respuestas armadas). */
+  constructor(apiKey: string, client: Anthropic = new Anthropic({ apiKey })) {
+    this.client = client;
   }
 
   async analyzeIntent(message: string): Promise<ParsedGiftIntent> {
@@ -98,5 +114,81 @@ export class AnthropicProvider implements AIProvider {
     });
 
     return extractJson<string[]>(firstTextBlock(response));
+  }
+
+  /**
+   * Conversación con herramientas (bucle manual a propósito, no el tool
+   * runner del SDK): acá cada paso importa — se corta a las N rondas, un
+   * error de herramienta vuelve al modelo como `is_error` en vez de tumbar
+   * la conversación, y un rechazo del proveedor se distingue de un fallo
+   * técnico para que quien llama pueda pasar a una persona.
+   */
+  async converse(request: ConverseRequest): Promise<ConverseResult> {
+    const messages: Anthropic.MessageParam[] = request.messages.map((turn) => ({
+      role: turn.role,
+      content: turn.content,
+    }));
+    const tools: Anthropic.Tool[] = request.tools.map((tool) => ({
+      name: tool.name,
+      description: tool.description,
+      input_schema: tool.inputSchema,
+    }));
+    const maxRounds = request.maxToolRounds ?? DEFAULT_MAX_TOOL_ROUNDS;
+
+    for (let round = 0; round <= maxRounds; round++) {
+      const response = await this.client.messages.create(
+        {
+          model: CHAT_MODEL,
+          max_tokens: 4096,
+          ...(supportsEffort(CHAT_MODEL) ? { output_config: { effort: "low" as const } } : {}),
+          system: [
+            { type: "text", text: request.system, cache_control: { type: "ephemeral" } },
+            { type: "text", text: request.context },
+          ],
+          tools,
+          messages,
+        },
+        // Un cliente esperando una respuesta no puede aguantar el timeout
+        // por defecto (10 min) ni reintentos en cadena.
+        { timeout: 45_000, maxRetries: 1 },
+      );
+
+      if (response.stop_reason === "refusal") throw new AIRefusalError();
+
+      if (response.stop_reason === "tool_use") {
+        // Se devuelve el contenido completo (incluye los bloques de
+        // pensamiento) — el modelo los necesita de vuelta intactos.
+        messages.push({ role: "assistant", content: response.content });
+
+        const results: Anthropic.ToolResultBlockParam[] = [];
+        for (const block of response.content) {
+          if (block.type !== "tool_use") continue;
+          try {
+            const output = await request.executeTool(block.name, block.input);
+            results.push({ type: "tool_result", tool_use_id: block.id, content: output });
+          } catch (error) {
+            const message = error instanceof Error ? error.message : "Error desconocido";
+            results.push({
+              type: "tool_result",
+              tool_use_id: block.id,
+              content: `Error: ${message}`,
+              is_error: true,
+            });
+          }
+        }
+        messages.push({ role: "user", content: results });
+        continue;
+      }
+
+      const text = response.content
+        .filter((block): block is Anthropic.TextBlock => block.type === "text")
+        .map((block) => block.text)
+        .join("\n")
+        .trim();
+      if (!text) throw new Error("La respuesta de Anthropic no incluyó texto");
+      return { text };
+    }
+
+    throw new Error(`El modelo no terminó después de ${maxRounds} rondas de herramientas`);
   }
 }

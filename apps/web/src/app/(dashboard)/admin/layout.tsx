@@ -1,4 +1,4 @@
-import { Building2, GalleryHorizontal, History, LayoutDashboard, MapPin, MessageSquareWarning, Star, Tags, TicketPercent, Users } from "lucide-react";
+import { Building2, GalleryHorizontal, History, LayoutDashboard, LifeBuoy, MapPin, MessageSquareWarning, Star, Tags, TicketPercent, Users } from "lucide-react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { auth } from "@mimo/auth";
@@ -8,6 +8,7 @@ export const metadata: Metadata = { title: "Panel administrativo — MIMO" };
 
 const NAV_ITEMS: DashboardNavItem[] = [
   { href: "/admin", label: "Resumen", icon: <LayoutDashboard className="size-4" />, exact: true },
+  { href: "/admin/soporte", label: "Soporte", icon: <LifeBuoy className="size-4" /> },
   { href: "/admin/negocios", label: "Negocios", icon: <Building2 className="size-4" /> },
   { href: "/admin/usuarios", label: "Usuarios", icon: <Users className="size-4" /> },
   { href: "/admin/categorias", label: "Categorías", icon: <Tags className="size-4" /> },

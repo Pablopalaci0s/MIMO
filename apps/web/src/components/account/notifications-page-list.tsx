@@ -4,6 +4,7 @@ import {
   Bell,
   CalendarHeart,
   CheckCheck,
+  LifeBuoy,
   Loader2,
   MessageCircle,
   MessageSquareText,
@@ -29,6 +30,7 @@ const ICON: Record<NotificationType, ReactNode> = {
   PROMOTION: <Tag className="size-4" />,
   SYSTEM: <Bell className="size-4" />,
   ORDER_MESSAGE: <MessageCircle className="size-4" />,
+  SUPPORT_MESSAGE: <LifeBuoy className="size-4" />,
 };
 
 function formatDate(iso: string): string {

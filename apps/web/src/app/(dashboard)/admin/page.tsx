@@ -1,4 +1,4 @@
-import { AlertTriangle, Building2, DollarSign, MapPin, MessageSquareWarning, Package, Users } from "lucide-react";
+import { AlertTriangle, Building2, DollarSign, LifeBuoy, MapPin, MessageSquareWarning, Package, Users } from "lucide-react";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { getAdminStats } from "@/lib/services/admin-service";
 
@@ -35,6 +35,12 @@ export default async function AdminDashboardPage() {
           label="Reseñas por moderar"
           value={String(stats.pendingReviews)}
           highlight={stats.pendingReviews > 0}
+        />
+        <StatCard
+          icon={<LifeBuoy className="size-5" />}
+          label="Soporte esperando respuesta"
+          value={String(stats.pendingSupport)}
+          highlight={stats.pendingSupport > 0}
         />
         <StatCard
           icon={<MapPin className="size-5" />}

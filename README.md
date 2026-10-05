@@ -1061,6 +1061,57 @@ agregó acá:
   para revisar cuentas suspendidas) en cada request del sitio, no solo
   en `/negocio` y `/admin` como hoy.
 
+## Diseño: chatbot de soporte (post-Fase 11)
+
+Botón flotante en todo el sitio público (y página `/soporte`, con deep link
+`?c=<uuid>` para volver a una conversación desde una notificación o correo)
+con un asistente que resuelve lo común y, **como última instancia, pasa la
+conversación a una persona del equipo de MIMO**. El acceso a "Hablar con
+soporte" está siempre visible en el chat — nunca queda atrapado en el bot.
+
+- **Cómo responde** (`support-bot-service.ts`): primero un guardarraíl
+  determinista (si la persona pide un humano, se escala sin pasar por IA);
+  después Claude con herramientas (`search_products`, `get_order_status`,
+  `escalate_to_human`) si hay `ANTHROPIC_API_KEY`; si no hay clave, o la IA
+  falla o la rechaza (`AIRefusalError`), cae a un motor de reglas
+  (`bot-rules.ts`: base de ayuda por palabras clave, búsqueda de productos,
+  consulta de pedidos, temas sensibles como cobros dobles/estafas que se
+  escalan directo; dos mensajes seguidos sin resolver también escalan).
+  Nunca inventa productos, precios ni estados: todo sale de la base de datos.
+- **Base de conocimiento única** (`lib/support/help-content.ts`): la usan la
+  página `/ayuda`, el prompt de Claude y el motor de reglas, para que las
+  tres fuentes no se desincronicen.
+- **Autorización en el servidor, no en el modelo**: `createToolRunner` recibe
+  el `userId` de la sesión y el modelo no puede pasar otro (el esquema de la
+  herramienta no lo admite). Un pedido ajeno es indistinguible de uno que no
+  existe. Al modelo nunca le llegan dirección, teléfono ni correo del pedido.
+- **Escalada**: la conversación pasa a `WAITING_AGENT`, se notifica a todos los
+  administradores (tipo `SUPPORT_MESSAGE`) y se manda un correo a
+  `SUPPORT_EMAIL`. El equipo la atiende desde `/admin/soporte` (bandeja con
+  filtros, resumen y motivo, responder, resolver/reabrir — todo auditado).
+  La respuesta aparece en el mismo chat; si la persona tiene cuenta recibe una
+  notificación, si es visitante, un correo con el link.
+- **Visitantes sin cuenta**: la conversación se identifica con un uuid
+  guardado en el navegador; para hablar con una persona se les pide nombre y
+  correo en ese momento. Si después inician sesión y siguen escribiendo, la
+  conversación se asocia a su cuenta (solo mientras siga con el bot).
+- **Actualización**: polling (5 s con el chat abierto, 45 s para el punto de
+  "respuesta nueva", 10–15 s en la bandeja de admin) en vez de websockets —
+  consistente con el resto de la app y sin infraestructura extra.
+- **Límites**: rate limit en memoria por ruta (mensajes: 30 cada 10 min con
+  sesión, 15 sin sesión; pedir una persona: 6 por hora), tope de 60 mensajes
+  del usuario por conversación, mensajes de hasta 1000 caracteres.
+- **Variables**: `SUPPORT_EMAIL` (destino del aviso; sin `RESEND_API_KEY` se
+  loguea a consola) y `SUPPORT_AI_MODEL` (opcional, para usar un modelo más
+  barato/rápido que `claude-opus-5` solo en el chat).
+- **Qué NO está verificado**: las llamadas reales a Claude. En desarrollo no
+  hay API key, así que la ruta con IA se probó con un cliente falso (bucle de
+  herramientas, errores de herramienta, rechazo, tope de rondas) y la de
+  reglas de punta a punta en el navegador. Antes de lanzar, probar el chat con
+  una clave real.
+- Tests: `bot-rules.test.ts`, `bot-tools.test.ts`, `support.test.ts`
+  (validación) y `anthropic-provider.test.ts` (`packages/ai`).
+
 ## Diseño: paneles como app separada (post-Fase 6, rediseño)
 
 `/negocio` y `/admin` dejaron de ser páginas más del sitio con pestañas

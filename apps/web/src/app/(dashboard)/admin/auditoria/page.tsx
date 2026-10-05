@@ -15,6 +15,9 @@ const ACTION_LABEL: Record<string, string> = {
   "banner.create": "Creó un banner",
   "banner.update": "Editó un banner",
   "banner.delete": "Eliminó un banner",
+  "support.reply": "Respondió una consulta de soporte",
+  "support.resolve": "Resolvió una consulta de soporte",
+  "support.reopen": "Reabrió una consulta de soporte",
 };
 
 function formatMetadata(metadata: AdminActionLogDTO["metadata"]): string | null {

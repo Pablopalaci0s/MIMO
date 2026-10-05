@@ -92,3 +92,61 @@ export function buildVerifyEmailEmail(verifyUrl: string): { subject: string; htm
     ),
   };
 }
+
+/** Todo lo que llega acá puede venir de un usuario (nombre, resumen, mensaje):
+ * se escapa antes de armar el HTML, nunca se interpola tal cual. */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+const BUTTON_STYLE =
+  "display: inline-block; margin-top: 16px; background: #171717; color: #fff; padding: 10px 20px; border-radius: 999px; text-decoration: none; font-size: 14px;";
+
+/** Aviso al equipo de MIMO: alguien pidió hablar con una persona. */
+export function buildSupportEscalationEmail(input: {
+  customerName: string;
+  customerEmail: string | null;
+  reason: string | null;
+  summary: string | null;
+  adminUrl: string;
+}): { subject: string; html: string } {
+  return {
+    subject: `[MIMO soporte] ${input.customerName} pidió hablar con una persona`,
+    html: emailLayout(
+      "Nueva consulta de soporte",
+      `
+        <p style="font-size: 14px; line-height: 1.5;">
+          <strong>${escapeHtml(input.customerName)}</strong>${input.customerEmail ? ` (${escapeHtml(input.customerEmail)})` : ""}
+          pidió hablar con alguien del equipo.
+        </p>
+        ${input.reason ? `<p style="font-size: 14px; line-height: 1.5;"><strong>Motivo:</strong> ${escapeHtml(input.reason)}</p>` : ""}
+        ${input.summary ? `<p style="font-size: 14px; line-height: 1.5; white-space: pre-line;"><strong>Resumen:</strong> ${escapeHtml(input.summary)}</p>` : ""}
+        <a href="${input.adminUrl}" style="${BUTTON_STYLE}">Abrir la conversación</a>
+      `,
+    ),
+  };
+}
+
+/** Aviso a un visitante sin cuenta de que soporte le respondió. */
+export function buildSupportReplyEmail(input: {
+  customerName: string;
+  preview: string;
+  chatUrl: string;
+}): { subject: string; html: string } {
+  return {
+    subject: "El equipo de MIMO te respondió",
+    html: emailLayout(
+      "El equipo de MIMO te respondió",
+      `
+        <p style="font-size: 14px; line-height: 1.5;">Hola ${escapeHtml(input.customerName)}, te respondimos tu consulta:</p>
+        <blockquote style="margin: 12px 0; padding: 8px 14px; border-left: 3px solid #e5e5e5; font-size: 14px; line-height: 1.5; white-space: pre-line;">${escapeHtml(input.preview)}</blockquote>
+        <a href="${input.chatUrl}" style="${BUTTON_STYLE}">Ver la conversación y responder</a>
+      `,
+    ),
+  };
+}

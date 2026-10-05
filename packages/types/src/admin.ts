@@ -10,6 +10,7 @@ export interface AdminStatsDTO {
   pendingReports: number;
   pendingReviews: number;
   pendingCoverageRequests: number;
+  pendingSupport: number;
 }
 
 export type BusinessStatus = "PENDING" | "APPROVED" | "SUSPENDED" | "REJECTED";
