@@ -6,11 +6,17 @@ import type {
   SupportMessageDTO,
   SupportMessageMetadata,
 } from "@mimo/types";
+import type { SupportRequestInput } from "@mimo/validation";
 import { AppError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 import { buildEscalationSummary } from "@/lib/support/bot-rules";
 import { logAdminAction } from "./admin-audit-service";
-import { buildSupportEscalationEmail, buildSupportReplyEmail, sendEmail } from "./email-service";
+import {
+  buildSupportEscalationEmail,
+  buildSupportReplyEmail,
+  buildSupportRequestEmail,
+  sendEmail,
+} from "./email-service";
 import { createNotification } from "./notification-service";
 import { generateBotReply, type BotHistoryMessage } from "./support-bot-service";
 
@@ -611,4 +617,10 @@ export async function reopenSupportConversation(conversationId: string, adminId:
     targetType: "SUPPORT_CONVERSATION",
     targetId: conversationId,
   });
+}
+
+/** Formulario de contacto de /ayuda: una consulta por correo, sin chat. */
+export async function sendSupportRequest(input: SupportRequestInput): Promise<void> {
+  const { subject, html } = buildSupportRequestEmail(input.name, input.email, input.message);
+  await sendEmail({ to: SUPPORT_EMAIL, subject, html });
 }

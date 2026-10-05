@@ -76,6 +76,25 @@ export function buildPasswordResetEmail(resetUrl: string): { subject: string; ht
   };
 }
 
+export function buildSupportRequestEmail(
+  fromName: string,
+  fromEmail: string,
+  message: string,
+): { subject: string; html: string } {
+  return {
+    subject: `Consulta de soporte — ${fromName}`,
+    html: emailLayout(
+      "Nueva consulta desde /ayuda",
+      `
+        <p style="font-size: 14px; line-height: 1.5;">
+          <strong>${escapeHtml(fromName)}</strong> (${escapeHtml(fromEmail)}) escribió:
+        </p>
+        <p style="font-size: 14px; line-height: 1.5; white-space: pre-wrap; background: #f5f5f5; padding: 12px; border-radius: 8px;">${escapeHtml(message)}</p>
+      `,
+    ),
+  };
+}
+
 export function buildVerifyEmailEmail(verifyUrl: string): { subject: string; html: string } {
   return {
     subject: "Confirmá tu correo en MIMO",

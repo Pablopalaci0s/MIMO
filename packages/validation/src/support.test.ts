@@ -3,6 +3,7 @@ import {
   supportAdminReplySchema,
   supportEscalateSchema,
   supportRateSchema,
+  supportRequestSchema,
   supportSendMessageSchema,
 } from "./support";
 
@@ -64,5 +65,21 @@ describe("supportAdminReplySchema", () => {
   it("rechaza una respuesta vacía y una demasiado larga", () => {
     expect(() => supportAdminReplySchema.parse({ message: "" })).toThrow();
     expect(() => supportAdminReplySchema.parse({ message: "a".repeat(2001) })).toThrow();
+  });
+});
+
+describe("supportRequestSchema", () => {
+  const valid = { name: "Ana Pérez", email: "Ana@Correo.COM", message: "Tengo una duda sobre mi pedido." };
+
+  it("acepta una consulta válida y normaliza el correo a minúsculas", () => {
+    expect(supportRequestSchema.parse(valid).email).toBe("ana@correo.com");
+  });
+
+  it("rechaza un mensaje muy corto", () => {
+    expect(() => supportRequestSchema.parse({ ...valid, message: "hola" })).toThrow();
+  });
+
+  it("rechaza un correo inválido", () => {
+    expect(() => supportRequestSchema.parse({ ...valid, email: "no-es-correo" })).toThrow();
   });
 });

@@ -543,13 +543,19 @@ dentro de esa paleta.
 **El hallazgo real: las fotos, no el layout.** El catálogo de demo usaba
 `placehold.co` — cajas grises con el nombre del producto escrito encima —
 en vez de fotos. Ningún ajuste de CSS iba a hacer sentir "vivo" un catálogo
-de cajas grises. Se reemplazó por fotos de stock reales (licencia Unsplash,
-uso libre) elegidas por categoría — 2 por categoría, 24 en total, cada
-`photo-<id>` verificado a mano (200 OK) antes de sumarlo — y elegidas de
-forma determinística según el nombre del producto en
-`packages/database/prisma/seed.ts` (`CATEGORY_STOCK_PHOTOS`). Esto es
-**solo para datos de demo**: un negocio real sigue subiendo sus propias
-fotos con `image-upload-field.tsx`, como siempre.
+de cajas grises. Primer intento: reemplazarlas por fotos de stock reales de
+Unsplash elegidas por categoría — **se revirtió el mismo día** (commit
+`35ce280`, pedido explícito del usuario: nada de fotos externas falsas, ni
+siquiera de stock, para datos de demo). Lo que quedó y sigue vigente es
+`MediaPlaceholder`: el ícono de la categoría del producto sobre el degradé
+de marca, mismo lenguaje visual que el resto del sitio, aplicado en
+catálogo, home, detalle de producto, carrito, panel de negocio y las
+recomendaciones del asistente de IA — nunca simula una foto que no existe.
+El código de las fotos de stock (`categoryImageUrl` en
+`packages/database/prisma/seed.ts`) quedó comentado y sin usar por si el
+equipo decide activarlo más adelante. Esto es **solo para datos de demo**:
+un negocio real sigue subiendo sus propias fotos con
+`image-upload-field.tsx`, como siempre.
 
 **Ajustes de UI**, todos dentro de la paleta existente:
 - Hero: título más grande y audaz, blob de fondo más presente, y el
@@ -1012,6 +1018,72 @@ la compra él mismo, con el método que quiera.
   pedidos de PayPal sin confirmar) — si el reembolso de un aporte puntual
   falla, no traba la cancelación de los demás, queda visible para
   resolver a mano.
+
+## Diseño: canal de soporte en /ayuda (post-Fase 11)
+
+Otro hallazgo del mismo análisis de UX: el bloque "¿Seguís con dudas?" de
+`/ayuda` solo decía "escribinos a cualquier negocio por WhatsApp desde su
+página" — un canal por negocio puntual, sin nada para dudas de la
+plataforma en sí (la cuenta, un negocio que no aparece, etc.), ni un
+número de WhatsApp propio de MIMO que se pudiera mostrar de verdad (no
+hay uno — inventarlo hubiera sido fingir un canal que no existe).
+
+- `SupportForm` (`components/help/support-form.tsx`) reemplaza ese bloque
+  por un formulario real (nombre, correo, mensaje) que precarga nombre y
+  correo si hay sesión iniciada, pero funciona sin login también.
+- `POST /api/support` valida con `supportRequestSchema` (`@mimo/validation`),
+  aplica rate limiting (3 por hora por IP, mismo mecanismo que
+  `forgot-password`) y llama a `support-service.sendSupportRequest`, que
+  arma el correo (`buildSupportRequestEmail`, con el HTML del usuario
+  escapado a mano — es el primer correo del sistema que interpola texto
+  libre) y lo manda con el mismo `email-service` que ya existía para
+  recuperar contraseña/verificar correo: sin `RESEND_API_KEY`, se loguea a
+  consola en vez de fallar o fingir que se envió.
+- Nueva variable `SUPPORT_EMAIL` (`.env.example`) — a qué bandeja llegan
+  las consultas. Sin configurarla cae a `soporte@mimo.sv` para no romper
+  el build, pero hace falta una bandeja real detrás en producción.
+
+## Diseño: rediseño del carrito (post-Fase 11)
+
+`CartSheet` (`components/layout/cart-sheet.tsx`) pasó de filas planas a
+cards por producto, sin cambiar la lógica del carrito (sigue en
+`localStorage`, ver **Notas técnicas** más abajo sobre `useSyncExternalStore`):
+
+- Cada producto es ahora una card con borde (`rounded-2xl border`) en vez
+  de una fila suelta, con el subtotal por línea (cantidad × precio unitario)
+  junto al stepper — antes había que calcularlo a mano contra el subtotal
+  general.
+- El botón de quitar producto se movió junto al nombre (arriba a la
+  derecha de la card) para dejar el renglón del stepper solo con
+  cantidad y precio.
+- Estado vacío: ícono dentro de un círculo + texto en dos niveles + botón
+  "Explorar catálogo" hacia `/regalos`, en vez de un solo párrafo sin
+  ninguna acción para salir del carrito vacío.
+- El footer del subtotal ahora cuenta cuántos productos hay
+  ("Subtotal (3 productos)") y aclara que el envío se calcula recién en
+  el checkout, para que no se lea como que el envío ya está incluido.
+
+## Diseño: direcciones recientes en el checkout (post-Fase 11)
+
+Surgió de un análisis de UX pedido por el usuario (ver `Notes_MIMO/`, no
+se sube al repo): el checkout ya separa bien Comprador/Destinatario, pero
+había que retipear nombre, teléfono, dirección y municipio del
+destinatario en cada pedido nuevo, aunque fuera a la misma persona de
+siempre (mamá, pareja, etc.) — el caso de uso más común de un marketplace
+de regalos.
+
+- `order-service.listRecentDeliveryAddresses(userId)` lee las últimas
+  direcciones de entrega de pedidos reales del usuario (nunca inventa
+  nada — si no tiene pedidos, no muestra nada, mismo criterio que
+  `listRecentlyOrderedProducts` para "Volver a pedir" en el home) y las
+  deduplica por dirección + municipio para no repetir la misma varias
+  veces.
+- En `/checkout`, arriba del formulario de Destinatario, aparecen hasta 3
+  chips ("Ana Pérez · Calle Los Almendros #123, San Salvador") — un click
+  llena nombre, teléfono, dirección, referencia y municipio, sin tocar
+  fecha/horario de entrega (esos son del pedido nuevo, no se copian).
+- Nuevo tipo `RecentAddressDTO` en `@mimo/types`, reutilizando la forma de
+  `CheckoutAddressInput` menos los campos que no aplican.
 
 ## Diseño: brechas de seguridad cerradas (post-Fase 11)
 

@@ -42,7 +42,7 @@ export function FeaturedBusinesses({ businesses }: { businesses: FeaturedBusines
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: "-40px" }}
-          className="scrollbar-hide -mx-4 flex snap-x gap-4 overflow-x-auto px-4 sm:mx-0 sm:grid sm:grid-cols-2 sm:px-0 lg:grid-cols-3"
+          className="scrollbar-hide -mx-4 -my-3 flex snap-x gap-4 overflow-x-auto px-4 py-3 sm:mx-0 sm:my-0 sm:grid sm:grid-cols-2 sm:px-0 sm:py-0 lg:grid-cols-3"
         >
           {businesses.map((business) => (
             <motion.div key={business.id} variants={item} className="w-64 shrink-0 snap-start sm:w-auto">
