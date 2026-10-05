@@ -83,6 +83,13 @@ export function BusinessRow({ business }: { business: AdminBusinessDTO }) {
             {business.agreementAccepted ? "Acuerdo aceptado" : "Sin aceptar el acuerdo"}
           </p>
         )}
+        {!business.isDemo && (
+          <p className={`text-xs ${business.documentsComplete ? "text-neutral-400" : "text-amber-600"}`}>
+            <Link href={`/admin/negocios/${business.id}/documentos`} className="underline hover:text-neutral-900">
+              {business.documentsComplete ? "Documentos completos" : `Faltan documentos (${business.documentsCount} subidos)`}
+            </Link>
+          </p>
+        )}
         {error && <p className="mt-1 max-w-48 text-xs text-destructive">{error}</p>}
       </td>
       <td className="py-3 text-neutral-500">{business.ownerEmail ?? "—"}</td>

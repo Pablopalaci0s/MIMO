@@ -14,3 +14,4 @@ export * from "./coupon";
 export * from "./gift-registry";
 export * from "./group-gift";
 export * from "./support";
+export * from "./business-documents";

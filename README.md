@@ -1229,8 +1229,52 @@ terminación, ley aplicable) y cada cláusula refleja lo que el sistema
   pedidos en **efectivo** no tiene mecanismo de cobro todavía — el acuerdo dice
   que MIMO no la cobra hasta comunicar uno con 15 días de aviso; (2) solo los
   pedidos pagados con PayPal vencen solos a los 45 min (los de efectivo sin
-  confirmar los cancela MIMO a mano); (3) la documentación del negocio (DUI,
-  NIT, permisos) se pide por soporte, no hay carga de archivos.
+  confirmar los cancela MIMO a mano). (Un tercer hueco, la carga de documentos
+  del titular, se cerró después: ver "Diseño: verificación de identidad de los
+  negocios".)
+
+## Diseño: verificación de identidad de los negocios (post-Fase 11)
+
+El titular de cada negocio sube sus documentos desde el panel (`/negocio/verificacion`)
+y el admin los revisa antes de aprobar. Documentos: **obligatorios** DUI
+(frente y reverso) y foto del titular sosteniendo el DUI; **opcionales** NIT/NRC
+y permisos (estos dos aceptan también PDF). Se suben *después* de registrarse
+(ya con sesión) a propósito: así no existe ningún endpoint de subida anónimo.
+
+- **Almacenamiento privado**: el sistema de fotos del resto del sitio guarda en
+  `public/uploads` (público para cualquiera con el link) — inaceptable para un
+  DUI. Acá el archivo vive en la base (`BusinessDocument.data`, tipo `Bytes`):
+  nunca en una carpeta pública, y como bonus no depende del disco local, que es
+  uno de los bloqueantes de deploy ya conocidos. Un documento por tipo y negocio;
+  subir de nuevo reemplaza. Los listados y DTOs solo llevan metadatos.
+- **Acceso**: solo `GET /api/negocio/documentos/[type]` (el titular, con el
+  `businessId` sacado de la sesión) y `GET /api/admin/negocios/[id]/documentos/[type]`
+  (admin). Respuesta `Cache-Control: private, no-store` + `nosniff`; los PDF se
+  descargan. **Cada vez que un admin abre un documento queda en la auditoría**
+  (`business.document.view`).
+- **Validación por contenido**: `detectFileKind` mira los primeros bytes del
+  archivo (JPEG/PNG/WEBP/PDF); el `Content-Type` y la extensión que manda el
+  navegador se ignoran, y el tipo con el que se guarda y se sirve sale de esa
+  detección. Máx. 5 MB, 30 subidas por hora por usuario.
+- **Requisito de aprobación**: `updateAdminBusiness` rechaza aprobar un negocio
+  real sin los 3 obligatorios (`DOCUMENTS_PENDING`, con el nombre exacto del que
+  falta), igual que con el acuerdo. Los demo quedan fuera. `/admin/negocios`
+  muestra el estado de documentos y enlaza a `/admin/negocios/[id]/documentos`.
+- **Contrato**: la cláusula 2 del Acuerdo ahora dice qué se sube y cómo se
+  protege; subió la versión a `2026-10-05.2` (los negocios que aceptaron la
+  anterior ven el aviso para aceptar de nuevo). `/privacidad` y `/seguridad`
+  describen estos datos.
+- Verificado en navegador (build de producción, negocio de prueba luego borrado):
+  anónimo → 401; archivo HTML disfrazado de JPG → rechazado; PDF como DUI →
+  rechazado; PNG declarado como GIF → guardado como PNG; admin abre documento →
+  auditoría; aprobar con un documento faltante → bloqueado; completo → aprobado.
+- **Lo que NO hace** (a propósito, para no fingir): no valida que el DUI sea
+  auténtico ni que la cara coincida (lo hace una persona del equipo mirando las
+  imágenes); no hay "rechazar un documento y pedir otro" (hoy el admin rechaza o
+  deja pendiente el negocio y avisa por soporte); no cifra los archivos aparte
+  (dependen del cifrado en reposo de la base — conviene activarlo en el
+  proveedor de Postgres antes de producción); no hay borrado automático al
+  rechazar un negocio (se elimina a pedido).
 
 ## Diseño: paneles como app separada (post-Fase 6, rediseño)
 

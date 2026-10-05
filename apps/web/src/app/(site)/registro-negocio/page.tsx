@@ -17,6 +17,19 @@ export default async function RegisterBusinessPage() {
         Centralizá tu catálogo y tus pedidos en un solo lugar. Revisamos cada solicitud antes de publicarla.
       </p>
 
+      <div className="mt-4 rounded-2xl bg-neutral-100 p-4 text-sm text-neutral-600">
+        <p className="font-medium text-neutral-900">Para aprobarte vas a necesitar</p>
+        <ul className="mt-1 list-disc space-y-0.5 pl-5">
+          <li>Tu DUI (frente y reverso).</li>
+          <li>Una foto tuya sosteniendo el DUI.</li>
+          <li>Opcional: NIT/NRC y permisos de tu actividad.</li>
+        </ul>
+        <p className="mt-2 text-xs text-neutral-500">
+          Los subís desde tu panel apenas termines de registrarte. Se guardan en forma privada y solo los usamos para
+          verificarte.
+        </p>
+      </div>
+
       <div className="mt-8">
         <BusinessApplicationForm municipalities={municipalities} />
       </div>

@@ -4,6 +4,8 @@ import { AppError } from "@/lib/errors";
 import { BUSINESS_AGREEMENT_VERSION } from "@/lib/legal/business-agreement";
 import { logAdminAction } from "./admin-audit-service";
 import { assertCanBeApproved } from "./business-agreement-service";
+import { assertDocumentsComplete } from "./business-document-service";
+import { missingRequiredDocuments } from "@mimo/validation";
 import { createNotification } from "./notification-service";
 
 export interface AdminBusinessFilters {
@@ -16,6 +18,8 @@ const ADMIN_BUSINESS_INCLUDE = {
   members: { where: { role: "OWNER" as const }, include: { user: true }, take: 1 },
   _count: { select: { products: { where: { deletedAt: null } } } },
   agreements: { where: { version: BUSINESS_AGREEMENT_VERSION }, select: { id: true }, take: 1 },
+  // Solo el tipo: el archivo (`data`) nunca se trae en un listado.
+  documents: { select: { type: true } },
 } satisfies Prisma.BusinessInclude;
 
 type AdminBusinessRow = Prisma.BusinessGetPayload<{ include: typeof ADMIN_BUSINESS_INCLUDE }>;
@@ -35,6 +39,8 @@ function toAdminBusinessDTO(business: AdminBusinessRow): AdminBusinessDTO {
     productCount: business._count.products,
     commissionRate: Number(business.commissionRate),
     agreementAccepted: business.agreements.length > 0,
+    documentsCount: business.documents.length,
+    documentsComplete: missingRequiredDocuments(business.documents.map((document) => document.type)).length === 0,
     createdAt: business.createdAt.toISOString(),
   };
 }
@@ -66,6 +72,29 @@ export async function listAdminBusinesses(filters: AdminBusinessFilters = {}): P
   return businesses.map(toAdminBusinessDTO);
 }
 
+/** Datos mínimos para la pantalla de revisión de documentos de un negocio. */
+export async function getAdminBusinessForReview(
+  businessId: string,
+): Promise<{ id: string; name: string; status: BusinessStatus; ownerName: string | null; ownerEmail: string | null }> {
+  const business = await prisma.business.findFirst({
+    where: { id: businessId, deletedAt: null },
+    select: {
+      id: true,
+      name: true,
+      status: true,
+      members: { where: { role: "OWNER" }, select: { user: { select: { name: true, email: true } } }, take: 1 },
+    },
+  });
+  if (!business) throw new AppError("NOT_FOUND", "No encontramos ese negocio.", 404);
+  return {
+    id: business.id,
+    name: business.name,
+    status: business.status,
+    ownerName: business.members[0]?.user.name ?? null,
+    ownerEmail: business.members[0]?.user.email ?? null,
+  };
+}
+
 export async function updateAdminBusiness(
   businessId: string,
   input: AdminBusinessUpdateInput,
@@ -81,9 +110,12 @@ export async function updateAdminBusiness(
     input.status === "APPROVED" && existing.status !== "APPROVED" && existing.status !== "SUSPENDED";
 
   // Requisito antes de abrirle MIMO a un negocio real: haber aceptado el
-  // Acuerdo MIMO ↔ negocio vigente (ver `business-agreement-service.ts`).
+  // Acuerdo MIMO ↔ negocio vigente (ver `business-agreement-service.ts`) y
+  // haber subido los documentos de verificación del titular
+  // (`business-document-service.ts`).
   if (input.status === "APPROVED" && existing.status !== "APPROVED") {
     await assertCanBeApproved(existing);
+    await assertDocumentsComplete(existing);
   }
 
   const business = await prisma.business.update({

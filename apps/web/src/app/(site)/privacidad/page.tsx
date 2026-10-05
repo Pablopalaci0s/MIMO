@@ -51,6 +51,15 @@ export default function PrivacidadPage() {
             perfil, banner o productos que suba.
           </li>
           <li>
+            <strong>Documentos de verificación de negocios:</strong> para aprobar un negocio le
+            pedimos a su titular una foto del DUI (frente y reverso) y una foto suya sosteniendo el
+            DUI, y opcionalmente NIT/NRC y permisos. Son datos personales sensibles: se guardan
+            en forma privada (nunca en una dirección pública), solo los ven el titular y el equipo
+            de MIMO que verifica negocios, cada vez que alguien del equipo abre uno queda
+            registrado, no se muestran en el Sitio, no se comparten con otros negocios ni con
+            compradores, y los usamos únicamente para verificar al titular.
+          </li>
+          <li>
             <strong>Datos técnicos y de uso:</strong> qué páginas visitás y qué acciones hacés
             (favoritos, reseñas, notificaciones), para que la app funcione — no usamos rastreo
             publicitario de terceros. Ver también la sección de Cookies más abajo.
@@ -62,7 +71,7 @@ export default function PrivacidadPage() {
           <li>Procesar y entregar tus pedidos, y comunicárselos al negocio correspondiente.</li>
           <li>Mostrarte el estado de tus pedidos y avisarte de novedades (notificaciones dentro de la app).</li>
           <li>Juntar aportes para una cabuda y pagarle al organizador cuando la cierra.</li>
-          <li>Verificar negocios nuevos y moderar reportes/reseñas.</li>
+          <li>Verificar la identidad del titular y la legitimidad de los negocios nuevos, y moderar reportes/reseñas.</li>
           <li>Mejorar el catálogo y las recomendaciones que te mostramos.</li>
         </ul>
 

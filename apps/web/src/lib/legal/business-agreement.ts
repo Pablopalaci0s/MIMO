@@ -9,7 +9,7 @@
  * Valores de negocio que el texto del acuerdo menciona y que viven acá para
  * que la página y el código no se contradigan.
  */
-export const BUSINESS_AGREEMENT_VERSION = "2026-10-05";
+export const BUSINESS_AGREEMENT_VERSION = "2026-10-05.2";
 export const BUSINESS_AGREEMENT_UPDATED = "5 de octubre de 2026";
 
 /** Ventana (minutos) que tiene un negocio para confirmar su parte de un

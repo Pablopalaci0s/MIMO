@@ -71,6 +71,14 @@ export default function SeguridadPage() {
             clickjacking o inyección de scripts de terceros.
           </li>
           <li>
+            <strong>Documentos de identidad:</strong> los documentos de verificación de los
+            negocios (DUI y similares) se guardan en la base de datos, no en una carpeta pública,
+            y solo se entregan al titular o a un administrador con sesión iniciada; nunca se
+            guardan en la caché del navegador. Revisamos que el archivo sea realmente una imagen
+            o un PDF (no un archivo disfrazado) y cada vez que alguien del equipo abre uno queda
+            registrado.
+          </li>
+          <li>
             <strong>Auditoría interna:</strong> las acciones sensibles que hace nuestro equipo
             desde el panel administrativo (suspender una cuenta, aprobar un negocio, moderar una
             reseña) quedan registradas — quién, qué y cuándo — para poder revisar el uso del

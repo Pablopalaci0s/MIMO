@@ -48,11 +48,16 @@ export default function TerminosNegociosPage() {
         <h2>2. Aprobación y documentación</h2>
         <p>
           Cada solicitud la revisa el equipo de MIMO antes de publicarse; MIMO puede aprobarla,
-          rechazarla o pedir más información, sin obligación de justificar un rechazo. Para aprobar
-          o mantener publicado un Negocio, MIMO puede pedir (antes o después del alta):
+          rechazarla o pedir más información, sin obligación de justificar un rechazo. Después de
+          registrarte, para que tu Negocio pueda ser aprobado, el titular o representante legal
+          tiene que subir desde su panel (sección <strong>Verificación</strong>):
         </p>
         <ul>
-          <li>Documento de identidad del titular o representante legal.</li>
+          <li>El DUI, por el frente y por el reverso.</li>
+          <li>Una foto del titular sosteniendo su DUI, con la cara y el documento visibles.</li>
+        </ul>
+        <p>Además puede subir, y MIMO puede pedirle si lo considera necesario:</p>
+        <ul>
           <li>
             Si es persona jurídica, la documentación que acredite su existencia y quién la
             representa.
@@ -65,8 +70,16 @@ export default function TerminosNegociosPage() {
           <li>Una cuenta de PayPal del Negocio, para recibir los pagos (sección 4).</li>
         </ul>
         <p>
-          El Negocio declara que toda la información que entrega es verdadera y se compromete a
-          mantenerla actualizada. Dar información falsa es causa de suspensión inmediata.
+          Estos documentos se usan únicamente para verificar la identidad del titular y la
+          legitimidad del Negocio, se guardan de forma privada y solo los ve el titular y el equipo
+          de MIMO que verifica negocios (cada vez que alguien del equipo abre uno queda
+          registrado), según la{" "}
+          <Link href="/privacidad" className="underline">
+            Política de privacidad
+          </Link>
+          . El Negocio declara que toda la información y los documentos que entrega son verdaderos
+          y que el DUI es del titular; se compromete a mantenerlos actualizados. Entregar
+          información o documentos falsos es causa de suspensión inmediata.
         </p>
 
         <h2>3. Comisión de MIMO</h2>

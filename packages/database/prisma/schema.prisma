@@ -257,6 +257,7 @@ model User {
   groupGifts           GroupGift[]
   adminActionLogs      AdminActionLog[]
   agreementAcceptances BusinessAgreementAcceptance[]
+  businessDocuments    BusinessDocument[]
 
   supportConversations         SupportConversation[] @relation("SupportConversationUser")
   assignedSupportConversations SupportConversation[] @relation("SupportConversationAgent")
@@ -389,6 +390,39 @@ model BusinessAgreementAcceptance {
   @@map("business_agreement_acceptances")
 }
 
+enum BusinessDocumentType {
+  DUI_FRONT
+  DUI_BACK
+  OWNER_PHOTO
+  TAX_ID
+  PERMIT
+}
+
+// Documentos de verificación del titular de un negocio (DUI, foto, NIT,
+// permisos). Son datos personales sensibles: NUNCA van a `public/uploads`
+// (eso es público para cualquiera con el link). Se guardan acá, en la base,
+// y solo se sirven por rutas autenticadas (el propio titular y los admins;
+// cada vista de un admin queda en la auditoría). Un documento por tipo y
+// negocio: volver a subir reemplaza el anterior. Al listar, NUNCA seleccionar
+// `data` salvo que se vaya a servir el archivo.
+model BusinessDocument {
+  id           String               @id @default(uuid()) @db.Uuid
+  businessId   String               @db.Uuid
+  business     Business             @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  type         BusinessDocumentType
+  mimeType     String
+  sizeBytes    Int
+  data         Bytes
+  uploadedById String?              @db.Uuid
+  uploadedBy   User?                @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@unique([businessId, type])
+  @@index([uploadedById])
+  @@map("business_documents")
+}
+
 // ─────────────────────────────────────────────────────────────────────────
 // NEGOCIOS
 // ─────────────────────────────────────────────────────────────────────────
@@ -438,6 +472,7 @@ model Business {
   coverageRequests CoverageRequest[]
   paymentSplits    PaymentSplit[]
   agreements       BusinessAgreementAcceptance[]
+  documents        BusinessDocument[]
 
   ratingAvg   Float @default(0)
   ratingCount Int   @default(0)

@@ -147,7 +147,7 @@ export const HELP_GROUPS: HelpGroup[] = [
       {
         question: "Tengo un negocio de flores/regalos, ¿cómo lo sumo a MIMO?",
         answer:
-          "Desde \"Sumá tu negocio\" (en el menú de tu cuenta, o en la ruta /registro-negocio) completás el formulario con los datos de tu negocio. Para enviar la solicitud tenés que aceptar el Acuerdo MIMO ↔ negocio (/terminos-negocios), que explica comisión, pagos, cancelaciones y responsabilidades. Revisamos cada solicitud antes de publicarla — mientras tanto ya podés entrar a tu panel y ver que está pendiente de aprobación.",
+          "Desde \"Sumá tu negocio\" (en el menú de tu cuenta, o en la ruta /registro-negocio) completás el formulario con los datos de tu negocio. Para enviar la solicitud tenés que aceptar el Acuerdo MIMO ↔ negocio (/terminos-negocios), que explica comisión, pagos, cancelaciones y responsabilidades. Después, desde tu panel (Verificación), subís tu DUI (frente y reverso) y una foto tuya con el DUI — se guardan en forma privada y solo sirven para verificarte. Revisamos cada solicitud antes de publicarla — mientras tanto ya podés entrar a tu panel y ver que está pendiente de aprobación.",
         keywords: ["sumar mi negocio", "registrar negocio", "tengo un negocio", "vender en mimo", "alta de negocio", "negocio nuevo", "quiero vender", "acuerdo", "contrato negocio"],
       },
       {

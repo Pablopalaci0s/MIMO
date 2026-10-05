@@ -30,6 +30,10 @@ export interface AdminBusinessDTO {
   commissionRate: number;
   /** ¿Aceptó la versión vigente del Acuerdo MIMO ↔ negocio? */
   agreementAccepted: boolean;
+  /** Cuántos documentos de verificación subió (de los 5 posibles). */
+  documentsCount: number;
+  /** ¿Subió los obligatorios (DUI frente y reverso, foto del titular)? */
+  documentsComplete: boolean;
   createdAt: string;
 }
 

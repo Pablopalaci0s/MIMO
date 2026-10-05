@@ -151,3 +151,13 @@ export interface BusinessHoursDTO {
   openingHours: WeeklyHours;
   preparationTimeMinutes: number;
 }
+
+/** Metadatos de un documento de verificación — el archivo nunca viaja en el DTO. */
+export type BusinessDocumentType = "DUI_FRONT" | "DUI_BACK" | "OWNER_PHOTO" | "TAX_ID" | "PERMIT";
+
+export interface BusinessDocumentDTO {
+  type: BusinessDocumentType;
+  mimeType: string;
+  sizeBytes: number;
+  uploadedAt: string;
+}
