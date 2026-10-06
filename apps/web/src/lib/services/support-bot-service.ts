@@ -42,7 +42,7 @@ export interface BotReply {
   text: string;
   metadata: SupportMessageMetadata | null;
   /** Si viene, el bot pide pasar la conversación a una persona. */
-  escalation: { reason: string; summary: string } | null;
+  escalation: { reason: string; summary: string; category?: string } | null;
   usedAI: boolean;
 }
 

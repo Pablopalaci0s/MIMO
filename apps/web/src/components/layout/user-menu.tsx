@@ -34,6 +34,8 @@ const ROLE_LABEL: Record<AuthSessionUser["role"], string> = {
   USER: "Cliente",
   BUSINESS: "Negocio",
   ADMIN: "Administrador",
+  SUPPORT_AGENT: "Agente de soporte",
+  SUPPORT_MANAGER: "Supervisor de soporte",
 };
 
 const ITEM_CLASS = "rounded-lg py-2 pr-2.5 pl-1.5 [&_svg]:size-3.5";
@@ -123,6 +125,20 @@ export function UserMenu({ user, variant = "icon" }: { user: AuthSessionUser; va
                 <Link href={user.role === "BUSINESS" ? "/negocio" : "/admin"}>
                   <MenuIcon icon={Store} />
                   Panel {user.role === "BUSINESS" ? "de negocio" : "admin"}
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+          </>
+        )}
+
+        {(user.role === "ADMIN" || user.role === "SUPPORT_AGENT" || user.role === "SUPPORT_MANAGER") && (
+          <>
+            <DropdownMenuGroup>
+              <DropdownMenuItem asChild className={ITEM_CLASS}>
+                <Link href="/centro-soporte">
+                  <MenuIcon icon={LifeBuoy} />
+                  Centro de soporte
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>

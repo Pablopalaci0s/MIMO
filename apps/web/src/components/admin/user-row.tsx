@@ -21,6 +21,8 @@ const ROLE_LABEL: Record<UserRole, string> = {
   USER: "Cliente",
   BUSINESS: "Negocio",
   ADMIN: "Administrador",
+  SUPPORT_AGENT: "Agente de soporte",
+  SUPPORT_MANAGER: "Supervisor de soporte",
 };
 
 export function UserRow({ user, isSelf }: { user: AdminUserDTO; isSelf: boolean }) {

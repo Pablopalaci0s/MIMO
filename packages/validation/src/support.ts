@@ -29,14 +29,8 @@ export const supportConversationRefSchema = z.object({ conversationId });
 export const supportRateSchema = z.object({
   conversationId,
   rating: z.coerce.number().int().min(1).max(5),
-});
-
-export const supportAdminReplySchema = z.object({
-  message: z.string().trim().min(1, "Escribí una respuesta").max(2000, "Máximo 2000 caracteres"),
-});
-
-export const supportAdminUpdateSchema = z.object({
-  action: z.enum(["resolve", "reopen"]),
+  /** Comentario opcional de la calificación (CSAT). */
+  comment: z.string().trim().max(500, "Máximo 500 caracteres").optional(),
 });
 
 export type SupportSendMessageInput = z.infer<typeof supportSendMessageSchema>;

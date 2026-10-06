@@ -18,6 +18,11 @@ enum UserRole {
   USER
   BUSINESS
   ADMIN
+  // Personal de soporte de MIMO (centro de soporte en /centro-soporte). Son
+  // cuentas de trabajo: no ven nada de /admin ni de /negocio, y su permiso se
+  // lee de la base en cada request (ver support-access-service.ts).
+  SUPPORT_AGENT
+  SUPPORT_MANAGER
 }
 
 enum BusinessRole {
@@ -152,6 +157,45 @@ enum SupportMessageRole {
   AGENT
 }
 
+// Visibilidad de un mensaje de soporte: PUBLIC lo ve el cliente; INTERNAL es una
+// nota solo para el equipo y NUNCA debe llegarle al cliente ni al asistente.
+enum SupportMessageVisibility {
+  PUBLIC
+  INTERNAL
+}
+
+enum SupportTicketStatus {
+  NEW
+  OPEN
+  IN_PROGRESS
+  WAITING_CUSTOMER
+  WAITING_BUSINESS
+  ESCALATED
+  RESOLVED
+  CLOSED
+}
+
+enum SupportTicketPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum SupportTicketSource {
+  CHATBOT // el asistente no pudo resolverlo y lo escaló
+  CUSTOMER_REQUEST // la persona pidió hablar con alguien
+  FORM // formulario de contacto de /ayuda
+  STAFF // lo creó una persona del equipo
+}
+
+// Hoy solo CUSTOMER. BUSINESS reserva el espacio para un futuro soporte a
+// negocios sin mezclarlo con el de clientes (ningún negocio ve estos tickets).
+enum SupportTicketKind {
+  CUSTOMER
+  BUSINESS
+}
+
 enum PromotionDiscountType {
   PERCENTAGE
   FIXED
@@ -240,30 +284,39 @@ model User {
   // solo lo otorga otro admin que ya lo tiene.
   canReviewDocuments Boolean   @default(false)
 
+  /// Nombre de usuario del personal de soporte: es lo que ve el cliente en vez
+  /// de su nombre real. Se elige UNA sola vez al entrar por primera vez al
+  /// centro de soporte; después queda fijo (solo lo cambia un administrador).
+  supportUsername      String?   @unique
+  supportUsernameSetAt DateTime?
+
   accounts Account[]
   sessions Session[]
 
-  businessMemberships   BusinessUser[]
-  orders                Order[]
-  reviews               Review[]
-  favorites             Favorite[]
-  importantDates        ImportantDate[]
-  notifications         Notification[]
-  aiConversations       AIConversation[]
-  aiRecommendations     AIRecommendation[]
-  reports               Report[]
-  pushTokens            PushToken[]
-  webPushSubscriptions  WebPushSubscription[]
-  coverageRequests      CoverageRequest[]
-  authTokens            AuthToken[]
-  orderMessages         OrderMessage[]
-  giftRegistries        GiftRegistry[]
-  groupGifts            GroupGift[]
-  adminActionLogs       AdminActionLog[]
-  agreementAcceptances  BusinessAgreementAcceptance[]
-  businessDocuments     BusinessDocument[]            @relation("BusinessDocumentUploadedBy")
-  rejectedDocuments     BusinessDocument[]            @relation("BusinessDocumentRejectedBy")
-  identityVerifications IdentityVerification[]        @relation("IdentityVerifiedBy")
+  businessMemberships      BusinessUser[]
+  orders                   Order[]
+  reviews                  Review[]
+  favorites                Favorite[]
+  importantDates           ImportantDate[]
+  notifications            Notification[]
+  aiConversations          AIConversation[]
+  aiRecommendations        AIRecommendation[]
+  reports                  Report[]
+  pushTokens               PushToken[]
+  webPushSubscriptions     WebPushSubscription[]
+  coverageRequests         CoverageRequest[]
+  authTokens               AuthToken[]
+  orderMessages            OrderMessage[]
+  giftRegistries           GiftRegistry[]
+  groupGifts               GroupGift[]
+  adminActionLogs          AdminActionLog[]
+  agreementAcceptances     BusinessAgreementAcceptance[]
+  businessDocuments        BusinessDocument[]            @relation("BusinessDocumentUploadedBy")
+  rejectedDocuments        BusinessDocument[]            @relation("BusinessDocumentRejectedBy")
+  identityVerifications    IdentityVerification[]        @relation("IdentityVerifiedBy")
+  supportTicketsAsCustomer SupportTicket[]               @relation("SupportTicketCustomer")
+  supportTicketsAssigned   SupportTicket[]               @relation("SupportTicketAgent")
+  supportMacrosCreated     SupportMacro[]
 
   supportConversations         SupportConversation[] @relation("SupportConversationUser")
   assignedSupportConversations SupportConversation[] @relation("SupportConversationAgent")
@@ -536,6 +589,7 @@ model Business {
   agreements            BusinessAgreementAcceptance[]
   documents             BusinessDocument[]
   identityVerifications IdentityVerification[]
+  supportTickets        SupportTicket[]
 
   ratingAvg   Float @default(0)
   ratingCount Int   @default(0)
@@ -783,11 +837,12 @@ model Order {
   surpriseInstructions   String? @db.Text
   hideBuyerFromRecipient Boolean @default(false)
 
-  items    OrderItem[]
-  address  OrderAddress?
-  payment  Payment?
-  reviews  Review[]
-  messages OrderMessage[]
+  items          OrderItem[]
+  address        OrderAddress?
+  payment        Payment?
+  reviews        Review[]
+  messages       OrderMessage[]
+  supportTickets SupportTicket[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1293,6 +1348,9 @@ model SupportConversation {
   assignedTo       User?                     @relation("SupportConversationAgent", fields: [assignedToId], references: [id], onDelete: SetNull)
   /// Calificación 1–5 que deja la persona al cerrarse la conversación.
   rating           Int?
+  /// Comentario opcional de la calificación (CSAT) — una sola vez por ticket.
+  ratingComment    String?                   @db.Text
+  ratedAt          DateTime?
   escalatedAt      DateTime?
   resolvedAt       DateTime?
   lastMessageAt    DateTime                  @default(now())
@@ -1300,6 +1358,8 @@ model SupportConversation {
   updatedAt        DateTime                  @updatedAt
 
   messages SupportMessage[]
+  /// Cuando la conversación se escala a una persona nace un ticket (1:1).
+  ticket   SupportTicket?
 
   @@index([status, lastMessageAt])
   @@index([userId, status])
@@ -1307,20 +1367,131 @@ model SupportConversation {
 }
 
 model SupportMessage {
-  id             String              @id @default(uuid()) @db.Uuid
-  conversationId String              @db.Uuid
-  conversation   SupportConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  id             String                   @id @default(uuid()) @db.Uuid
+  conversationId String                   @db.Uuid
+  conversation   SupportConversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   role           SupportMessageRole
-  body           String              @db.Text
+  visibility     SupportMessageVisibility @default(PUBLIC)
+  body           String                   @db.Text
+  /// true si se ocultó un dato sensible (DUI / tarjeta) antes de guardar: el
+  /// valor original NUNCA se guarda, solo que ocurrió.
+  redacted       Boolean                  @default(false)
   /// Administrador que escribió el mensaje (solo `AGENT`).
-  senderId       String?             @db.Uuid
-  sender         User?               @relation("SupportMessageSender", fields: [senderId], references: [id], onDelete: SetNull)
+  senderId       String?                  @db.Uuid
+  sender         User?                    @relation("SupportMessageSender", fields: [senderId], references: [id], onDelete: SetNull)
   /// Tarjetas que acompañan un mensaje del bot (productos, estado de un
   /// pedido, respuestas rápidas) — guardadas para que al recargar el chat
   /// se vea lo mismo que se vio en vivo.
   metadata       Json?
-  createdAt      DateTime            @default(now())
+  createdAt      DateTime                 @default(now())
 
   @@index([conversationId, createdAt])
   @@map("support_messages")
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// CENTRO DE SOPORTE (tickets) — ver README "Diseño: centro de soporte"
+// ─────────────────────────────────────────────────────────────────────────
+
+/// Categorías de ticket. Es una tabla (no un enum) para que el equipo pueda
+/// agregar o desactivar categorías sin tocar código. `defaultPriority` es la
+/// prioridad inicial que decide el SERVIDOR (nunca el cliente ni la IA).
+model SupportCategory {
+  id                   String                @id @default(uuid()) @db.Uuid
+  slug                 String                @unique
+  name                 String
+  description          String?
+  defaultPriority      SupportTicketPriority @default(NORMAL)
+  isActive             Boolean               @default(true)
+  position             Int                   @default(0)
+  // Preparado para SLA (todavía no se aplica): objetivos en minutos.
+  firstResponseMinutes Int?
+  resolutionMinutes    Int?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+
+  tickets SupportTicket[]
+  macros  SupportMacro[]
+
+  @@map("support_categories")
+}
+
+/// Respuesta rápida ("macro"): el agente la inserta en el cuadro de respuesta y
+/// la puede editar; NUNCA se envía sola al elegirla.
+model SupportMacro {
+  id          String           @id @default(uuid()) @db.Uuid
+  title       String
+  body        String           @db.Text
+  categoryId  String?          @db.Uuid
+  category    SupportCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  isActive    Boolean          @default(true)
+  createdById String?          @db.Uuid
+  createdBy   User?            @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([isActive])
+  @@map("support_macros")
+}
+
+/// Un ticket es la unidad de trabajo del equipo de soporte. NO duplica datos:
+/// la conversación (mensajes, resumen, motivo, calificación) vive en
+/// `SupportConversation`, y el cliente, el pedido y el negocio se referencian.
+model SupportTicket {
+  id     String            @id @default(uuid()) @db.Uuid
+  /// Número legible para humanos (se muestra como T-1042).
+  number Int               @unique @default(autoincrement())
+  kind   SupportTicketKind @default(CUSTOMER)
+
+  conversationId String              @unique @db.Uuid
+  conversation   SupportConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  /// Null para visitantes sin cuenta (sus datos de contacto viven en la conversación).
+  customerId String?   @db.Uuid
+  customer   User?     @relation("SupportTicketCustomer", fields: [customerId], references: [id], onDelete: SetNull)
+  orderId    String?   @db.Uuid
+  order      Order?    @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  businessId String?   @db.Uuid
+  business   Business? @relation(fields: [businessId], references: [id], onDelete: SetNull)
+
+  assignedAgentId String? @db.Uuid
+  assignedAgent   User?   @relation("SupportTicketAgent", fields: [assignedAgentId], references: [id], onDelete: SetNull)
+
+  categoryId String          @db.Uuid
+  category   SupportCategory @relation(fields: [categoryId], references: [id])
+
+  status           SupportTicketStatus   @default(NEW)
+  priority         SupportTicketPriority @default(NORMAL)
+  subject          String
+  source           SupportTicketSource
+  /// true si el asistente (IA o reglas) decidió pasar a una persona.
+  escalatedFromBot Boolean               @default(false)
+
+  firstResponseAt DateTime?
+  resolvedAt      DateTime?
+  closedAt        DateTime?
+  reopenCount     Int       @default(0)
+
+  /// Para no mandar una notificación por cada mensaje seguido del cliente.
+  lastCustomerMessageAt DateTime?
+  lastAgentMessageAt    DateTime?
+
+  // Preparado para SLA (todavía no se calcula ni se aplica).
+  firstResponseDueAt DateTime?
+  resolutionDueAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([kind, status, updatedAt])
+  @@index([status])
+  @@index([priority])
+  @@index([assignedAgentId, status])
+  @@index([customerId])
+  @@index([orderId])
+  @@index([businessId])
+  @@index([categoryId])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@map("support_tickets")
 }

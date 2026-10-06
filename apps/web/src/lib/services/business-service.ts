@@ -25,7 +25,6 @@ function toBusinessDTO(business: BusinessWithMunicipality): BusinessDTO {
     description: business.description,
     coverUrl: business.coverUrl,
     phone: business.phone,
-    whatsapp: business.whatsapp,
     instagram: business.instagram,
     facebook: business.facebook,
     tiktok: business.tiktok,

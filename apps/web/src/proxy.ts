@@ -1,18 +1,15 @@
 import { NextResponse } from "next/server";
 import { auth } from "@mimo/auth";
+import { canAccessRoute } from "@/lib/route-access";
 
-const BUSINESS_PREFIX = "/negocio";
-const ADMIN_PREFIX = "/admin";
-
+// El personal de soporte tiene su propia área (/centro-soporte), separada de
+// /admin a propósito: ver `lib/route-access.ts`. Esto es solo la primera
+// barrera, con el rol del JWT; cada página y cada ruta de /api/centro-soporte
+// vuelven a verificar contra la base.
 export default auth((request) => {
   const { pathname } = request.nextUrl;
-  const role = request.auth?.user?.role;
 
-  if (pathname.startsWith(ADMIN_PREFIX) && role !== "ADMIN") {
-    return NextResponse.redirect(new URL("/iniciar-sesion", request.url));
-  }
-
-  if (pathname.startsWith(BUSINESS_PREFIX) && role !== "BUSINESS" && role !== "ADMIN") {
+  if (!canAccessRoute(pathname, request.auth?.user?.role)) {
     return NextResponse.redirect(new URL("/iniciar-sesion", request.url));
   }
 
@@ -20,5 +17,5 @@ export default auth((request) => {
 });
 
 export const config = {
-  matcher: ["/negocio/:path*", "/admin/:path*"],
+  matcher: ["/negocio/:path*", "/admin/:path*", "/centro-soporte/:path*"],
 };

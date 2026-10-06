@@ -26,6 +26,32 @@ const ACTION_LABEL: Record<string, string> = {
   "support.reply": "Respondió una consulta de soporte",
   "support.resolve": "Resolvió una consulta de soporte",
   "support.reopen": "Reabrió una consulta de soporte",
+  "ticket.created": "Se creó un ticket de soporte",
+  "ticket.assigned": "Se asignó un ticket de soporte",
+  "ticket.reassigned": "Se reasignó un ticket de soporte",
+  "ticket.released": "Se liberó un ticket de soporte",
+  "ticket.status_changed": "Cambió el estado de un ticket de soporte",
+  "ticket.priority_changed": "Cambió la prioridad de un ticket de soporte",
+  "ticket.category_changed": "Cambió la categoría de un ticket de soporte",
+  "ticket.order_linked": "Vinculó un pedido a un ticket de soporte",
+  "ticket.order_unlinked": "Desvinculó un pedido de un ticket de soporte",
+  "ticket.business_linked": "Vinculó un negocio a un ticket de soporte",
+  "ticket.business_unlinked": "Desvinculó un negocio de un ticket de soporte",
+  "ticket.escalated": "Escaló un ticket de soporte",
+  "ticket.message_sent": "Respondió a un cliente en un ticket de soporte",
+  "ticket.note_added": "Agregó una nota interna a un ticket de soporte",
+  "ticket.address_viewed": "Mostró la dirección de entrega de un pedido en un ticket",
+  "ticket.resolved": "Resolvió un ticket de soporte",
+  "ticket.closed": "Cerró un ticket de soporte",
+  "ticket.reopened": "Reabrió un ticket de soporte",
+  "ticket.rated": "El cliente calificó la atención de un ticket",
+  "support.message.redacted": "Se ocultó un dato sensible (DUI o tarjeta) en un mensaje de soporte",
+  "support.username_set": "Eligió su nombre de usuario de soporte",
+  "support.category.created": "Creó una categoría de soporte",
+  "support.category.updated": "Editó una categoría de soporte",
+  "support.macro.created": "Creó una respuesta rápida de soporte",
+  "support.macro.updated": "Editó una respuesta rápida de soporte",
+  "support.macro.deleted": "Eliminó una respuesta rápida de soporte",
 };
 
 function formatMetadata(metadata: AdminActionLogDTO["metadata"]): string | null {
@@ -44,7 +70,7 @@ export default async function AdminAuditLogPage() {
       <div className="flex flex-col gap-1">
         <h1 className="text-xl font-semibold tracking-tight text-neutral-900">Auditoría</h1>
         <p className="text-sm text-neutral-500">
-          Registro de acciones sensibles hechas por administradores (últimas {logs.length}).
+          Registro de acciones sensibles hechas por administradores y personal de soporte (últimas {logs.length}).
         </p>
       </div>
 

@@ -15,7 +15,6 @@ export function BusinessProfileForm({ profile }: { profile: BusinessProfileDTO }
   const [logoUrl, setLogoUrl] = useState<string | null>(profile.logoUrl);
   const [coverUrl, setCoverUrl] = useState<string | null>(profile.coverUrl);
   const [phone, setPhone] = useState(profile.phone ?? "");
-  const [whatsapp, setWhatsapp] = useState(profile.whatsapp ?? "");
   const [instagram, setInstagram] = useState(profile.instagram ?? "");
   const [facebook, setFacebook] = useState(profile.facebook ?? "");
   const [tiktok, setTiktok] = useState(profile.tiktok ?? "");
@@ -36,7 +35,6 @@ export function BusinessProfileForm({ profile }: { profile: BusinessProfileDTO }
       logoUrl,
       coverUrl,
       phone,
-      whatsapp,
       instagram,
       facebook,
       tiktok,
@@ -95,15 +93,6 @@ export function BusinessProfileForm({ profile }: { profile: BusinessProfileDTO }
             placeholder="7000-0000"
             value={phone}
             onChange={(e) => setPhone(e.target.value.replace(/[^\d]/g, ""))}
-          />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="business-whatsapp">WhatsApp</Label>
-          <Input
-            id="business-whatsapp"
-            placeholder="+503 7000-0000"
-            value={whatsapp}
-            onChange={(e) => setWhatsapp(e.target.value)}
           />
         </div>
       </div>

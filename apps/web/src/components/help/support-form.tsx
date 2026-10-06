@@ -14,6 +14,7 @@ export function SupportForm({ defaultName, defaultEmail }: { defaultName: string
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [ticketCode, setTicketCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(event: FormEvent) {
@@ -33,6 +34,7 @@ export function SupportForm({ defaultName, defaultEmail }: { defaultName: string
       setError(apiErrorMessage(body, "No pudimos enviar tu consulta."));
       return;
     }
+    setTicketCode(typeof body.data?.ticketCode === "string" ? body.data.ticketCode : null);
     setSent(true);
   }
 
@@ -43,7 +45,9 @@ export function SupportForm({ defaultName, defaultEmail }: { defaultName: string
           <CheckCircle2 className="size-5" />
         </span>
         <div>
-          <p className="text-sm font-medium text-neutral-900">Recibimos tu consulta.</p>
+          <p className="text-sm font-medium text-neutral-900">
+            Recibimos tu consulta{ticketCode ? ` (ticket ${ticketCode})` : ""}.
+          </p>
           <p className="text-sm text-neutral-500">Te respondemos a {email} apenas podamos.</p>
         </div>
       </div>
@@ -55,7 +59,7 @@ export function SupportForm({ defaultName, defaultEmail }: { defaultName: string
       <div>
         <p className="text-sm font-medium text-neutral-900">¿Seguís con dudas?</p>
         <p className="text-sm text-neutral-500">
-          Para dudas de un pedido puntual, escribile al negocio por WhatsApp desde su página. Para
+          Para dudas de un pedido puntual, escribile al negocio desde la sección «Mensajes» de tu pedido. Para
           todo lo demás (la plataforma, tu cuenta, un negocio que no encontrás), escribinos acá.
         </p>
       </div>

@@ -9,7 +9,6 @@ export interface BusinessProfileDTO {
   logoUrl: string | null;
   coverUrl: string | null;
   phone: string | null;
-  whatsapp: string | null;
   instagram: string | null;
   facebook: string | null;
   tiktok: string | null;
@@ -23,7 +22,6 @@ export interface BusinessProfileInput {
   logoUrl?: string | null;
   coverUrl?: string | null;
   phone?: string;
-  whatsapp?: string;
   instagram?: string;
   facebook?: string;
   tiktok?: string;

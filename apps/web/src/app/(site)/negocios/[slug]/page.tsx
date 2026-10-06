@@ -1,4 +1,4 @@
-import { MapPin, MessageCircle, Phone, ShieldCheck, Star, Truck } from "lucide-react";
+import { MapPin, Phone, ShieldCheck, Star, Truck } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -6,7 +6,7 @@ import { FavoriteButton } from "@/components/catalog/favorite-button";
 import { ProductCard } from "@/components/catalog/product-card";
 import { ReportButton } from "@/components/reports/report-button";
 import { ReviewList } from "@/components/reviews/review-list";
-import { formatPhone, whatsappHref } from "@/lib/format";
+import { formatPhone } from "@/lib/format";
 import { getBusinessBySlug } from "@/lib/services/business-service";
 import { listApprovedReviews } from "@/lib/services/review-service";
 
@@ -80,17 +80,6 @@ export default async function BusinessPage({ params }: PageProps<"/negocios/[slu
             >
               <Phone className="size-4" />
               {formatPhone(business.phone)}
-            </a>
-          )}
-          {business.whatsapp && (
-            <a
-              href={whatsappHref(business.whatsapp)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-full bg-neutral-900 px-4 py-2.5 text-sm font-medium text-neutral-50 transition-colors hover:bg-neutral-700"
-            >
-              <MessageCircle className="size-4" />
-              Escribir por WhatsApp
             </a>
           )}
           <FavoriteButton

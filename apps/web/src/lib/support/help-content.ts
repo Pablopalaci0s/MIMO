@@ -56,7 +56,7 @@ export const HELP_GROUPS: HelpGroup[] = [
       {
         question: "¿Puedo cancelar un pedido?",
         answer:
-          "Todavía no hay cancelación automática desde la web. Escribile directamente al negocio (en la sección \"Mensajes\" de tu pedido, o por su WhatsApp) apenas puedas — mientras el pedido esté \"Pendiente\" o \"Confirmado\" es más fácil que se pueda resolver.",
+          "Todavía no hay cancelación automática desde la web. Escribile directamente al negocio desde la sección \"Mensajes\" de tu pedido apenas puedas — mientras el pedido esté \"Pendiente\" o \"Confirmado\" es más fácil que se pueda resolver.",
         keywords: ["cancelar", "cancelacion", "anular", "ya no quiero", "me arrepenti"],
       },
       {

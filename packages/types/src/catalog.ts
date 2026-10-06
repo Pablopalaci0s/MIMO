@@ -40,7 +40,6 @@ export interface BusinessDTO extends BusinessSummaryDTO {
   description: string | null;
   coverUrl: string | null;
   phone: string | null;
-  whatsapp: string | null;
   instagram: string | null;
   facebook: string | null;
   tiktok: string | null;

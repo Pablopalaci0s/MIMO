@@ -16,3 +16,4 @@ export * from "./banner";
 export * from "./gift-registry";
 export * from "./group-gift";
 export * from "./support";
+export * from "./support-ticket";

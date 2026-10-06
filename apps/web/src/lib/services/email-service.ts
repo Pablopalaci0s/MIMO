@@ -133,9 +133,10 @@ export function buildSupportEscalationEmail(input: {
   reason: string | null;
   summary: string | null;
   adminUrl: string;
+  ticketCode?: string;
 }): { subject: string; html: string } {
   return {
-    subject: `[MIMO soporte] ${input.customerName} pidió hablar con una persona`,
+    subject: `[MIMO soporte${input.ticketCode ? ` ${input.ticketCode}` : ""}] ${input.customerName} pidió hablar con una persona`,
     html: emailLayout(
       "Nueva consulta de soporte",
       `
@@ -151,14 +152,58 @@ export function buildSupportEscalationEmail(input: {
   };
 }
 
-/** Aviso a un visitante sin cuenta de que soporte le respondió. */
+/** Confirmación al cliente de que su consulta quedó registrada como ticket. */
+export function buildSupportTicketCreatedEmail(input: {
+  customerName: string;
+  ticketCode: string;
+  subject: string;
+  chatUrl: string;
+}): { subject: string; html: string } {
+  return {
+    subject: `[${input.ticketCode}] Recibimos tu consulta`,
+    html: emailLayout(
+      "Recibimos tu consulta",
+      `
+        <p style="font-size: 14px; line-height: 1.5;">Hola ${escapeHtml(input.customerName)}, una persona del equipo de MIMO ya tiene tu consulta y te va a responder.</p>
+        <p style="font-size: 14px; line-height: 1.5;"><strong>Ticket ${escapeHtml(input.ticketCode)}</strong><br />${escapeHtml(input.subject)}</p>
+        <a href="${input.chatUrl}" style="${BUTTON_STYLE}">Ver mi consulta</a>
+        <p style="font-size: 12px; line-height: 1.5; color: #737373; margin-top: 16px;">
+          Por tu seguridad, no compartas contraseñas, códigos de seguridad ni documentos de identidad por este medio.
+        </p>
+      `,
+    ),
+  };
+}
+
+/** Aviso al cliente de que su ticket se marcó como resuelto (y puede calificar la atención). */
+export function buildSupportTicketResolvedEmail(input: {
+  customerName: string;
+  ticketCode: string;
+  chatUrl: string;
+}): { subject: string; html: string } {
+  return {
+    subject: `[${input.ticketCode}] Tu consulta se resolvió`,
+    html: emailLayout(
+      "Tu consulta se resolvió",
+      `
+        <p style="font-size: 14px; line-height: 1.5;">Hola ${escapeHtml(input.customerName)}, el equipo de MIMO marcó como resuelta tu consulta <strong>${escapeHtml(input.ticketCode)}</strong>.</p>
+        <p style="font-size: 14px; line-height: 1.5;">Si todavía necesitás algo, respondé en la misma conversación y la retomamos. Y si querés, contanos cómo fue la atención.</p>
+        <a href="${input.chatUrl}" style="${BUTTON_STYLE}">Calificar la atención</a>
+      `,
+    ),
+  };
+}
+
+/** Aviso a quien consultó de que soporte le respondió. */
 export function buildSupportReplyEmail(input: {
   customerName: string;
   preview: string;
   chatUrl: string;
+  /** Código del ticket (ej. "T-1042"), si ya existe. */
+  ticketCode?: string;
 }): { subject: string; html: string } {
   return {
-    subject: "El equipo de MIMO te respondió",
+    subject: input.ticketCode ? `[${input.ticketCode}] El equipo de MIMO te respondió` : "El equipo de MIMO te respondió",
     html: emailLayout(
       "El equipo de MIMO te respondió",
       `

@@ -134,6 +134,17 @@ describe("las cuatro rutas de documentos de identidad", () => {
     expectNoDocumentServiceWasTouched();
   });
 
+  it.each(["SUPPORT_AGENT", "SUPPORT_MANAGER"])(
+    "%s recibe 403 en TODAS, aunque tuviera canReviewDocuments=true en la base, y ningún servicio de documentos se ejecuta",
+    async (role) => {
+      auth.mockResolvedValue({ user: { id: "s1", role } });
+      findUser.mockResolvedValue({ canReviewDocuments: true });
+
+      expect(await callEveryRoute()).toEqual({ view: 403, reject: 403, remove: 403, verify: 403 });
+      expectNoDocumentServiceWasTouched();
+    },
+  );
+
   it("sin sesión recibe 401 en todas", async () => {
     auth.mockResolvedValue(null);
     expect(await callEveryRoute()).toEqual({ view: 401, reject: 401, remove: 401, verify: 401 });

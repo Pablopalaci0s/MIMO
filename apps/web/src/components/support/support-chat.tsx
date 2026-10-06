@@ -73,6 +73,8 @@ export function SupportChat({
   const [contact, setContact] = useState({ name: "", email: "", reason: "" });
   const [dismissedContactFor, setDismissedContactFor] = useState<string | null>(null);
   const [rated, setRated] = useState(false);
+  const [pendingRating, setPendingRating] = useState<number | null>(null);
+  const [ratingComment, setRatingComment] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const status = conversation?.status;
@@ -227,16 +229,18 @@ export function SupportChat({
     applyConversation(null);
     setView("chat");
     setRated(false);
+    setPendingRating(null);
+    setRatingComment("");
     setDraft("");
   }
 
-  async function rate(rating: number) {
+  async function rate(rating: number, comment: string) {
     if (!conversation) return;
     setRated(true);
     const response = await fetch("/api/soporte/calificar", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ conversationId: conversation.id, rating }),
+      body: JSON.stringify({ conversationId: conversation.id, rating, comment: comment.trim() || undefined }),
     }).catch(() => null);
     const body = response ? await response.json().catch(() => null) : null;
     if (body?.success) {
@@ -280,13 +284,14 @@ export function SupportChat({
 
   const withHuman = status === "WAITING_AGENT" || status === "WITH_AGENT";
   const title = withHuman ? "Soporte MIMO" : "Asistente MIMO";
+  const ticketSuffix = conversation?.ticketCode ? ` · ${conversation.ticketCode}` : "";
   const subtitle =
     status === "WAITING_AGENT"
-      ? "Esperando a una persona del equipo"
+      ? `Esperando a una persona del equipo${ticketSuffix}`
       : status === "WITH_AGENT"
-        ? "Hablando con el equipo de soporte"
+        ? `Hablando con el equipo de soporte${ticketSuffix}`
         : status === "RESOLVED"
-          ? "Conversación finalizada"
+          ? `Conversación finalizada${ticketSuffix}`
           : "Asistente virtual · responde al instante";
 
   const showWelcome = loaded && messages.length === 0 && !pendingText;
@@ -452,20 +457,40 @@ export function SupportChat({
           <div className="flex flex-col items-center gap-3 py-1 text-center">
             {conversation?.canRate && !rated ? (
               <>
-                <p className="text-sm text-neutral-700">¿Cómo fue la atención?</p>
+                <p className="text-sm text-neutral-700">¿Qué tan satisfecho/a estás con la atención?</p>
                 <div className="flex gap-1" role="group" aria-label="Calificá la atención de 1 a 5 estrellas">
                   {[1, 2, 3, 4, 5].map((value) => (
                     <button
                       key={value}
                       type="button"
-                      onClick={() => void rate(value)}
+                      onClick={() => setPendingRating(value)}
                       aria-label={`${value} ${value === 1 ? "estrella" : "estrellas"}`}
-                      className="rounded-full p-1.5 text-neutral-300 transition-colors hover:text-amber-400"
+                      aria-pressed={pendingRating === value}
+                      className={cn(
+                        "rounded-full p-1.5 transition-colors hover:text-amber-400",
+                        pendingRating !== null && value <= pendingRating ? "text-amber-400" : "text-neutral-300",
+                      )}
                     >
                       <Star className="size-6" fill="currentColor" />
                     </button>
                   ))}
                 </div>
+                {pendingRating !== null && (
+                  <div className="flex w-full flex-col gap-2">
+                    <textarea
+                      value={ratingComment}
+                      onChange={(event) => setRatingComment(event.target.value)}
+                      maxLength={500}
+                      rows={2}
+                      placeholder="¿Algo que quieras contarnos? (opcional)"
+                      aria-label="Comentario opcional sobre la atención"
+                      className="w-full resize-none rounded-xl border border-neutral-200 bg-white px-3 py-2 text-base outline-none placeholder:text-neutral-400 focus:border-neutral-300 sm:text-sm dark:bg-neutral-50"
+                    />
+                    <Button type="button" className="rounded-full" onClick={() => void rate(pendingRating, ratingComment)}>
+                      Enviar calificación
+                    </Button>
+                  </div>
+                )}
               </>
             ) : (
               <p className="flex items-center gap-1.5 text-sm text-neutral-600">
@@ -586,6 +611,9 @@ export function SupportChat({
                 {sending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
               </button>
             </form>
+            <p className="mt-2 text-[11px] leading-snug text-neutral-400">
+              No compartas contraseñas, códigos de seguridad ni documentos de identidad en este chat.
+            </p>
             {(!conversation || status === "BOT") && (
               <button
                 type="button"

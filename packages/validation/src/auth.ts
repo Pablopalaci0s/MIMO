@@ -27,7 +27,6 @@ export const registerBusinessSchema = z.object({
   ownerName: z.string().trim().min(2, "Tu nombre es muy corto").max(100, "Tu nombre es muy largo"),
   email: z.string().trim().toLowerCase().email("Correo inválido"),
   phone: z.string().trim().regex(/^[267]\d{7}$/, "Teléfono salvadoreño inválido (8 dígitos)"),
-  whatsapp: z.string().trim().optional(),
   municipalityId: z.string().uuid("Selecciona un municipio válido"),
   addressLine: z.string().trim().min(5, "La dirección es muy corta").max(255, "La dirección es muy larga"),
   password: z

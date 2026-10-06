@@ -68,7 +68,6 @@ export const businessProfileInputSchema = z.object({
   logoUrl: imageUrlSchema.optional().nullable(),
   coverUrl: imageUrlSchema.optional().nullable(),
   phone: salvadoranPhoneOptional,
-  whatsapp: z.string().trim().max(30).optional().or(z.literal("")),
   instagram: z.string().trim().max(100).optional().or(z.literal("")),
   facebook: z.string().trim().max(100).optional().or(z.literal("")),
   tiktok: z.string().trim().max(100).optional().or(z.literal("")),

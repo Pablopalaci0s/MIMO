@@ -20,6 +20,6 @@ export interface PaginationParams {
   pageSize?: number;
 }
 
-export type UserRole = "USER" | "BUSINESS" | "ADMIN";
+export type UserRole = "USER" | "BUSINESS" | "ADMIN" | "SUPPORT_AGENT" | "SUPPORT_MANAGER";
 
 export type DeliveryWindow = "ASAP" | "MORNING" | "MIDDAY" | "AFTERNOON" | "EVENING";

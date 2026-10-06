@@ -1,4 +1,4 @@
-export type MimoRole = "USER" | "BUSINESS" | "ADMIN";
+export type MimoRole = "USER" | "BUSINESS" | "ADMIN" | "SUPPORT_AGENT" | "SUPPORT_MANAGER";
 
 export class UnauthorizedError extends Error {
   constructor(message = "No autenticado") {

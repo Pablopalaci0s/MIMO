@@ -205,6 +205,21 @@ Cuentas demo: `admin@mimo.sv` / `Admin123!` (admin), `cliente@mimo.sv` /
   propio `dark:bg-neutral-100` (tarjeta) o `dark:bg-neutral-50` (chrome de
   página) a mano.
 
+- **Probar con un build de producción en otro puerto (ej. 3001)**: `NEXTAUTH_URL`
+  apunta a `localhost:3000`, así que las redirecciones del proxy (`/admin` →
+  `/iniciar-sesion`) saltan al puerto 3000. Es solo un efecto de la prueba. Además
+  el login tiene tope de **10 intentos / 15 min por IP, en memoria**: en pruebas
+  automatizadas guardá las cookies de sesión en vez de volver a iniciar sesión, o
+  reiniciá el servidor de prueba.
+
+- **`prisma generate` / `npm run build` con `next dev` levantado (Windows)**:
+  `prisma generate` falla con `EPERM ... query_engine-windows.dll.node` porque el
+  dev server tiene el motor abierto (los tipos y el cliente JS sí se regeneran, el
+  binario es el mismo). Se observó dos veces que después de eso ese dev server
+  respondía 500 en `/api/auth/*` ("problem with the server configuration"). Causa
+  no confirmada; primer paso: reiniciar `npm run dev`. Después de agregar columnas
+  nuevas al esquema hay que reiniciarlo igual para que cargue el cliente nuevo.
+
 ## Estructura de servicios (para mantener el patrón en fases futuras)
 
 Cada dominio tiene un `*-service.ts` en `apps/web/src/lib/services/` que
@@ -213,6 +228,34 @@ los Server Components (páginas) como las rutas `/api/*` (para que la
 futura app móvil use exactamente la misma lógica). Nunca poner lógica de
 negocio directamente en un componente o en una ruta. Existentes:
 `catalog-service`, `product-service`, `business-service`, `order-service`,
-`location-service`, `support-service` (conversaciones del chat de soporte y
-bandeja de admin) y `support-bot-service` (respuesta del asistente: IA con
-herramientas + motor de reglas de respaldo).
+`location-service`, `support-service` (lado cliente del chat de soporte),
+`support-bot-service` (respuesta del asistente: IA con herramientas + motor
+de reglas de respaldo) y los del centro de soporte (`support-ticket-service`,
+`support-ticket-intake-service`, `support-access-service`,
+`support-context-service`, `support-config-service`,
+`support-metrics-service`; reglas puras en `lib/support/ticket-rules.ts`).
+
+## Centro de soporte (`/centro-soporte`) — reglas para no romperlo
+
+- Es un área **separada de `/admin`** a propósito: los roles `SUPPORT_AGENT` y
+  `SUPPORT_MANAGER` NO deben entrar a `/admin` (sus páginas dependen solo del
+  proxy) ni a documentos de identidad. Si agregás una ruta nueva, definí quién
+  entra en `lib/route-access.ts` (+ su test).
+- La autorización del personal sale **de la base en cada request**
+  (`requireSupportStaff`), nunca del rol del JWT, que queda viejo.
+- Un ticket que el usuario no puede ver responde **404**, no 403 (anti-IDOR).
+- Las **notas internas** (`visibility: INTERNAL`) jamás pueden llegar al
+  cliente: todo lo que lee el lado cliente/bot pasa por `CONVERSATION_INCLUDE`,
+  que filtra `PUBLIC`. No agregues otra consulta de mensajes sin ese filtro.
+- Todo texto libre que entra al sistema de soporte pasa por `redactSensitive`
+  antes de guardarse; el original nunca se persiste ni se loguea.
+- Los colores de la consola salen de las variables `--sc-*` de `globals.css` (clases
+  `bg-sc-primary`, `bg-sc-rail`, `text-sc-success`…): no escribas `blue-*`/`slate-*`
+  a mano en `components/centro-soporte`.
+- El **WhatsApp de los negocios no se muestra ni se pide** (decisión del dueño del
+  producto: clientes y negocios se escriben solo dentro de la app). No lo vuelvas a
+  agregar; la columna `Business.whatsapp` queda sin uso a propósito.
+- El personal elige su **nombre de usuario una sola vez** (`support-profile-service`);
+  es lo que ve el cliente. No agregues una forma de cambiarlo desde la UI.
+- Migración con `rollback.sql` al lado (Prisma no la ejecuta): si el esquema de
+  soporte cambia otra vez, mantener esa costumbre.

@@ -10,6 +10,17 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
   --font-heading: var(--font-sans);
+  /* Consola del centro de soporte (ver bloque "Centro de soporte" más abajo) */
+  --color-sc-rail: var(--sc-rail);
+  --color-sc-rail-hover: var(--sc-rail-hover);
+  --color-sc-rail-active: var(--sc-rail-active);
+  --color-sc-rail-fg: var(--sc-rail-fg);
+  --color-sc-primary: var(--sc-primary);
+  --color-sc-primary-hover: var(--sc-primary-hover);
+  --color-sc-primary-soft: var(--sc-primary-soft);
+  --color-sc-success: var(--sc-success);
+  --color-sc-danger: var(--sc-danger);
+  --color-sc-warning: var(--sc-warning);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
   --color-brand-soft: var(--brand-soft);
@@ -52,6 +63,21 @@
 }
 
 :root {
+  /* ── Centro de soporte ─────────────────────────────────────────────────
+   * TODOS los colores de la consola de soporte salen de acá: para cambiar la
+   * paleta se tocan estas variables y nada más. Inspirada en las herramientas
+   * de mesa de ayuda (riel verde petróleo, acción en azul, estados claros). */
+  --sc-rail: #03363d;
+  --sc-rail-hover: #0b4a52;
+  --sc-rail-active: #12606a;
+  --sc-rail-fg: #c4dcdf;
+  --sc-primary: #1f73b7;
+  --sc-primary-hover: #17598e;
+  --sc-primary-soft: #eaf3fa;
+  --sc-success: #038153;
+  --sc-danger: #cc3340;
+  --sc-warning: #d97706;
+
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -93,6 +119,16 @@
 }
 
 .dark {
+  --sc-rail: #02272c;
+  --sc-rail-hover: #083b42;
+  --sc-rail-active: #0e4f58;
+  --sc-primary: #4a9bd8;
+  --sc-primary-hover: #6bb0e6;
+  --sc-primary-soft: rgba(74, 155, 216, 0.14);
+  --sc-success: #2bb985;
+  --sc-danger: #ee6b76;
+  --sc-warning: #f0a23a;
+
   /* Reemplaza la escala "neutral" de Tailwind (acromática, oklch(x 0 none))
      por la escala "stone" (gris cálido) invertida — 50 con 950, 100 con
      900, etc. Como todas las utilidades bg/text/border neutral de la app

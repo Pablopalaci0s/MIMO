@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  supportAdminReplySchema,
   supportEscalateSchema,
   supportRateSchema,
   supportRequestSchema,
@@ -58,13 +57,6 @@ describe("supportRateSchema", () => {
     for (const rating of [0, 6, 2.5]) {
       expect(() => supportRateSchema.parse({ conversationId: UUID, rating })).toThrow();
     }
-  });
-});
-
-describe("supportAdminReplySchema", () => {
-  it("rechaza una respuesta vacía y una demasiado larga", () => {
-    expect(() => supportAdminReplySchema.parse({ message: "" })).toThrow();
-    expect(() => supportAdminReplySchema.parse({ message: "a".repeat(2001) })).toThrow();
   });
 });
 

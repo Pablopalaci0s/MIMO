@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getOrderByNumber, listMyOrders } from "@/lib/services/order-service";
 import { listProducts } from "@/lib/services/product-service";
 import { extractOrderNumber } from "./bot-rules";
+import { INITIAL_CATEGORY_SLUGS } from "./ticket-rules";
 import { ORDER_STATUS_LABEL, PAYMENT_PROVIDER_LABEL, PAYMENT_STATUS_LABEL } from "./labels";
 
 /**
@@ -22,7 +23,7 @@ export interface ToolContext {
 export interface ToolOutcome {
   products: SupportProductCardDTO[];
   order: SupportOrderCardDTO | null;
-  escalation: { reason: string; summary: string } | null;
+  escalation: { reason: string; summary: string; category?: string } | null;
 }
 
 export const SUPPORT_TOOLS: ConverseTool[] = [
@@ -62,6 +63,12 @@ export const SUPPORT_TOOLS: ConverseTool[] = [
       type: "object",
       properties: {
         reason: { type: "string", description: "Motivo en pocas palabras (ej. 'Cobro doble en un pedido')." },
+        category: {
+          type: "string",
+          enum: [...INITIAL_CATEGORY_SLUGS],
+          description:
+            "Categoría que mejor describe el caso. Es solo una sugerencia para ordenar el ticket: la prioridad, los reembolsos y cualquier acción sobre dinero los decide siempre una persona del equipo.",
+        },
         summary: {
           type: "string",
           description:
@@ -84,6 +91,7 @@ const searchProductsInput = z.object({
 const orderStatusInput = z.object({ order_number: z.string().trim().max(40).optional() });
 
 const escalateInput = z.object({
+  category: z.enum(INITIAL_CATEGORY_SLUGS).optional(),
   reason: z.string().trim().min(3).max(300),
   summary: z.string().trim().min(3).max(800),
 });
@@ -226,7 +234,7 @@ export function createToolRunner(context: ToolContext) {
         const input = escalateInput.safeParse(rawInput);
         if (!input.success) throw new Error("Parámetros inválidos para escalate_to_human.");
 
-        outcome.escalation = { reason: input.data.reason, summary: input.data.summary };
+        outcome.escalation = { reason: input.data.reason, summary: input.data.summary, category: input.data.category };
         return context.userId
           ? "Listo: la conversación pasa a una persona del equipo. Decile a la persona que va a seguir acá mismo, en este chat, y que le va a llegar una notificación cuando le respondan."
           : "Listo: la conversación pasa a una persona del equipo. Como no tiene sesión iniciada, el chat le va a pedir su nombre y correo para poder responderle: avisale eso y que la respuesta va a aparecer en este mismo chat.";

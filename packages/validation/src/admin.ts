@@ -8,7 +8,7 @@ export const adminBusinessUpdateSchema = z.object({
 });
 
 export const adminUserUpdateSchema = z.object({
-  role: z.enum(["USER", "BUSINESS", "ADMIN"]).optional(),
+  role: z.enum(["USER", "BUSINESS", "ADMIN", "SUPPORT_AGENT", "SUPPORT_MANAGER"]).optional(),
   isSuspended: z.boolean().optional(),
   canReviewDocuments: z.boolean().optional(),
 });

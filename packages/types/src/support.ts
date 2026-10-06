@@ -53,26 +53,6 @@ export interface SupportConversationDTO {
   /** La conversación terminó y todavía no dejó calificación. */
   canRate: boolean;
   rating: number | null;
-}
-
-export interface AdminSupportConversationListItemDTO {
-  id: string;
-  status: SupportConversationStatus;
-  customerName: string;
-  customerEmail: string | null;
-  isGuest: boolean;
-  summary: string | null;
-  lastMessagePreview: string;
-  lastMessageRole: SupportMessageRole;
-  lastMessageAt: string;
-  escalatedAt: string | null;
-  assignedToName: string | null;
-  rating: number | null;
-  /** El último mensaje es de la persona y todavía nadie del equipo contestó. */
-  needsReply: boolean;
-}
-
-export interface AdminSupportConversationDTO extends AdminSupportConversationListItemDTO {
-  escalationReason: string | null;
-  messages: SupportMessageDTO[];
+  /** Número de ticket (ej. "T-1042") una vez que la conversación pasó a una persona. */
+  ticketCode: string | null;
 }

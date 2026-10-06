@@ -38,7 +38,7 @@ export default async function AdminDashboardPage() {
         />
         <StatCard
           icon={<LifeBuoy className="size-5" />}
-          label="Soporte esperando respuesta"
+          label="Tickets de soporte nuevos"
           value={String(stats.pendingSupport)}
           highlight={stats.pendingSupport > 0}
         />

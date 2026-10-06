@@ -55,7 +55,6 @@ export async function applyAsBusiness(input: RegisterBusinessInput): Promise<{ u
       data: {
         name: input.businessName,
         slug,
-        whatsapp: input.whatsapp || input.phone,
         municipalityId: input.municipalityId,
         addressLine: input.addressLine,
         status: "PENDING",

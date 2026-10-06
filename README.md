@@ -364,12 +364,13 @@ negocio.
 **El negocio ahora controla su propia página pública.** Antes el
 banner/logo/teléfono de un negocio solo se podían fijar por seed o admin —
 no había forma de que el dueño los cambiara. `/negocio/perfil` (nuevo ítem
-en el sidebar) deja editar banner, logo, descripción, teléfono, WhatsApp,
+en el sidebar) deja editar banner, logo, descripción, teléfono,
 dirección y redes sociales (`GET/PATCH /api/negocio/perfil`,
 `business-settings-service.ts`). Se agregó `Business.phone` (distinto de
 `whatsapp`, que ya existía) porque un cliente puede querer llamar sin pasar
-por WhatsApp — se muestra como botón `tel:+503...` en `/negocios/[slug]`
-junto al de WhatsApp.
+por WhatsApp — se muestra como botón `tel:+503...` en `/negocios/[slug]`.
+**Actualización:** el WhatsApp de los negocios ya no se pide, no se muestra y no
+sale en el dato público del negocio (ver "Comunicación solo dentro de la app").
 
 **Distritos de San Salvador — la cobertura por municipio era demasiado
 gruesa.** El municipio "San Salvador" original mezclaba zonas muy distintas
@@ -1157,18 +1158,19 @@ soporte" está siempre visible en el chat — nunca queda atrapado en el bot.
   el `userId` de la sesión y el modelo no puede pasar otro (el esquema de la
   herramienta no lo admite). Un pedido ajeno es indistinguible de uno que no
   existe. Al modelo nunca le llegan dirección, teléfono ni correo del pedido.
-- **Escalada**: la conversación pasa a `WAITING_AGENT`, se notifica a todos los
-  administradores (tipo `SUPPORT_MESSAGE`) y se manda un correo a
-  `SUPPORT_EMAIL`. El equipo la atiende desde `/admin/soporte` (bandeja con
-  filtros, resumen y motivo, responder, resolver/reabrir — todo auditado).
-  La respuesta aparece en el mismo chat; si la persona tiene cuenta recibe una
-  notificación, si es visitante, un correo con el link.
+- **Escalada**: la conversación pasa a `WAITING_AGENT`, **se crea un ticket**
+  (ver "Diseño: centro de soporte" más abajo), se notifica al personal de
+  soporte (tipo `SUPPORT_MESSAGE`) y se manda un correo a `SUPPORT_EMAIL`. El
+  equipo la atiende desde `/centro-soporte` (antes `/admin/soporte`, que ahora
+  solo redirige ahí). La respuesta aparece en el mismo chat; si la persona
+  tiene cuenta recibe una notificación, si es visitante, un correo con el link.
 - **Visitantes sin cuenta**: la conversación se identifica con un uuid
   guardado en el navegador; para hablar con una persona se les pide nombre y
   correo en ese momento. Si después inician sesión y siguen escribiendo, la
   conversación se asocia a su cuenta (solo mientras siga con el bot).
 - **Actualización**: polling (5 s con el chat abierto, 45 s para el punto de
-  "respuesta nueva", 10–15 s en la bandeja de admin) en vez de websockets —
+  "respuesta nueva", 8 s en la conversación del agente y 20 s en la bandeja del
+  centro de soporte) en vez de websockets —
   consistente con el resto de la app y sin infraestructura extra.
 - **Límites**: rate limit en memoria por ruta (mensajes: 30 cada 10 min con
   sesión, 15 sin sesión; pedir una persona: 6 por hora), tope de 60 mensajes
@@ -1183,6 +1185,130 @@ soporte" está siempre visible en el chat — nunca queda atrapado en el bot.
   una clave real.
 - Tests: `bot-rules.test.ts`, `bot-tools.test.ts`, `support.test.ts`
   (validación) y `anthropic-provider.test.ts` (`packages/ai`).
+
+## Diseño: centro de soporte — tickets (post-Fase 11)
+
+Área interna para que 2–10 personas atiendan las consultas que el chatbot (o
+`/ayuda`) no resolvió, con aire de mesa de ayuda: bandeja por colas,
+conversación con notas internas, datos del cliente y de su pedido a mano.
+Vive en **`/centro-soporte`**, separada de `/admin` a propósito.
+
+**Roles** (`UserRole`): `SUPPORT_AGENT` (atiende) y `SUPPORT_MANAGER`
+(supervisa: métricas, configuración, reasignar). `ADMIN` conserva acceso a
+todo. Se asignan desde `/admin/usuarios`.
+
+- **Autorización contra la base en cada request** (`support-access-service.ts`):
+  el rol del JWT solo se fija al iniciar sesión y queda viejo — acá nunca se
+  confía en él. `proxy.ts` es solo la primera barrera (`lib/route-access.ts`,
+  pura y testeada). Un agente **no entra a `/admin`** ni a los documentos de
+  identidad (esos exigen `ADMIN` + `canReviewDocuments`, sin excepción para
+  soporte — hay un test por rol).
+- **Un ticket por conversación** (`SupportTicket` 1:1 con `SupportConversation`,
+  número correlativo `T-1042`): la conversación sigue siendo el contenedor de
+  mensajes, así que el chat del cliente no cambió. El estado del ticket
+  (`NEW → OPEN/IN_PROGRESS ⇄ WAITING_CUSTOMER/WAITING_BUSINESS → ESCALATED →
+  RESOLVED → CLOSED`) decide el estado de la conversación.
+- **Colas**: "Nuevos / Sin asignar", "Mis tickets" y "Todos" (supervisión), más
+  por estado. Un agente ve sus tickets y la cola sin asignar; supervisión y
+  admin ven todo. Un ticket ajeno responde **404** (no 403): no confirma que
+  existe (anti-IDOR).
+- **Tomar ticket** es atómico (`updateMany` condicionado a "sin asignar"): con
+  dos agentes a la vez, uno gana y el otro recibe `409 TICKET_ALREADY_TAKEN`.
+  Los cambios de estado usan bloqueo optimista (`TICKET_CHANGED`).
+- **Reapertura**: si el cliente escribe sobre un ticket `RESOLVED` que todavía
+  ve (sin calificar y dentro de 24 h), el mismo ticket vuelve a atención con el
+  mismo agente y se le avisa. Una conversación ya calificada se da por cerrada:
+  si el cliente vuelve a escribir, empieza una nueva con el asistente.
+- **Notas internas** (`SupportMessage.visibility = INTERNAL`): la única salida
+  de lectura del lado cliente/bot filtra `PUBLIC` (`CONVERSATION_INCLUDE`), y
+  hay tests que lo prueban en cada ruta del cliente. Nunca van a notificaciones,
+  correos ni auditoría.
+- **Datos sensibles** (`@mimo/validation` → `redactSensitive`): un DUI se oculta
+  solo si tiene formato y dígito verificador válidos, una tarjeta solo si pasa
+  Luhn + agrupación y marca conocida; números de pedido, teléfonos y códigos no
+  se tocan (hay tests de falsos positivos). Se aplica **antes de guardar** (y
+  antes de mandarle el texto al asistente) en mensajes del cliente, motivo de
+  escalamiento, respuestas y notas del agente y comentario de calificación. El
+  original no se guarda en ningún lado; se registra solo *que* hubo una
+  redacción. El chat avisa al cliente y le recuerda no compartir contraseñas,
+  códigos ni documentos.
+- **Contexto del cliente y del pedido**: tarjeta del cliente (antigüedad,
+  cantidad de pedidos y tickets) y pedido vinculado en solo lectura — estado,
+  total, productos y municipio. La **dirección completa está oculta**: mostrarla
+  es una acción explícita que queda en la auditoría (`ticket.address_viewed`).
+  No hay datos de repartidor ni tracking: no existen (ver "Seguimiento de
+  pedidos"). Vincular un pedido de otra cuenta se permite pero se avisa en la
+  UI y se marca `ownedByCustomer: false` en la auditoría.
+- **Prioridad y categoría las decide el servidor**, no el cliente: cada
+  `SupportCategory` (editable por supervisión, sin tocar código) trae su
+  prioridad inicial; el chatbot puede sugerir categoría y, si no, se clasifica
+  por palabras clave.
+- **Respuestas rápidas** (`SupportMacro`): texto que el agente inserta, edita y
+  envía él mismo — nunca se manda sola.
+- **Consola** (aspecto de herramienta de trabajo, no de app de compras): barra
+  lateral oscura fija con las colas y su contador en vivo, bandeja de filas
+  compactas con una barra de color por prioridad, conversación con avatares y
+  separadores de día, y un compositor con pestañas "Responder / Nota interna".
+  Usa un azul funcional para acciones y datos y deja el rosa de marca solo para
+  el logo y lo que espera atención; funciona en claro, oscuro y móvil.
+- **Nombre de usuario del personal**: la primera vez que alguien entra al centro
+  de soporte (agente o supervisor), una pantalla le hace elegir su nombre de
+  usuario (3–24 caracteres, minúsculas, sin palabras reservadas, único). Es lo
+  que ve el cliente en el chat en vez de su nombre real. **Se elige una sola
+  vez**: la garantiza la base (`updateMany` condicionado a "todavía no tiene
+  uno" + índice único), así que dos pestañas a la vez no pueden pisarse. Después
+  solo lo cambia un administrador (a mano en la base: `supportUsername` y
+  `supportUsernameSetAt` en `users`). Se ve en el menú de la persona. Migración
+  `support_username` (aditiva, con `rollback.sql`).
+- **Calificaciones del agente** (`/centro-soporte/calificaciones`): cada persona
+  ve las suyas — CSAT (% de 4–5 ★), DSAT (% de 1–2 ★), promedio, distribución y
+  los comentarios de los clientes, con comparación contra el período anterior.
+  Supervisión y administración pueden mirar a cualquier persona o a todo el
+  equipo. Un agente que pida las de otro recibe 403. La calificación es de
+  quien tiene el ticket asignado.
+- **Paleta de la consola**: todos los colores salen de las variables `--sc-*` de
+  `globals.css` (riel verde petróleo, azul de acción, estados de ticket). Para
+  cambiarla se tocan esas variables, no los componentes.
+
+**Comunicación solo dentro de la app.** MIMO no muestra el WhatsApp de los
+negocios: clientes y negocios se escriben únicamente por la sección «Mensajes»
+del pedido, que queda dentro de la plataforma. La columna `Business.whatsapp`
+sigue en la base (borrarla sería destructivo) pero ya no se lee ni se escribe
+desde la app. El teléfono del negocio sí se sigue mostrando; si tampoco debe
+mostrarse, es un cambio chico.
+
+- **Métricas** (solo supervisión/admin): indicadores con variación contra el
+  período anterior, serie diaria de creados vs. resueltos, estado actual (anillo),
+  categorías, prioridades, carga por persona, asistente vs. personas y CSAT con
+  su distribución de estrellas (comentario opcional, una sola vez). Los gráficos
+  son SVG propios (`components/centro-soporte/charts.tsx`), sin librería; el día
+  se cuenta en hora de El Salvador.
+- **Auditoría** (`AdminActionLog`): creación, asignación, cambios de estado,
+  prioridad y categoría, vínculos, mensajes, notas, dirección vista,
+  resolución, reapertura y calificación; en `/admin/auditoria`.
+- **Fuera de alcance (a propósito)**: VoIP, WhatsApp, adjuntos, tracking en vivo,
+  websockets y SLA con alertas (los campos de vencimiento ya existen para una
+  fase 2).
+
+**Migración**: `20261006015452_support_ticketing` es aditiva (no borra ni cambia
+columnas existentes): crea las tablas nuevas, siembra 12 categorías y genera un
+ticket para cada conversación ya escalada. Tiene `rollback.sql` al lado (Prisma
+no lo ejecuta) que la revierte, incluyendo los valores del enum de roles. Antes
+de aplicarla se ensayó en una copia: hashes idénticos tras migrar, revertir y
+volver a migrar. Como red de seguridad, `ensureTicketsForEscalatedConversations`
+crea el ticket de cualquier conversación escalada que haya quedado sin él.
+
+**Verificado**: tests unitarios y de rutas (`ticket-rules`, `support-ticket-service`,
+`support-customer`, `centro-soporte-routes`, `support-access-service`,
+`support-metrics-service`, `sensitive-data`, `route-access`, `document-access`);
+y en navegador sobre el build de producción como cliente, `SUPPORT_AGENT`,
+`SUPPORT_MANAGER` y dueño de negocio, con una carrera real de dos agentes
+tomando el mismo ticket.
+
+**Qué NO está verificado**: una escalada decidida por Claude con la herramienta
+`escalate_to_human` y su `category` (las pruebas pasaron por el guardarraíl
+determinista "quiero una persona"); el envío real de correos (sin
+`RESEND_API_KEY` se loguean).
 
 ## Diseño: acuerdo MIMO ↔ negocio (post-Fase 11)
 

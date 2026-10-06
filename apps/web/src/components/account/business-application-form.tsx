@@ -27,7 +27,6 @@ export function BusinessApplicationForm({ municipalities }: { municipalities: Mu
   const [ownerName, setOwnerName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
   const [municipalityId, setMunicipalityId] = useState("");
   const [addressLine, setAddressLine] = useState("");
   const [password, setPassword] = useState("");
@@ -49,7 +48,6 @@ export function BusinessApplicationForm({ municipalities }: { municipalities: Mu
         ownerName,
         email,
         phone,
-        whatsapp: whatsapp || undefined,
         municipalityId,
         addressLine,
         password,
@@ -103,15 +101,6 @@ export function BusinessApplicationForm({ municipalities }: { municipalities: Mu
             onChange={(e) => setPhone(e.target.value.replace(/[^\d]/g, ""))}
           />
         </div>
-      </div>
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="business-whatsapp">WhatsApp (opcional, si es distinto al teléfono)</Label>
-        <Input
-          id="business-whatsapp"
-          placeholder="+503 7000-0000"
-          value={whatsapp}
-          onChange={(e) => setWhatsapp(e.target.value)}
-        />
       </div>
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="business-municipality">Municipio</Label>

@@ -119,7 +119,7 @@ export const authConfig: NextAuthConfig = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        session.user.role = (token.role as "USER" | "BUSINESS" | "ADMIN") ?? "USER";
+        session.user.role = (token.role as "USER" | "BUSINESS" | "ADMIN" | "SUPPORT_AGENT" | "SUPPORT_MANAGER") ?? "USER";
       }
       return session;
     },

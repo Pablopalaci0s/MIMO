@@ -56,7 +56,7 @@ export async function getAdminStats(): Promise<AdminStatsDTO> {
     prisma.report.count({ where: { status: "OPEN" } }),
     prisma.review.count({ where: { status: "PENDING" } }),
     prisma.coverageRequest.count({ where: { status: "OPEN" } }),
-    prisma.supportConversation.count({ where: { status: "WAITING_AGENT" } }),
+    prisma.supportTicket.count({ where: { kind: "CUSTOMER", status: "NEW" } }),
   ]);
 
   return {
