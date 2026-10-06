@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Seguridad",
-  description: "Las medidas técnicas que MIMO tiene implementadas hoy para proteger tus datos.",
+  description: "Las medidas técnicas que MIMO tiene implementadas hoy para proteger sus datos.",
 };
 
 const LAST_UPDATED = "6 de octubre de 2026";
@@ -17,7 +17,7 @@ export default function SeguridadPage() {
       <div className="mt-8 flex flex-col gap-4 text-sm [&>ul]:list-disc [&>ul]:space-y-1 [&>ul]:pl-5 [&>ul]:text-neutral-600 [&>p]:leading-relaxed [&>p]:text-neutral-600">
         <p>
           Esta página explica, en términos concretos, las medidas de seguridad que tenemos{" "}
-          <strong>implementadas actualmente</strong> para proteger tus datos — no es una lista de
+          <strong>implementadas actualmente</strong> para proteger sus datos — no es una lista de
           intenciones. Para saber qué datos recolectamos y cómo los usamos, ver la{" "}
           <Link href="/privacidad" className="underline">
             Política de privacidad
@@ -32,7 +32,7 @@ export default function SeguridadPage() {
             nuestro equipo.
           </li>
           <li>
-            <strong>Recuperación de contraseña:</strong> el link que te mandamos usa un código
+            <strong>Recuperación de contraseña:</strong> el link que le mandamos usa un código
             aleatorio de un solo uso que vence en 1 hora. Pedir un reset nunca revela si un correo
             está o no registrado en MIMO.
           </li>
@@ -51,18 +51,18 @@ export default function SeguridadPage() {
             parámetros seguros, nunca armando SQL a mano, lo que evita inyección SQL.
           </li>
           <li>
-            <strong>Pagos:</strong> cuando pagás con PayPal, el cobro se procesa siempre del lado
-            de PayPal — tu número de tarjeta nunca llega a los servidores de MIMO. El monto a
+            <strong>Pagos:</strong> cuando paga con PayPal, el cobro se procesa siempre del lado
+            de PayPal — su número de tarjeta nunca llega a los servidores de MIMO. El monto a
             cobrar siempre lo recalculamos nosotros en el servidor, nunca confiando en el monto
             que envía el navegador.
           </li>
           <li>
-            <strong>Archivos:</strong> las imágenes que subís se validan por tipo y tamaño (máximo
+            <strong>Archivos:</strong> las imágenes que sube se validan por tipo y tamaño (máximo
             5MB, solo JPG/PNG/WEBP) antes de guardarse.
           </li>
           <li>
-            <strong>Permisos:</strong> cada acción sobre tus pedidos, tu negocio o tu cuenta se
-            verifica en el servidor contra quién sos realmente — no alcanza con estar logueado
+            <strong>Permisos:</strong> cada acción sobre sus pedidos, su negocio o su cuenta se
+            verifica en el servidor contra quién es realmente — no alcanza con estar logueado
             para ver o modificar datos de otra cuenta o negocio.
           </li>
           <li>
@@ -86,8 +86,8 @@ export default function SeguridadPage() {
           </li>
           <li>
             <strong>Chat de soporte:</strong> el asistente solo consulta pedidos de la cuenta con
-            la que iniciaste sesión (el servidor decide a quién pertenece cada consulta, no la IA),
-            nunca le pasa a la IA tu dirección, teléfono ni correo, y limita la cantidad de
+            la que inició sesión (el servidor decide a quién pertenece cada consulta, no la IA),
+            nunca le pasa a la IA su dirección, teléfono ni correo, y limita la cantidad de
             mensajes que se pueden mandar en un rato y por conversación para evitar abusos. Los visitantes sin cuenta
             solo pueden ver su propia conversación.
           </li>
@@ -98,7 +98,7 @@ export default function SeguridadPage() {
         </ul>
 
         <p>
-          Ningún sistema es 100% infalible, así que te recomendamos usar una contraseña única
+          Ningún sistema es 100% infalible, así que le recomendamos usar una contraseña única
           para MIMO.
         </p>
       </div>

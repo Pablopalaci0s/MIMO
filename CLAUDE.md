@@ -52,6 +52,12 @@ correcta", no logística de comida.
 5. No fingir funcionalidad que no existe. Si algo no está implementado
    (ej. pago con tarjeta), se muestra deshabilitado con una nota clara en
    vez de simular que funciona.
+6. **Tono del texto**: voseo salvadoreño ("podés", "tenés", "decime", "escribinos")
+   en toda la app y las FAQ — es el registro natural de El Salvador, no es
+   "argentino" (no usar vocabulario rioplatense: che, laburo, boludo…). Las
+   páginas legales (`/terminos`, `/privacidad`, `/seguridad`,
+   `/terminos-negocios`) van en **"usted"** ("puede", "su cuenta", "escríbanos"),
+   sin voseo ni "tú". No mezclar los dos tonos dentro de una misma página.
 
 ## Estado actual — ver README.md "Estado del proyecto" para el detalle vivo
 

@@ -49,7 +49,7 @@ export default function TerminosNegociosPage() {
         <p>
           Cada solicitud la revisa el equipo de MIMO antes de publicarse; MIMO puede aprobarla,
           rechazarla o pedir más información, sin obligación de justificar un rechazo. Después de
-          registrarte, para que tu Negocio pueda ser aprobado, el titular o representante legal
+          registrarse, para que el Negocio pueda ser aprobado, el titular o representante legal
           tiene que subir desde su panel (sección <strong>Verificación</strong>):
         </p>
         <ul>
@@ -91,7 +91,7 @@ export default function TerminosNegociosPage() {
         </p>
         <ul>
           <li>
-            El porcentaje vigente de tu Negocio figura en tu panel (sección Perfil). Puede ser menor
+            El porcentaje vigente del Negocio figura en su panel (sección Perfil). Puede ser menor
             que el estándar durante una prueba o promoción que MIMO ofrezca; al terminar la prueba
             se aplica la comisión que corresponda.
           </li>
@@ -102,33 +102,33 @@ export default function TerminosNegociosPage() {
           <li>
             MIMO puede cambiar la comisión avisando con al menos {AGREEMENT_CHANGE_NOTICE_DAYS} días
             de anticipación. El cambio solo rige para pedidos posteriores al aviso y, si no lo
-            aceptás, podés terminar este acuerdo (sección 19) antes de que entre en vigor.
+            acepta, puede terminar este acuerdo (sección 19) antes de que entre en vigor.
           </li>
           <li>
-            Tu parte neta de un pedido pagado en línea es el valor del pedido menos la comisión.
-            Mientras MIMO no te avise un cambio conforme a esta sección, el costo de procesamiento
-            del pago en línea lo asume MIMO y no se descuenta de tu parte.
+            Su parte neta de un pedido pagado en línea es el valor del pedido menos la comisión.
+            Mientras MIMO no le avise un cambio conforme a esta sección, el costo de procesamiento
+            del pago en línea lo asume MIMO y no se descuenta de su parte.
           </li>
         </ul>
 
-        <h2>4. Cuándo y cómo recibís tu dinero</h2>
+        <h2>4. Cuándo y cómo recibe su dinero</h2>
         <ul>
           <li>
             <strong>Pagos en línea (PayPal):</strong> el comprador paga el total a MIMO al hacer el
-            pedido. Cuando <em>confirmás</em> tu parte del pedido, MIMO te envía tu parte neta
-            automáticamente al correo de PayPal que cargaste en tu panel. Los tiempos de
+            pedido. Cuando <em>confirma</em> su parte del pedido, MIMO le envía su parte neta
+            automáticamente al correo de PayPal que cargó en su panel. Los tiempos de
             acreditación dependen de PayPal.
           </li>
           <li>
-            Si no cargaste un correo de PayPal, o el envío falla, tu pedido igual se confirma pero
-            el pago queda pendiente: el equipo de MIMO te contacta para resolverlo. Es tu
+            Si no cargó un correo de PayPal, o el envío falla, su pedido igual se confirma pero
+            el pago queda pendiente: el equipo de MIMO le contacta para resolverlo. Es su
             responsabilidad mantener un correo de PayPal válido.
           </li>
           <li>
-            <strong>Pago contra entrega en efectivo:</strong> cobrás el dinero directamente al
+            <strong>Pago contra entrega en efectivo:</strong> cobra el dinero directamente al
             cliente al entregar. La comisión de esos pedidos se liquida entre MIMO y el Negocio
             según el mecanismo que MIMO comunique con al menos {AGREEMENT_CHANGE_NOTICE_DAYS} días
-            de anticipación; hasta entonces MIMO no te cobra comisión por pedidos en efectivo.
+            de anticipación; hasta entonces MIMO no le cobra comisión por pedidos en efectivo.
           </li>
           <li>
             MIMO puede retener temporalmente un pago cuando haya un reclamo abierto sobre ese
@@ -137,22 +137,22 @@ export default function TerminosNegociosPage() {
           </li>
         </ul>
 
-        <h2>5. Si no confirmás un pedido</h2>
+        <h2>5. Si no confirma un pedido</h2>
         <p>
-          Tenés <strong>{ORDER_CONFIRMATION_WINDOW_MINUTES} minutos</strong> desde que se hace el
-          pedido para confirmar tu parte. Si no la confirmás en ese plazo, en los pedidos pagados en
-          línea tu parte se cancela automáticamente y se le reembolsa al comprador: no recibís pago
+          Tiene <strong>{ORDER_CONFIRMATION_WINDOW_MINUTES} minutos</strong> desde que se hace el
+          pedido para confirmar su parte. Si no la confirma en ese plazo, en los pedidos pagados en
+          línea su parte se cancela automáticamente y se le reembolsa al comprador: no recibe pago
           por ella. Los pedidos en efectivo sin confirmar pueden ser cancelados por MIMO. No confirmar
           pedidos de forma reiterada afecta la experiencia de los compradores y puede llevar a la
           suspensión del Negocio.
         </p>
 
-        <h2>6. Si cancelás un pedido</h2>
+        <h2>6. Si cancela un pedido</h2>
         <p>
-          Podés cancelar tu parte de un pedido desde el panel hasta antes de que salga a entrega
+          Puede cancelar su parte de un pedido desde el panel hasta antes de que salga a entrega
           (estado &quot;En camino&quot;); después de eso, la cancelación solo la puede gestionar el
-          equipo de MIMO. Si cancelás una parte ya pagada en línea, se le reembolsa al comprador y
-          no recibís pago por ella. Cancelar es legítimo cuando hay una causa real (por ejemplo, un
+          equipo de MIMO. Si cancela una parte ya pagada en línea, se le reembolsa al comprador y
+          no recibe pago por ella. Cancelar es legítimo cuando hay una causa real (por ejemplo, un
           producto agotado); cancelar con frecuencia o sin causa puede llevar a la suspensión.
         </p>
 
@@ -174,21 +174,21 @@ export default function TerminosNegociosPage() {
           publicó con un error evidente, MIMO puede ocultar el producto y, si ya hay pedidos, el
           Negocio debe avisarle al comprador y resolverlo con él antes de confirmar o cancelar.
           Los cupones de MIMO se reparten proporcionalmente entre los negocios del carrito: la parte
-          de descuento que corresponde a tu Negocio se descuenta del valor de su pedido.
+          de descuento que corresponde al Negocio se descuenta del valor de su pedido.
         </p>
 
         <h2>9. Inventario y disponibilidad</h2>
         <p>
-          Es tu responsabilidad mantener tu catálogo, tus horarios y tus zonas de entrega al día:
-          pausá o despublicá los productos que no tengas. Si un producto ya pedido se agotó, tenés
+          Es su responsabilidad mantener su catálogo, sus horarios y sus zonas de entrega al día:
+          pause o despublique los productos que no tenga. Si un producto ya pedido se agotó, tiene
           que cancelar ese pedido de inmediato (sección 6), no sustituirlo por otro sin el acuerdo
           del comprador.
         </p>
 
         <h2>10. Tiempos de preparación</h2>
         <p>
-          El tiempo de preparación que cargás en tu panel es una promesa al comprador. Configurá
-          tiempos realistas y respetá las fechas y horarios de entrega elegidos en el pedido,
+          El tiempo de preparación que carga en su panel es una promesa al comprador. Configure
+          tiempos realistas y respete las fechas y horarios de entrega elegidos en el pedido,
           especialmente en fechas de alta demanda.
         </p>
 
@@ -197,16 +197,16 @@ export default function TerminosNegociosPage() {
           MIMO no tiene repartidores propios: el Negocio prepara y entrega (o gestiona la entrega
           de) cada pedido bajo su responsabilidad, en la dirección, fecha y horario indicados, y
           responde por el producto hasta que llegue a manos del destinatario (incluyendo daños,
-          pérdida o demora en el transporte, aunque use un servicio de terceros). Actualizá el
+          pérdida o demora en el transporte, aunque use un servicio de terceros). Actualice el
           estado del pedido en el panel a medida que avanza. Si el pedido es un{" "}
-          <strong>regalo sorpresa</strong>, no reveles quién lo envió al destinatario.
+          <strong>regalo sorpresa</strong>, no revele quién lo envió al destinatario.
         </p>
 
         <h2>12. Devoluciones y reembolsos</h2>
         <ul>
           <li>
             El comprador puede reportar un problema (no llegó, llegó dañado o distinto a lo
-            publicado). MIMO revisa el reporte y puede pedirte tu versión y evidencia, que tenés que
+            publicado). MIMO revisa el reporte y puede pedirle su versión y evidencia, que debe
             entregar con rapidez.
           </li>
           <li>
@@ -271,8 +271,8 @@ export default function TerminosNegociosPage() {
           fraude, por reportes graves o reiterados, por no confirmar o cancelar pedidos de forma
           reiterada, por información falsa, o si lo exige la ley o una autoridad. Mientras está
           suspendido el Negocio deja de aparecer en el catálogo, no recibe pedidos nuevos y debe
-          cumplir o cancelar con reembolso los pedidos que ya tenía aceptados. MIMO te avisará a
-          través de tu panel; podés pedir la revisión de la decisión escribiendo a soporte.
+          cumplir o cancelar con reembolso los pedidos que ya tenía aceptados. MIMO le avisará a
+          través de su panel; puede pedir la revisión de la decisión escribiendo a soporte.
         </p>
 
         <h2>17. Impuestos y facturación</h2>
@@ -330,7 +330,7 @@ export default function TerminosNegociosPage() {
         <p>
           MIMO puede actualizar este acuerdo; los cambios sustanciales se avisan con al menos{" "}
           {AGREEMENT_CHANGE_NOTICE_DAYS} días de anticipación en el panel del Negocio, y se pedirá
-          aceptar la nueva versión. Si no la aceptás, MIMO puede dar por terminado este acuerdo una vez
+          aceptar la nueva versión. Si no la acepta, MIMO puede dar por terminado este acuerdo una vez
           vencido el plazo de aviso. Cada aceptación queda registrada con su versión y fecha.
         </p>
 
@@ -343,7 +343,7 @@ export default function TerminosNegociosPage() {
 
         <h2>23. Contacto</h2>
         <p>
-          Para dudas sobre este acuerdo, escribinos desde la sección de{" "}
+          Para dudas sobre este acuerdo, escríbanos desde la sección de{" "}
           <Link href="/ayuda" className="underline">
             Ayuda
           </Link>

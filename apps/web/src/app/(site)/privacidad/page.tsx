@@ -23,8 +23,8 @@ export default function PrivacidadPage() {
 
       <div className="mt-8 flex flex-col gap-4 text-sm [&>h2]:text-base [&>h2]:font-semibold [&>h2]:text-neutral-900 [&>p]:leading-relaxed [&>p]:text-neutral-600 [&>ul]:list-disc [&>ul]:space-y-1 [&>ul]:pl-5 [&>ul]:text-neutral-600">
         <p>
-          Esta política explica qué datos recolecta MIMO cuando usás el Sitio, para qué los
-          usamos, y qué opciones tenés sobre ellos. Si buscás el detalle técnico de cómo
+          Esta política explica qué datos recolecta MIMO cuando usa el Sitio, para qué los
+          usamos, y qué opciones tiene sobre ellos. Si busca el detalle técnico de cómo
           protegemos esos datos, es la página de{" "}
           <Link href="/seguridad" className="underline">
             Seguridad
@@ -40,16 +40,16 @@ export default function PrivacidadPage() {
           </li>
           <li>
             <strong>Pedidos:</strong> nombre y teléfono del destinatario, dirección de entrega,
-            fecha/horario elegido, cualquier dedicatoria o mensaje que escribas, y el cupón de
-            descuento que hayas usado.
+            fecha/horario elegido, cualquier dedicatoria o mensaje que escriba, y el cupón de
+            descuento que haya usado.
           </li>
           <li>
-            <strong>Listas de regalos y cabudas:</strong> los productos que agregás a una lista
-            de regalos; y si organizás o aportás a una cabuda, tu nombre, el monto que aportaste,
+            <strong>Listas de regalos y cabudas:</strong> los productos que agrega a una lista
+            de regalos; y si organiza o aporta a una cabuda, su nombre, el monto que aportó,
             y el correo de PayPal del organizador (para mandarle lo recaudado).
           </li>
           <li>
-            <strong>Reseñas:</strong> el texto y las fotos (hasta 4) que subís al calificar un
+            <strong>Reseñas:</strong> el texto y las fotos (hasta 4) que sube al calificar un
             producto.
           </li>
           <li>
@@ -63,7 +63,7 @@ export default function PrivacidadPage() {
             Ver la sección 7.
           </li>
           <li>
-            <strong>Datos técnicos y de uso:</strong> qué páginas visitás y qué acciones hacés
+            <strong>Datos técnicos y de uso:</strong> qué páginas visita y qué acciones hace
             (favoritos, reseñas, notificaciones), para que la app funcione — no usamos rastreo
             publicitario de terceros. Ver también la sección de Cookies más abajo.
           </li>
@@ -71,17 +71,17 @@ export default function PrivacidadPage() {
 
         <h2>2. Cómo usamos la información</h2>
         <ul>
-          <li>Procesar y entregar tus pedidos, y comunicárselos al negocio correspondiente.</li>
-          <li>Mostrarte el estado de tus pedidos y avisarte de novedades (notificaciones dentro de la app).</li>
+          <li>Procesar y entregar sus pedidos, y comunicárselos al negocio correspondiente.</li>
+          <li>Mostrarle el estado de sus pedidos y avisarle de novedades (notificaciones dentro de la app).</li>
           <li>Juntar aportes para una cabuda y pagarle al organizador cuando la cierra.</li>
           <li>Verificar la identidad del titular y la legitimidad de los negocios nuevos, y moderar reportes/reseñas.</li>
-          <li>Mejorar el catálogo y las recomendaciones que te mostramos.</li>
+          <li>Mejorar el catálogo y las recomendaciones que le mostramos.</li>
         </ul>
 
         <h2>3. Qué información compartimos y con quién</h2>
         <p>
-          El negocio del que comprás recibe los datos necesarios para preparar y entregar tu
-          pedido (nombre y teléfono del destinatario, dirección, dedicatoria). MIMO no vende tus
+          El negocio al que usted le compra recibe los datos necesarios para preparar y entregar su
+          pedido (nombre y teléfono del destinatario, dirección, dedicatoria). MIMO no vende sus
           datos a terceros ni los comparte con fines publicitarios.
         </p>
         <p>
@@ -89,49 +89,49 @@ export default function PrivacidadPage() {
           propósito — es parte de cómo funcionan. En una lista de regalos, cualquiera con el
           link ve si un producto ya fue reservado, pero no quién lo reservó (eso solo lo ve el
           dueño de la lista). En una cabuda, cualquiera con el link ve el nombre y el monto de
-          cada persona que aportó — como en cualquier colecta o &quot;vaquita&quot;. Si preferís
-          mantener alguna de estas en privado, no compartas su link.
+          cada persona que aportó — como en cualquier colecta o &quot;vaquita&quot;. Si prefiere
+          mantener alguna de estas en privado, no comparta su link.
         </p>
         <p>
-          Las fotos que subís (perfil, banner o productos como dueño de negocio, o las que
-          agregás a una reseña) son públicas dentro del Sitio una vez publicadas — no subas
-          imágenes que no tengas derecho a usar.
+          Las fotos que sube (perfil, banner o productos como dueño de negocio, o las que
+          agrega a una reseña) son públicas dentro del Sitio una vez publicadas — no suba
+          imágenes que no tenga derecho a usar.
         </p>
 
         <h2>4. Pagos y proveedores externos</h2>
         <ul>
           <li>
-            <strong>PayPal:</strong> si pagás con PayPal, el pago lo procesa PayPal
-            directamente — le compartimos el monto a cobrar, pero MIMO no ve ni guarda tu número
-            de tarjeta ni tus credenciales de PayPal.
+            <strong>PayPal:</strong> si paga con PayPal, el pago lo procesa PayPal
+            directamente — le compartimos el monto a cobrar, pero MIMO no ve ni guarda su número
+            de tarjeta ni sus credenciales de PayPal.
           </li>
           <li>
             <strong>Sentry:</strong> si algo falla en el Sitio, le mandamos información técnica
-            del error (qué pasó y en qué página, nunca tu contraseña ni datos de pago) para poder
+            del error (qué pasó y en qué página, nunca su contraseña ni datos de pago) para poder
             solucionarlo rápido.
           </li>
           <li>
             <strong>Anthropic (Claude):</strong> funciones como &quot;Ayúdame a elegir&quot; y el
-            asistente de dedicatorias le mandan a este proveedor de IA el texto que escribís en
+            asistente de dedicatorias le mandan a este proveedor de IA el texto que escribe en
             ese momento (por ejemplo, &quot;cumpleaños de mi novia, presupuesto $30&quot;) para
-            sugerirte productos u opciones de mensaje — no tu historial de pedidos ni otros datos
-            de tu cuenta. Si no hay un proveedor de IA configurado, estas funciones igual
+            sugerirle productos u opciones de mensaje — no su historial de pedidos ni otros datos
+            de su cuenta. Si no hay un proveedor de IA configurado, estas funciones igual
             funcionan con reglas internas en vez de IA.
           </li>
           <li>
             <strong>Anthropic (Claude) en el chat de soporte:</strong> el asistente del chat le
-            manda a este proveedor lo que escribís en la conversación. Si le pedís el estado de
-            un pedido tuyo, también le llega el estado de ese pedido (productos, estado y pago),
+            manda a este proveedor lo que escribe en la conversación. Si le pide el estado de
+            un pedido suyo, también le llega el estado de ese pedido (productos, estado y pago),
             pero nunca la dirección, el teléfono ni el correo del pedido. Sin proveedor de IA
             configurado, el chat responde con reglas internas.
           </li>
         </ul>
         <p>
           <strong>Chat de soporte.</strong> Guardamos las conversaciones del chat de ayuda. Si
-          pedís hablar con una persona, el equipo de MIMO puede leer esa conversación para
-          responderte. Si no tenés sesión iniciada, te pedimos tu nombre y correo solo en ese
+          pide hablar con una persona, el equipo de MIMO puede leer esa conversación para
+          responderle. Si no tiene sesión iniciada, le pedimos su nombre y correo solo en ese
           momento, para poder contestarte. Estas conversaciones se conservan con el mismo criterio
-          que el resto de los datos de tu cuenta (sección 6).
+          que el resto de los datos de su cuenta (sección 6).
         </p>
         <p>
           Cada uno de estos proveedores procesa los datos que le compartimos según su propia
@@ -140,15 +140,15 @@ export default function PrivacidadPage() {
 
         <h2>5. Cookies y tecnologías similares</h2>
         <p>
-          Usamos una sola cookie de sesión, necesaria para mantenerte conectado/a a tu cuenta
+          Usamos una sola cookie de sesión, necesaria para mantenerlo/a conectado/a a su cuenta
           entre una página y otra. No es una cookie de rastreo ni de publicidad, no la compartimos
-          con terceros, y se borra cuando cerrás sesión o expira. No usamos cookies de análisis ni
+          con terceros, y se borra cuando cierra sesión o expira. No usamos cookies de análisis ni
           de marketing.
         </p>
 
         <h2>6. Conservación de datos</h2>
         <p>
-          Conservamos tus datos mientras tu cuenta esté activa. Si pedís eliminar tu cuenta,
+          Conservamos sus datos mientras su cuenta esté activa. Si pide eliminar su cuenta,
           borramos los datos personales asociados salvo los que debamos conservar por obligación
           legal o para resolver disputas ya abiertas (por ejemplo, el historial de un pedido en
           proceso).
@@ -195,13 +195,13 @@ export default function PrivacidadPage() {
         </p>
         <ul>
           <li>
-            <strong>Negocio aprobado:</strong> una vez que verificamos tu identidad y aprobamos el
+            <strong>Negocio aprobado:</strong> una vez que verificamos su identidad y aprobamos el
             negocio, eliminamos las imágenes del DUI (frente y reverso) y la foto del titular a los{" "}
             {DOCUMENT_RETENTION_VERIFIED_DAYS} días. Después solo conservamos un registro de que la
             identidad fue verificada: quién la verificó, cuándo, qué documentos se revisaron, los
             últimos 4 dígitos del DUI y un código que no permite reconstruir el número (lo usamos
             para detectar que una misma persona se registre varias veces). <strong>No guardamos el
-            número completo del DUI.</strong> El NIT/NRC y los permisos, si los subiste, se
+            número completo del DUI.</strong> El NIT/NRC y los permisos, si los subió, se
             conservan mientras el negocio esté activo.
           </li>
           <li>
@@ -217,7 +217,7 @@ export default function PrivacidadPage() {
             después de la baja (tiempo para resolver reclamos o disputas que estén abiertos).
           </li>
           <li>
-            <strong>Cuando lo pidas:</strong> podés pedir que lo eliminemos en cualquier momento
+            <strong>Cuando lo pida:</strong> puede pedir que lo eliminemos en cualquier momento
             escribiéndonos desde Ayuda. Lo hacemos, salvo que una ley nos obligue a conservarlo o
             haya un reclamo, una disputa o una investigación por fraude abierta.
           </li>
@@ -229,16 +229,16 @@ export default function PrivacidadPage() {
 
         <h2>8. Derechos del usuario</h2>
         <p>
-          Desde &quot;Mi perfil&quot; podés actualizar tus datos de contacto y contraseña en cualquier
-          momento. Para pedir acceso, corrección o eliminación de tu cuenta o de datos
-          específicos, escribinos desde la sección de Ayuda.
+          Desde &quot;Mi perfil&quot; puede actualizar sus datos de contacto y contraseña en cualquier
+          momento. Para pedir acceso, corrección o eliminación de su cuenta o de datos
+          específicos, escríbanos desde la sección de Ayuda.
         </p>
 
         <h2>9. Privacidad de menores</h2>
         <p>
           MIMO no está dirigido a menores de 18 años y no recolectamos intencionalmente datos de
-          menores. Si sos madre, padre o tutor/a y creés que un menor a tu cargo nos dio datos
-          personales, escribinos para eliminarlos.
+          menores. Si es madre, padre o tutor/a y cree que un menor a su cargo nos dio datos
+          personales, escríbanos para eliminarlos.
         </p>
 
         <h2>10. Cambios a esta política</h2>
@@ -250,7 +250,7 @@ export default function PrivacidadPage() {
         <h2>11. Contacto</h2>
         <p>
           Para preguntas sobre esta política, o para pedir acceso, corrección o eliminación de
-          tus datos, escribinos desde la sección de Ayuda del Sitio o a{" "}
+          sus datos, escríbanos desde la sección de Ayuda del Sitio o a{" "}
           <a href="mailto:soporte@mimo.sv" className="underline">
             soporte@mimo.sv
           </a>

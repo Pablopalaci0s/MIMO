@@ -18,7 +18,7 @@ export default function TerminosPage() {
         <p>
           Estos términos regulan el uso de MIMO (el &quot;Sitio&quot;), un marketplace que conecta a
           personas que quieren comprar flores, regalos y detalles con negocios salvadoreños que
-          los venden y entregan. Al crear una cuenta o hacer un pedido, aceptás estos términos.
+          los venden y entregan. Al crear una cuenta o hacer un pedido, usted acepta estos términos.
         </p>
 
         <h2>1. Qué es MIMO y qué no es</h2>
@@ -32,8 +32,8 @@ export default function TerminosPage() {
 
         <h2>2. Cuentas</h2>
         <p>
-          Sos responsable de la confidencialidad de tu contraseña y de la actividad que ocurra en
-          tu cuenta. Si sospechás un uso no autorizado, cambiá tu contraseña y escribinos.
+          Usted es responsable de la confidencialidad de su contraseña y de la actividad que ocurra en
+          su cuenta. Si sospecha un uso no autorizado, cambie su contraseña y escríbanos.
           Podemos suspender cuentas que violen estos términos, incluyendo el registro de negocios
           con información falsa.
         </p>
@@ -42,22 +42,22 @@ export default function TerminosPage() {
         <p>
           Los precios se muestran en dólares estadounidenses (USD) e incluyen el detalle
           elegido; el costo de envío depende de la zona de entrega configurada por cada negocio y
-          se muestra antes de confirmar el pedido. Podés pagar{" "}
+          se muestra antes de confirmar el pedido. Puede pagar{" "}
           <strong>contra entrega en efectivo</strong> o <strong>en línea con PayPal</strong>. Con
           PayPal se cobra el total al hacer el pedido, y el pago se le entrega al negocio cuando
           confirma su parte; si un negocio no confirma su parte a tiempo, esa parte se cancela y se
-          te reembolsa automáticamente. El pago en efectivo no cobra nada al hacer el pedido.
+          le reembolsa automáticamente. El pago en efectivo no cobra nada al hacer el pedido.
         </p>
         <p>
-          Un negocio puede no tener cobertura de entrega para tu zona; en ese caso el pedido no
-          se puede completar con ese negocio y el Sitio lo indica antes de que confirmes.
+          Un negocio puede no tener cobertura de entrega para su zona; en ese caso el pedido no
+          se puede completar con ese negocio y el Sitio lo indica antes de que confirme.
         </p>
 
         <h2>4. Cancelaciones y reclamos</h2>
         <p>
-          Si necesitás cancelar o modificar un pedido, contactá directamente al negocio lo antes
+          Si necesita cancelar o modificar un pedido, contacte directamente al negocio lo antes
           posible — mientras más temprano en el proceso, más fácil de resolver. Para reclamos
-          sobre la calidad o el estado de lo recibido, usá el botón de reporte disponible en el
+          sobre la calidad o el estado de lo recibido, use el botón de reporte disponible en el
           producto, el negocio o el pedido; el equipo de MIMO revisa cada reporte.
         </p>
 
@@ -96,7 +96,7 @@ export default function TerminosPage() {
         </p>
 
         <h2>9. Contacto</h2>
-        <p>Para preguntas sobre estos términos, escribinos desde la sección de Ayuda del Sitio.</p>
+        <p>Para preguntas sobre estos términos, escríbanos desde la sección de Ayuda del Sitio.</p>
       </div>
     </div>
   );
