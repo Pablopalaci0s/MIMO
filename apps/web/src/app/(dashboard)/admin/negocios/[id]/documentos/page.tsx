@@ -1,9 +1,12 @@
-import { ArrowLeft, FileText, ShieldAlert } from "lucide-react";
+import { ArrowLeft, FileText, Lock, ShieldAlert } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { z } from "zod";
 import { notFound } from "next/navigation";
+import { DeleteDocumentsButton } from "@/components/admin/delete-documents-button";
 import { RejectDocumentForm } from "@/components/admin/reject-document-form";
+import { AppError } from "@/lib/errors";
+import { requireDocumentReviewer } from "@/lib/services/admin-service";
 import { getAdminBusinessForReview } from "@/lib/services/admin-business-service";
 import { listBusinessDocuments } from "@/lib/services/business-document-service";
 import { BUSINESS_DOCUMENT_SPECS, BUSINESS_DOCUMENT_TYPES } from "@mimo/validation";
@@ -13,6 +16,30 @@ export const metadata: Metadata = { title: "Documentos del negocio — MIMO" };
 export default async function AdminBusinessDocumentsPage({ params }: PageProps<"/admin/negocios/[id]/documentos">) {
   const { id } = await params;
   if (!z.string().uuid().safeParse(id).success) notFound();
+
+  // Los documentos de identidad solo los ve un administrador autorizado, no
+  // cualquier admin (ver `requireDocumentReviewer`).
+  try {
+    await requireDocumentReviewer();
+  } catch (error) {
+    if (error instanceof AppError && error.code === "DOCUMENT_REVIEW_FORBIDDEN") {
+      return (
+        <div className="flex max-w-xl flex-col items-start gap-3">
+          <Link href="/admin/negocios" className="flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900">
+            <ArrowLeft className="size-3.5" /> Negocios
+          </Link>
+          <div className="flex items-start gap-3 rounded-2xl bg-neutral-100 p-4 text-sm text-neutral-600">
+            <Lock className="mt-0.5 size-4 shrink-0 text-neutral-400" />
+            <p>
+              No tenés permiso para ver documentos de identidad. Pedile a un administrador autorizado que te lo
+              otorgue desde Usuarios.
+            </p>
+          </div>
+        </div>
+      );
+    }
+    throw error;
+  }
 
   const [business, documents] = await Promise.all([getAdminBusinessForReview(id), listBusinessDocuments(id)]);
   const byType = new Map(documents.map((document) => [document.type, document]));
@@ -83,6 +110,8 @@ export default async function AdminBusinessDocumentsPage({ params }: PageProps<"
           );
         })}
       </ul>
+
+      {documents.length > 0 && <DeleteDocumentsButton businessId={business.id} />}
     </div>
   );
 }

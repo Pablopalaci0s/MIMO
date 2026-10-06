@@ -11,8 +11,11 @@ import {
   type RejectBusinessDocumentInput,
 } from "@mimo/validation";
 import { AppError } from "@/lib/errors";
+import { DOCUMENT_RETENTION_CLOSED_DAYS } from "@/lib/legal/privacy";
+import { logger } from "@/lib/logger";
 import { logAdminAction } from "./admin-audit-service";
 import { createNotification } from "./notification-service";
+import { assertPrivacyAccepted } from "./business-privacy-service";
 
 /**
  * Documentos de verificación del titular (DUI, foto, NIT, permisos) — datos
@@ -73,6 +76,10 @@ export async function saveBusinessDocument(
   type: BusinessDocumentType,
   file: File,
 ): Promise<BusinessDocumentDTO> {
+  // Sin consentimiento vigente a la Política de privacidad no se guarda ningún
+  // documento de identidad.
+  await assertPrivacyAccepted(businessId);
+
   if (file.size === 0) throw new AppError("INVALID_FILE", "El archivo está vacío.", 400);
   if (file.size > MAX_BUSINESS_DOCUMENT_BYTES) {
     throw new AppError("FILE_TOO_LARGE", "El archivo no puede pesar más de 5MB.", 400);
@@ -196,4 +203,54 @@ export async function assertDocumentsComplete(business: { id: string; isDemo: bo
     `Este negocio todavía no subió sus documentos de verificación (faltan: ${labels}).`,
     409,
   );
+}
+
+/**
+ * Borra TODOS los documentos de identidad de un negocio (a pedido del titular,
+ * o porque ya no hay motivo para conservarlos). Irreversible, y queda en la
+ * auditoría con cuántos se borraron.
+ */
+export async function deleteAllBusinessDocuments(businessId: string, adminId: string): Promise<{ deleted: number }> {
+  const result = await prisma.businessDocument.deleteMany({ where: { businessId } });
+  await logAdminAction({
+    adminId,
+    action: "business.document.delete",
+    targetType: "BUSINESS",
+    targetId: businessId,
+    metadata: { deleted: result.count },
+  });
+  return { deleted: result.count };
+}
+
+/**
+ * Cumple los plazos de conservación de la Política de privacidad (ver
+ * `lib/legal/privacy.ts`): borra los documentos de identidad de
+ *  - negocios RECHAZADOS cuyo `documentsPurgeAfter` ya venció, y
+ *  - negocios dados de baja (`deletedAt`) hace más de
+ *    `DOCUMENT_RETENTION_CLOSED_DAYS` días.
+ * Los negocios activos o suspendidos conservan sus documentos. Lo corre
+ * `/api/cron/purgar-documentos`.
+ */
+export async function purgeExpiredBusinessDocuments(now: Date = new Date()): Promise<{ businesses: number; documents: number }> {
+  const closedBefore = new Date(now.getTime() - DOCUMENT_RETENTION_CLOSED_DAYS * 24 * 60 * 60 * 1000);
+  const businesses = await prisma.business.findMany({
+    where: {
+      documents: { some: {} },
+      OR: [
+        { status: "REJECTED", documentsPurgeAfter: { lte: now } },
+        { deletedAt: { lte: closedBefore } },
+      ],
+    },
+    select: { id: true },
+  });
+  if (businesses.length === 0) return { businesses: 0, documents: 0 };
+
+  const result = await prisma.businessDocument.deleteMany({
+    where: { businessId: { in: businesses.map((business) => business.id) } },
+  });
+  logger.info("documentos de identidad purgados por vencimiento del plazo de conservación", {
+    businesses: businesses.length,
+    documents: result.count,
+  });
+  return { businesses: businesses.length, documents: result.count };
 }

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BUSINESS_AGREEMENT_VERSION } from "@/lib/legal/business-agreement";
+import { DOCUMENT_PURPOSE_STATEMENT, PRIVACY_POLICY_VERSION } from "@/lib/legal/privacy";
 import {
   Select,
   SelectContent,
@@ -31,6 +32,7 @@ export function BusinessApplicationForm({ municipalities }: { municipalities: Mu
   const [addressLine, setAddressLine] = useState("");
   const [password, setPassword] = useState("");
   const [acceptedAgreement, setAcceptedAgreement] = useState(false);
+  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -52,6 +54,7 @@ export function BusinessApplicationForm({ municipalities }: { municipalities: Mu
         addressLine,
         password,
         acceptedAgreementVersion: BUSINESS_AGREEMENT_VERSION,
+        acceptedPrivacyVersion: PRIVACY_POLICY_VERSION,
       }),
     });
     const body = await response.json();
@@ -165,9 +168,30 @@ export function BusinessApplicationForm({ municipalities }: { municipalities: Mu
         </span>
       </label>
 
+      <label className="flex cursor-pointer items-start gap-2 text-sm text-neutral-700">
+        <input
+          type="checkbox"
+          required
+          checked={acceptedPrivacy}
+          onChange={(e) => setAcceptedPrivacy(e.target.checked)}
+          className="mt-0.5 size-4 shrink-0 accent-neutral-900"
+        />
+        <span>
+          Leí y acepto la{" "}
+          <Link href="/privacidad" target="_blank" className="underline hover:text-neutral-900">
+            Política de privacidad
+          </Link>
+          . Sobre mi DUI y mi foto: {DOCUMENT_PURPOSE_STATEMENT}
+        </span>
+      </label>
+
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      <Button type="submit" disabled={loading || !municipalityId || !acceptedAgreement} className="h-11">
+      <Button
+        type="submit"
+        disabled={loading || !municipalityId || !acceptedAgreement || !acceptedPrivacy}
+        className="h-11"
+      >
         {loading ? <Loader2 className="size-4 animate-spin" /> : "Enviar solicitud"}
       </Button>
       <p className="text-xs text-neutral-400">
@@ -177,11 +201,7 @@ export function BusinessApplicationForm({ municipalities }: { municipalities: Mu
       <p className="text-xs text-neutral-400">
         Además aceptás nuestros{" "}
         <Link href="/terminos" className="underline hover:text-neutral-600">
-          Términos
-        </Link>{" "}
-        y nuestra{" "}
-        <Link href="/privacidad" className="underline hover:text-neutral-600">
-          Política de privacidad
+          Términos y condiciones
         </Link>
         .
       </p>

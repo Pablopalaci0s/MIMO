@@ -1,0 +1,35 @@
+name: Cron — purgar documentos de identidad vencidos
+
+# Cumple los plazos de conservación de la Política de privacidad: borra los
+# documentos de identidad (DUI) de negocios rechazados (30 días) o dados de
+# baja (90 días) — ver apps/web/src/lib/legal/privacy.ts y
+# apps/web/src/app/api/cron/purgar-documentos/route.ts. No hace nada hasta que
+# el sitio esté desplegado y tenga estos dos secrets en Settings → Secrets and
+# variables → Actions:
+#   APP_URL      → https://tu-dominio-real (sin barra final)
+#   CRON_SECRET  → el mismo valor que CRON_SECRET en el .env del servidor
+# "workflow_dispatch" permite correrlo a mano desde la pestaña Actions.
+#
+# El "schedule" queda comentado a propósito, igual que en los otros crons: sin
+# los secrets (sitio sin desplegar) fallaría todos los días y GitHub manda un
+# correo por cada falla. Descomentarlo recién cuando el sitio esté desplegado
+# — y hasta entonces, correr este workflow a mano de vez en cuando, porque sin
+# él los plazos de la política no se cumplen solos.
+on:
+  # schedule:
+  #   - cron: "0 9 * * *" # una vez por día
+  workflow_dispatch: {}
+
+jobs:
+  purgar-documentos:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Llamar al endpoint de purga
+        run: |
+          if [ -z "${{ secrets.APP_URL }}" ] || [ -z "${{ secrets.CRON_SECRET }}" ]; then
+            echo "Faltan los secrets APP_URL y/o CRON_SECRET — configuralos en Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          curl -sf --fail-with-body \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.APP_URL }}/api/cron/purgar-documentos"

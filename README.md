@@ -1283,12 +1283,55 @@ y permisos (estos dos aceptan también PDF). Se suben *después* de registrarse
   rechazado → aprobado). Al principio también se aplicaba al reactivar y dejaba
   sin salida a negocios que ya habían sido aprobados antes de que existieran
   estos requisitos; hay un test que lo fija (`admin-business-service.test.ts`).
+- **Privacidad del DUI** (checklist del dueño del producto, todo con
+  mecanismo real y no solo texto):
+  - *Finalidad*: la frase "Se utilizará exclusivamente para verificar la
+    identidad y autenticidad de la cuenta del negocio." está (idéntica, desde
+    `DOCUMENT_PURPOSE_STATEMENT` en `lib/legal/privacy.ts`) en el formulario de
+    registro, en `/negocio/verificacion`, en la tarjeta de consentimiento y en la
+    sección 7 de `/privacidad` ("Documentos de identidad de los negocios").
+  - *Aceptación explícita*: casilla obligatoria de la Política de privacidad en
+    el registro (`acceptedPrivacyVersion`; el servidor la compara con
+    `PRIVACY_POLICY_VERSION`), guardada en `Business.privacyAcceptedVersion/At`.
+    Los negocios anteriores (o si la política cambia de versión) la aceptan en
+    `/negocio/verificacion` antes de poder subir nada: `saveBusinessDocument`
+    rechaza con `PRIVACY_CONSENT_REQUIRED` si falta. Al cambiar el texto de la
+    política que afecte a los negocios hay que subir `PRIVACY_POLICY_VERSION`.
+  - *Nunca público ni a clientes/otros negocios*: los únicos lectores de
+    `BusinessDocument` son las rutas autenticadas (titular y admin autorizado).
+  - *Solo administradores autorizados*: ser `ADMIN` no alcanza. Hace falta
+    `User.canReviewDocuments` (`requireDocumentReviewer`, leído de la base en
+    cada llamada, así que quitarlo surte efecto al instante) para ver, rechazar o
+    borrar documentos. Solo lo otorga/quita un admin que ya lo tiene (toggle en
+    `/admin/usuarios`), solo a admins, y nunca se puede quitar al último. La
+    migración se lo dio a los admins que ya existían; dejar de ser admin lo
+    quita. Un admin sin permiso ve los listados pero no los documentos.
+  - *Sin marketing ni compartir*: ningún código lee estos datos fuera de lo
+    anterior; la política lo dice sin ambigüedad.
+  - *Conservación*: negocio activo o suspendido → se conservan; **rechazado → se
+    borran a los 30 días** (`Business.documentsPurgeAfter`, se fija al rechazar y
+    se cancela con cualquier otro estado); **dado de baja (`deletedAt`) → a los 90
+    días**; a pedido del titular → botón "Borrar todos los documentos" en la
+    pantalla de revisión (irreversible, auditado). Los plazos viven en
+    `DOCUMENT_RETENTION_*_DAYS` y los usan la página y el código. La purga la
+    hace `/api/cron/purgar-documentos` (`CRON_SECRET`), diaria. **El schedule del
+    workflow `cron-purgar-documentos.yml` está comentado, como los otros crons,
+    hasta que haya deploy: hasta entonces hay que correrlo a mano
+    (`workflow_dispatch`) o los plazos no se cumplen solos.** Los respaldos de la
+    base pueden conservar el archivo unos días más (lo dice la política).
+  - Verificado en navegador (build de producción): consentimiento obligatorio
+    (400/409/bloqueo de subida); admin sin permiso → 403 en ver/rechazar/borrar/
+    otorgarse el permiso, otorgado por uno autorizado → ve el documento, quitado
+    → 403 al instante; rechazar un negocio programa el borrado a 30 días; la
+    purga no toca nada antes del plazo, y vencido borra solo los documentos del
+    negocio rechazado (el de un suspendido real quedó intacto); cron sin
+    credencial → 401.
 - **Lo que NO hace** (a propósito, para no fingir): no valida que el DUI sea
   auténtico ni que la cara coincida (lo hace una persona del equipo mirando las
   imágenes); no cifra los archivos aparte
   (dependen del cifrado en reposo de la base — conviene activarlo en el
-  proveedor de Postgres antes de producción); no hay borrado automático al
-  rechazar un negocio (se elimina a pedido).
+  proveedor de Postgres antes de producción); el borrado automático depende de que
+  alguien corra el cron (ver arriba).
 
 ## Diseño: paneles como app separada (post-Fase 6, rediseño)
 

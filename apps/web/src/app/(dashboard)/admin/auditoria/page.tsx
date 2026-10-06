@@ -6,6 +6,7 @@ const ACTION_LABEL: Record<string, string> = {
   "business.update": "Actualizó un negocio",
   "business.document.view": "Abrió un documento de verificación de un negocio",
   "business.document.reject": "Rechazó un documento de verificación de un negocio",
+  "business.document.delete": "Borró los documentos de verificación de un negocio",
   "review.update_status": "Moderó una reseña",
   "report.update_status": "Resolvió un reporte",
   "coupon.create": "Creó un cupón",

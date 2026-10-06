@@ -4,25 +4,33 @@ const upsert = vi.fn();
 const findMany = vi.fn();
 const findUnique = vi.fn();
 const update = vi.fn();
+const deleteMany = vi.fn();
+const findBusinesses = vi.fn();
 const findOwner = vi.fn();
 const logAdminAction = vi.fn();
 const createNotification = vi.fn();
+const assertPrivacyAccepted = vi.fn();
 
 vi.mock("@mimo/database", () => ({
-  prisma: { businessDocument: { upsert, findMany, findUnique, update }, businessUser: { findFirst: findOwner } },
+  prisma: {
+    businessDocument: { upsert, findMany, findUnique, update, deleteMany },
+    businessUser: { findFirst: findOwner },
+    business: { findMany: findBusinesses },
+  },
 }));
 vi.mock("./admin-audit-service", () => ({ logAdminAction }));
 vi.mock("./notification-service", () => ({ createNotification }));
+vi.mock("./business-privacy-service", () => ({ assertPrivacyAccepted }));
 
 const {
   assertDocumentsComplete,
+  deleteAllBusinessDocuments,
   getBusinessDocumentFileForAdmin,
   getMissingDocuments,
+  purgeExpiredBusinessDocuments,
   rejectBusinessDocument,
   saveBusinessDocument,
-} = await import(
-  "./business-document-service"
-);
+} = await import("./business-document-service");
 
 const JPEG = [0xff, 0xd8, 0xff, 0xe0, 0, 0, 0, 0];
 const PDF = Array.from(new TextEncoder().encode("%PDF-1.7 contenido"));
@@ -159,5 +167,46 @@ describe("rechazar un documento", () => {
     upsert.mockImplementation(async ({ update: u }) => ({ ...u, type: "DUI_FRONT", updatedAt: new Date() }));
     await saveBusinessDocument("b1", "u1", "DUI_FRONT", file(JPEG, "nuevo.jpg", "image/jpeg"));
     expect(upsert.mock.calls[0]![0].update).toMatchObject({ rejectedAt: null, rejectionReason: null, rejectedById: null });
+  });
+});
+
+describe("consentimiento de privacidad", () => {
+  it("sin aceptar la política NO se guarda ningún documento", async () => {
+    assertPrivacyAccepted.mockRejectedValueOnce(Object.assign(new Error("acepta"), { code: "PRIVACY_CONSENT_REQUIRED" }));
+    await expect(saveBusinessDocument("b1", "u1", "DUI_FRONT", file(JPEG, "dui.jpg", "image/jpeg"))).rejects.toMatchObject({
+      code: "PRIVACY_CONSENT_REQUIRED",
+    });
+    expect(upsert).not.toHaveBeenCalled();
+  });
+});
+
+describe("borrado y retención", () => {
+  it("borrar a pedido elimina todos los documentos y lo deja en la auditoría", async () => {
+    deleteMany.mockResolvedValue({ count: 3 });
+    expect(await deleteAllBusinessDocuments("b1", "admin1")).toEqual({ deleted: 3 });
+    expect(deleteMany).toHaveBeenCalledWith({ where: { businessId: "b1" } });
+    expect(logAdminAction).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "business.document.delete", targetId: "b1", metadata: { deleted: 3 } }),
+    );
+  });
+
+  it("la purga solo apunta a rechazados vencidos y a dados de baja hace más de 90 días", async () => {
+    const now = new Date("2026-10-05T12:00:00Z");
+    findBusinesses.mockResolvedValue([{ id: "b1" }, { id: "b2" }]);
+    deleteMany.mockResolvedValue({ count: 5 });
+
+    expect(await purgeExpiredBusinessDocuments(now)).toEqual({ businesses: 2, documents: 5 });
+
+    const where = findBusinesses.mock.calls[0]![0].where;
+    expect(where.documents).toEqual({ some: {} });
+    expect(where.OR[0]).toEqual({ status: "REJECTED", documentsPurgeAfter: { lte: now } });
+    expect(where.OR[1].deletedAt.lte.toISOString()).toBe("2026-07-07T12:00:00.000Z"); // 90 días antes
+    expect(deleteMany).toHaveBeenCalledWith({ where: { businessId: { in: ["b1", "b2"] } } });
+  });
+
+  it("si no hay nada vencido no borra nada (activos y suspendidos conservan sus documentos)", async () => {
+    findBusinesses.mockResolvedValue([]);
+    expect(await purgeExpiredBusinessDocuments()).toEqual({ businesses: 0, documents: 0 });
+    expect(deleteMany).not.toHaveBeenCalled();
   });
 });

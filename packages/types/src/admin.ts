@@ -50,6 +50,8 @@ export interface AdminUserDTO {
   phone: string | null;
   role: UserRole;
   isSuspended: boolean;
+  /** Admin autorizado a ver/rechazar/borrar documentos de identidad de negocios. */
+  canReviewDocuments: boolean;
   businessCount: number;
   orderCount: number;
   createdAt: string;
@@ -58,6 +60,7 @@ export interface AdminUserDTO {
 export interface AdminUserUpdateInput {
   role?: UserRole;
   isSuspended?: boolean;
+  canReviewDocuments?: boolean;
 }
 
 export interface AdminCategoryDTO {

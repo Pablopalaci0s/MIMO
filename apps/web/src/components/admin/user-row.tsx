@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { apiErrorMessage } from "@/lib/api-error-message";
 import {
   Select,
   SelectContent,
@@ -24,15 +26,21 @@ const ROLE_LABEL: Record<UserRole, string> = {
 export function UserRow({ user, isSelf }: { user: AdminUserDTO; isSelf: boolean }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  async function update(input: { role?: UserRole; isSuspended?: boolean }) {
+  async function update(input: { role?: UserRole; isSuspended?: boolean; canReviewDocuments?: boolean }) {
     setLoading(true);
-    await fetch(`/api/admin/usuarios/${user.id}`, {
+    setError(null);
+    const response = await fetch(`/api/admin/usuarios/${user.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(input),
     });
     setLoading(false);
+    if (!response.ok) {
+      setError(apiErrorMessage(await response.json().catch(() => null), "No se pudo guardar el cambio."));
+      return;
+    }
     router.refresh();
   }
 
@@ -65,6 +73,17 @@ export function UserRow({ user, isSelf }: { user: AdminUserDTO; isSelf: boolean 
             ))}
           </SelectContent>
         </Select>
+        {user.role === "ADMIN" && (
+          <label className="mt-2 flex items-center gap-2 text-xs text-neutral-500">
+            <Switch
+              checked={user.canReviewDocuments}
+              disabled={loading}
+              onCheckedChange={(checked) => update({ canReviewDocuments: checked })}
+            />
+            Puede ver documentos de identidad
+          </label>
+        )}
+        {error && <p className="mt-1 max-w-56 text-xs text-destructive">{error}</p>}
       </td>
       <td className="py-3 pr-4">
         <div className="flex justify-end">

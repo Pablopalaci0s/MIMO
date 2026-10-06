@@ -2,6 +2,7 @@ import { Prisma, prisma } from "@mimo/database";
 import type { AdminBusinessDTO, AdminBusinessUpdateInput, BusinessStatus } from "@mimo/types";
 import { AppError } from "@/lib/errors";
 import { BUSINESS_AGREEMENT_VERSION } from "@/lib/legal/business-agreement";
+import { DOCUMENT_RETENTION_REJECTED_DAYS } from "@/lib/legal/privacy";
 import { logAdminAction } from "./admin-audit-service";
 import { assertCanBeApproved } from "./business-agreement-service";
 import { assertDocumentsComplete } from "./business-document-service";
@@ -128,6 +129,16 @@ export async function updateAdminBusiness(
     where: { id: businessId },
     data: {
       ...(input.status ? { status: input.status } : {}),
+      // Plazo de conservación de los documentos de identidad: al rechazar un
+      // negocio empieza a correr; cualquier otro estado lo cancela.
+      ...(input.status
+        ? {
+            documentsPurgeAfter:
+              input.status === "REJECTED"
+                ? new Date(Date.now() + DOCUMENT_RETENTION_REJECTED_DAYS * 24 * 60 * 60 * 1000)
+                : null,
+          }
+        : {}),
       ...(input.verified !== undefined ? { verified: input.verified } : {}),
       ...(input.commissionRate !== undefined ? { commissionRate: input.commissionRate } : {}),
       ...(isFirstApproval ? { commissionRate: await nextApprovalCommissionRate() } : {}),

@@ -67,6 +67,7 @@ describe("registerBusinessSchema", () => {
     addressLine: "Colonia Escalón, calle 1",
     password: "Abcdef12",
     acceptedAgreementVersion: "2026-10-05",
+    acceptedPrivacyVersion: "2026-10-06",
   };
 
   it("acepta datos válidos", () => {
@@ -82,6 +83,12 @@ describe("registerBusinessSchema", () => {
   it("el teléfono NO es opcional acá (a diferencia de registerSchema)", () => {
     const { phone: _phone, ...rest } = valid;
     expect(() => registerBusinessSchema.parse(rest)).toThrow();
+  });
+
+  it("exige aceptar la política de privacidad (el DUI se usa solo con consentimiento)", () => {
+    const { acceptedPrivacyVersion: _version, ...rest } = valid;
+    expect(() => registerBusinessSchema.parse(rest)).toThrow();
+    expect(() => registerBusinessSchema.parse({ ...valid, acceptedPrivacyVersion: " " })).toThrow();
   });
 
   it("explica en español qué le falta a la contraseña (nunca un \"Invalid\" genérico)", () => {

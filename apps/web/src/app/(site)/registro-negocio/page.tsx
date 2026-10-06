@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { BusinessApplicationForm } from "@/components/account/business-application-form";
+import { DOCUMENT_PURPOSE_STATEMENT } from "@/lib/legal/privacy";
 import { listMunicipalities } from "@/lib/services/location-service";
 
 export const metadata: Metadata = {
@@ -25,8 +26,8 @@ export default async function RegisterBusinessPage() {
           <li>Opcional: NIT/NRC y permisos de tu actividad.</li>
         </ul>
         <p className="mt-2 text-xs text-neutral-500">
-          Los subís desde tu panel apenas termines de registrarte. Se guardan en forma privada y solo los usamos para
-          verificarte.
+          Los subís desde tu panel apenas termines de registrarte. {DOCUMENT_PURPOSE_STATEMENT} Nunca se muestran a los
+          clientes ni se comparten con otros negocios; los ve solo personal autorizado de MIMO.
         </p>
       </div>
 

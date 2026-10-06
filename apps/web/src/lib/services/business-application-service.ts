@@ -4,6 +4,7 @@ import type { RegisterBusinessInput } from "@mimo/validation";
 import { AppError } from "@/lib/errors";
 import { slugify } from "@/lib/slug";
 import { assertCurrentAgreementVersion } from "./business-agreement-service";
+import { assertCurrentPrivacyVersion } from "./business-privacy-service";
 
 async function uniqueBusinessSlug(name: string): Promise<string> {
   const base = slugify(name) || "negocio";
@@ -29,6 +30,7 @@ export async function applyAsBusiness(input: RegisterBusinessInput): Promise<{ u
   // Antes de tocar la base: no se crea ninguna cuenta si la persona aceptó
   // una versión del acuerdo que ya no es la vigente.
   assertCurrentAgreementVersion(input.acceptedAgreementVersion);
+  assertCurrentPrivacyVersion(input.acceptedPrivacyVersion);
 
   const existing = await prisma.user.findUnique({ where: { email: input.email } });
   if (existing) {
@@ -57,6 +59,9 @@ export async function applyAsBusiness(input: RegisterBusinessInput): Promise<{ u
         municipalityId: input.municipalityId,
         addressLine: input.addressLine,
         status: "PENDING",
+        // Consentimiento explícito de la política (incluye el uso del DUI).
+        privacyAcceptedVersion: input.acceptedPrivacyVersion,
+        privacyAcceptedAt: new Date(),
       },
     });
 

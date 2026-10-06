@@ -1,18 +1,24 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import {
+  DOCUMENT_PURPOSE_STATEMENT,
+  DOCUMENT_RETENTION_CLOSED_DAYS,
+  DOCUMENT_RETENTION_REJECTED_DAYS,
+  PRIVACY_POLICY_UPDATED,
+  PRIVACY_POLICY_VERSION,
+} from "@/lib/legal/privacy";
 
 export const metadata: Metadata = {
   title: "Política de privacidad",
   description: "Qué datos recolecta MIMO, para qué los usa y cómo protegerlos.",
 };
 
-const LAST_UPDATED = "5 de octubre de 2026";
 
 export default function PrivacidadPage() {
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-10 sm:px-6">
       <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">Política de privacidad</h1>
-      <p className="mt-1 text-sm text-neutral-500">Última actualización: {LAST_UPDATED}</p>
+      <p className="mt-1 text-sm text-neutral-500">Versión {PRIVACY_POLICY_VERSION} · Última actualización: {PRIVACY_POLICY_UPDATED}</p>
 
       <div className="mt-8 flex flex-col gap-4 text-sm [&>h2]:text-base [&>h2]:font-semibold [&>h2]:text-neutral-900 [&>p]:leading-relaxed [&>p]:text-neutral-600 [&>ul]:list-disc [&>ul]:space-y-1 [&>ul]:pl-5 [&>ul]:text-neutral-600">
         <p>
@@ -51,13 +57,9 @@ export default function PrivacidadPage() {
             perfil, banner o productos que suba.
           </li>
           <li>
-            <strong>Documentos de verificación de negocios:</strong> para aprobar un negocio le
-            pedimos a su titular una foto del DUI (frente y reverso) y una foto suya sosteniendo el
-            DUI, y opcionalmente NIT/NRC y permisos. Son datos personales sensibles: se guardan
-            en forma privada (nunca en una dirección pública), solo los ven el titular y el equipo
-            de MIMO que verifica negocios, cada vez que alguien del equipo abre uno queda
-            registrado, no se muestran en el Sitio, no se comparten con otros negocios ni con
-            compradores, y los usamos únicamente para verificar al titular.
+            <strong>Documentos de verificación de negocios:</strong> la foto del DUI (frente y
+            reverso) y una foto del titular sosteniendo su DUI, y opcionalmente NIT/NRC y permisos.
+            Ver la sección 7.
           </li>
           <li>
             <strong>Datos técnicos y de uso:</strong> qué páginas visitás y qué acciones hacés
@@ -151,27 +153,88 @@ export default function PrivacidadPage() {
           proceso).
         </p>
 
-        <h2>7. Derechos del usuario</h2>
+        <h2>7. Documentos de identidad de los negocios (DUI)</h2>
+        <p>
+          Para aprobar un negocio, su titular o representante legal sube una foto de su DUI (frente
+          y reverso) y una foto suya sosteniendo el DUI. <strong>{DOCUMENT_PURPOSE_STATEMENT}</strong>
+        </p>
+        <ul>
+          <li>
+            <strong>Aceptación:</strong> se pide de forma expresa al registrar el negocio (o, si el
+            negocio ya existía o esta política cambia, antes de subir cualquier documento). Sin
+            aceptarla no se puede subir ningún documento.
+          </li>
+          <li>
+            <strong>Quién lo ve:</strong> únicamente el titular y los administradores de MIMO
+            expresamente autorizados para verificar negocios. Un administrador común no tiene
+            acceso. Cada vez que uno abre, rechaza o borra un documento queda registrado con su
+            nombre y la fecha.
+          </li>
+          <li>
+            <strong>Quién no lo ve:</strong> nunca se muestra públicamente en el Sitio, ni a los
+            clientes, ni a otros negocios, ni se comparte con terceros.
+          </li>
+          <li>
+            <strong>Para qué no se usa:</strong> no se usa para marketing, publicidad, perfilado ni
+            ningún fin distinto de la verificación indicada arriba.
+          </li>
+          <li>
+            <strong>Cómo se guarda:</strong> en forma privada, en la base de datos (nunca en una
+            dirección pública), y solo se entrega a quien tiene sesión y permiso. Detalle técnico en{" "}
+            <Link href="/seguridad" className="underline">
+              Seguridad
+            </Link>
+            .
+          </li>
+        </ul>
+        <p>
+          <strong>Cuánto tiempo lo conservamos y cuándo se elimina:</strong>
+        </p>
+        <ul>
+          <li>
+            <strong>Negocio activo o suspendido:</strong> mientras esté en MIMO, para poder
+            responder a reclamos o investigaciones.
+          </li>
+          <li>
+            <strong>Solicitud rechazada:</strong> lo eliminamos {DOCUMENT_RETENTION_REJECTED_DAYS}{" "}
+            días después del rechazo.
+          </li>
+          <li>
+            <strong>Negocio dado de baja:</strong> lo eliminamos {DOCUMENT_RETENTION_CLOSED_DAYS} días
+            después de la baja (tiempo para resolver reclamos o disputas que estén abiertos).
+          </li>
+          <li>
+            <strong>Cuando lo pidas:</strong> podés pedir que lo eliminemos en cualquier momento
+            escribiéndonos desde Ayuda. Lo hacemos, salvo que una ley nos obligue a conservarlo o
+            haya un reclamo, una disputa o una investigación por fraude abierta.
+          </li>
+          <li>
+            <strong>Copias de seguridad:</strong> las copias de respaldo de la base de datos pueden
+            conservar el archivo unos días más, hasta que se renueven.
+          </li>
+        </ul>
+
+        <h2>8. Derechos del usuario</h2>
         <p>
           Desde &quot;Mi perfil&quot; podés actualizar tus datos de contacto y contraseña en cualquier
           momento. Para pedir acceso, corrección o eliminación de tu cuenta o de datos
           específicos, escribinos desde la sección de Ayuda.
         </p>
 
-        <h2>8. Privacidad de menores</h2>
+        <h2>9. Privacidad de menores</h2>
         <p>
           MIMO no está dirigido a menores de 18 años y no recolectamos intencionalmente datos de
           menores. Si sos madre, padre o tutor/a y creés que un menor a tu cargo nos dio datos
           personales, escribinos para eliminarlos.
         </p>
 
-        <h2>9. Cambios a esta política</h2>
+        <h2>10. Cambios a esta política</h2>
         <p>
           Si hacemos cambios importantes a esta política, lo vamos a anunciar en el Sitio con
           anticipación razonable.
         </p>
 
-        <h2>10. Contacto</h2>
+        <h2>11. Contacto</h2>
         <p>
           Para preguntas sobre esta política, o para pedir acceso, corrección o eliminación de
           tus datos, escribinos desde la sección de Ayuda del Sitio o a{" "}

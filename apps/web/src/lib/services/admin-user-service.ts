@@ -23,6 +23,7 @@ function toAdminUserDTO(user: AdminUserRow): AdminUserDTO {
     phone: user.phone,
     role: user.role,
     isSuspended: user.deletedAt !== null,
+    canReviewDocuments: user.canReviewDocuments,
     businessCount: user._count.businessMemberships,
     orderCount: user._count.orders,
     createdAt: user.createdAt.toISOString(),
@@ -54,6 +55,41 @@ export async function listAdminUsers(filters: AdminUserFilters = {}): Promise<Ad
 }
 
 /**
+ * Otorgar o quitar el permiso de ver documentos de identidad: solo lo puede
+ * hacer un admin que ya lo tiene, solo aplica a admins, y no puede dejar al
+ * sistema sin ningún administrador autorizado.
+ */
+async function assertCanChangeDocumentReviewer(
+  target: { id: string; role: UserRole },
+  actorId: string,
+  grant: boolean,
+): Promise<void> {
+  const actor = await prisma.user.findUnique({ where: { id: actorId }, select: { canReviewDocuments: true } });
+  if (!actor?.canReviewDocuments) {
+    throw new AppError(
+      "DOCUMENT_REVIEW_FORBIDDEN",
+      "Solo un administrador autorizado puede otorgar o quitar este permiso.",
+      403,
+    );
+  }
+  if (grant && target.role !== "ADMIN") {
+    throw new AppError("INVALID_TARGET", "Solo un administrador puede recibir este permiso.", 400);
+  }
+  if (!grant) {
+    const others = await prisma.user.count({
+      where: { canReviewDocuments: true, deletedAt: null, id: { not: target.id } },
+    });
+    if (others === 0) {
+      throw new AppError(
+        "LAST_REVIEWER",
+        "Tiene que quedar al menos un administrador autorizado para revisar documentos.",
+        400,
+      );
+    }
+  }
+}
+
+/**
  * "Suspender" pone `deletedAt` — el mismo campo que ya revisa `authorize()`
  * en packages/auth/src/config.ts, así que suspender de verdad bloquea el
  * login, no es un estado cosmético.
@@ -70,10 +106,17 @@ export async function updateAdminUser(
   const existing = await prisma.user.findUnique({ where: { id: userId } });
   if (!existing) throw new AppError("NOT_FOUND", "No encontramos ese usuario.", 404);
 
+  if (input.canReviewDocuments !== undefined) {
+    await assertCanChangeDocumentReviewer(existing, adminUserId, input.canReviewDocuments);
+  }
+
   const user = await prisma.user.update({
     where: { id: userId },
     data: {
       ...(input.role ? { role: input.role } : {}),
+      // Dejar de ser admin también quita el acceso a los documentos de identidad.
+      ...(input.role && input.role !== "ADMIN" ? { canReviewDocuments: false } : {}),
+      ...(input.canReviewDocuments !== undefined ? { canReviewDocuments: input.canReviewDocuments } : {}),
       ...(input.isSuspended !== undefined ? { deletedAt: input.isSuspended ? new Date() : null } : {}),
     },
     include: ADMIN_USER_INCLUDE,
@@ -84,7 +127,7 @@ export async function updateAdminUser(
     action: "user.update",
     targetType: "USER",
     targetId: userId,
-    metadata: { role: input.role, isSuspended: input.isSuspended },
+    metadata: { role: input.role, isSuspended: input.isSuspended, canReviewDocuments: input.canReviewDocuments },
   });
 
   return toAdminUserDTO(user);

@@ -1,6 +1,7 @@
 import { prisma } from "@mimo/database";
 import type { AdminStatsDTO } from "@mimo/types";
 import { assertRole, auth } from "@mimo/auth";
+import { AppError } from "@/lib/errors";
 
 /**
  * Punto de entrada único para cada ruta de `/api/admin/*` y cada página de
@@ -11,6 +12,26 @@ export async function requireAdmin(): Promise<string> {
   const session = await auth();
   assertRole(session?.user?.role, ["ADMIN"]);
   return session!.user.id;
+}
+
+/**
+ * Ver, rechazar o borrar los documentos de identidad de un negocio (DUI) NO
+ * lo puede hacer cualquier admin: hace falta además el permiso
+ * `canReviewDocuments`, que solo otorga otro admin que ya lo tiene. Se lee de
+ * la base en cada llamada (no del JWT) para que quitarlo surta efecto al
+ * instante.
+ */
+export async function requireDocumentReviewer(): Promise<string> {
+  const adminId = await requireAdmin();
+  const user = await prisma.user.findUnique({ where: { id: adminId }, select: { canReviewDocuments: true } });
+  if (!user?.canReviewDocuments) {
+    throw new AppError(
+      "DOCUMENT_REVIEW_FORBIDDEN",
+      "No tenés permiso para ver documentos de identidad. Pedile a un administrador autorizado que te lo otorgue.",
+      403,
+    );
+  }
+  return adminId;
 }
 
 export async function getAdminStats(): Promise<AdminStatsDTO> {

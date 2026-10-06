@@ -2,13 +2,13 @@ import { z } from "zod";
 import { businessDocumentTypeSchema } from "@mimo/validation";
 import { apiError, apiErrorFromException } from "@/lib/api-response";
 import { documentResponse } from "@/lib/document-response";
-import { requireAdmin } from "@/lib/services/admin-service";
+import { requireDocumentReviewer } from "@/lib/services/admin-service";
 import { getBusinessDocumentFileForAdmin } from "@/lib/services/business-document-service";
 
 /** Un admin abre el documento de un negocio — cada vista queda en la auditoría. */
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string; type: string }> }) {
   try {
-    const adminId = await requireAdmin();
+    const adminId = await requireDocumentReviewer();
     const { id, type: rawType } = await params;
     const businessId = z.string().uuid().parse(id);
     const type = businessDocumentTypeSchema.parse(rawType);

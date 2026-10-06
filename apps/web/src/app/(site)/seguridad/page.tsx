@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "Las medidas técnicas que MIMO tiene implementadas hoy para proteger tus datos.",
 };
 
-const LAST_UPDATED = "5 de octubre de 2026";
+const LAST_UPDATED = "6 de octubre de 2026";
 
 export default function SeguridadPage() {
   return (
@@ -73,7 +73,7 @@ export default function SeguridadPage() {
           <li>
             <strong>Documentos de identidad:</strong> los documentos de verificación de los
             negocios (DUI y similares) se guardan en la base de datos, no en una carpeta pública,
-            y solo se entregan al titular o a un administrador con sesión iniciada; nunca se
+            y solo se entregan al titular o a un administrador expresamente autorizado con sesión iniciada (ser administrador no alcanza); nunca se
             guardan en la caché del navegador. Revisamos que el archivo sea realmente una imagen
             o un PDF (no un archivo disfrazado) y cada vez que alguien del equipo abre uno queda
             registrado.

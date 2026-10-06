@@ -38,6 +38,8 @@ export const registerBusinessSchema = z.object({
   // Versión del Acuerdo MIMO ↔ negocio que la persona leyó y aceptó (la
   // casilla del formulario). El servidor la compara con la vigente.
   acceptedAgreementVersion: z.string().trim().min(1, "Tenés que aceptar el acuerdo para negocios"),
+  // Política de privacidad (incluye el uso del DUI): aceptación explícita.
+  acceptedPrivacyVersion: z.string().trim().min(1, "Tenés que aceptar la Política de privacidad"),
 });
 export type RegisterBusinessInput = z.infer<typeof registerBusinessSchema>;
 
@@ -45,6 +47,11 @@ export const businessAgreementAcceptSchema = z.object({
   version: z.string().trim().min(1, "Falta la versión del acuerdo"),
 });
 export type BusinessAgreementAcceptInput = z.infer<typeof businessAgreementAcceptSchema>;
+
+export const businessPrivacyAcceptSchema = z.object({
+  version: z.string().trim().min(1, "Falta la versión de la política"),
+});
+export type BusinessPrivacyAcceptInput = z.infer<typeof businessPrivacyAcceptSchema>;
 
 export const userUpdateSchema = z.object({
   name: z.string().trim().min(2, "El nombre es muy corto").max(100),
