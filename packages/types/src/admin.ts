@@ -32,8 +32,10 @@ export interface AdminBusinessDTO {
   agreementAccepted: boolean;
   /** Cuántos documentos de verificación subió (de los 5 posibles). */
   documentsCount: number;
-  /** ¿Subió los obligatorios (DUI frente y reverso, foto del titular)? */
+  /** ¿Subió los obligatorios (DUI frente y reverso, foto del titular) o ya fue verificado? */
   documentsComplete: boolean;
+  /** ¿Un administrador ya verificó la identidad del titular? */
+  identityVerified: boolean;
   createdAt: string;
 }
 

@@ -5,7 +5,7 @@ import { BUSINESS_AGREEMENT_VERSION } from "@/lib/legal/business-agreement";
 import { DOCUMENT_RETENTION_REJECTED_DAYS } from "@/lib/legal/privacy";
 import { logAdminAction } from "./admin-audit-service";
 import { assertCanBeApproved } from "./business-agreement-service";
-import { assertDocumentsComplete } from "./business-document-service";
+import { assertDocumentsComplete, assertIdentityVerified } from "./business-document-service";
 import { missingRequiredDocuments } from "@mimo/validation";
 import { createNotification } from "./notification-service";
 
@@ -21,6 +21,7 @@ const ADMIN_BUSINESS_INCLUDE = {
   agreements: { where: { version: BUSINESS_AGREEMENT_VERSION }, select: { id: true }, take: 1 },
   // Solo el tipo: el archivo (`data`) nunca se trae en un listado.
   documents: { select: { type: true, rejectedAt: true } },
+  identityVerifications: { select: { id: true }, take: 1 },
 } satisfies Prisma.BusinessInclude;
 
 type AdminBusinessRow = Prisma.BusinessGetPayload<{ include: typeof ADMIN_BUSINESS_INCLUDE }>;
@@ -42,7 +43,10 @@ function toAdminBusinessDTO(business: AdminBusinessRow): AdminBusinessDTO {
     agreementAccepted: business.agreements.length > 0,
     // Un documento rechazado cuenta como no subido.
     documentsCount: business.documents.filter((document) => !document.rejectedAt).length,
+    // Verificado = ya no hacen falta las imágenes (se borran por política de conservación).
+    identityVerified: business.identityVerifications.length > 0,
     documentsComplete:
+      business.identityVerifications.length > 0 ||
       missingRequiredDocuments(business.documents.filter((document) => !document.rejectedAt).map((document) => document.type))
         .length === 0,
     createdAt: business.createdAt.toISOString(),
@@ -123,6 +127,7 @@ export async function updateAdminBusiness(
   if (isFirstApproval) {
     await assertCanBeApproved(existing);
     await assertDocumentsComplete(existing);
+    await assertIdentityVerified(existing);
   }
 
   const business = await prisma.business.update({
@@ -145,6 +150,16 @@ export async function updateAdminBusiness(
     },
     include: ADMIN_BUSINESS_INCLUDE,
   });
+
+  if (input.status === "REJECTED" && existing.status !== "REJECTED") {
+    await logAdminAction({
+      adminId,
+      action: "business.documents.purge_scheduled",
+      targetType: "BUSINESS",
+      targetId: businessId,
+      metadata: { purgeAfter: business.documentsPurgeAfter?.toISOString() ?? null, days: DOCUMENT_RETENTION_REJECTED_DAYS },
+    });
+  }
 
   const ownerId = business.members[0]?.user.id;
   if (ownerId && input.status && input.status !== existing.status) {

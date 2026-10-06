@@ -243,26 +243,27 @@ model User {
   accounts Account[]
   sessions Session[]
 
-  businessMemberships  BusinessUser[]
-  orders               Order[]
-  reviews              Review[]
-  favorites            Favorite[]
-  importantDates       ImportantDate[]
-  notifications        Notification[]
-  aiConversations      AIConversation[]
-  aiRecommendations    AIRecommendation[]
-  reports              Report[]
-  pushTokens           PushToken[]
-  webPushSubscriptions WebPushSubscription[]
-  coverageRequests     CoverageRequest[]
-  authTokens           AuthToken[]
-  orderMessages        OrderMessage[]
-  giftRegistries       GiftRegistry[]
-  groupGifts           GroupGift[]
-  adminActionLogs      AdminActionLog[]
-  agreementAcceptances BusinessAgreementAcceptance[]
-  businessDocuments    BusinessDocument[]            @relation("BusinessDocumentUploadedBy")
-  rejectedDocuments    BusinessDocument[]            @relation("BusinessDocumentRejectedBy")
+  businessMemberships   BusinessUser[]
+  orders                Order[]
+  reviews               Review[]
+  favorites             Favorite[]
+  importantDates        ImportantDate[]
+  notifications         Notification[]
+  aiConversations       AIConversation[]
+  aiRecommendations     AIRecommendation[]
+  reports               Report[]
+  pushTokens            PushToken[]
+  webPushSubscriptions  WebPushSubscription[]
+  coverageRequests      CoverageRequest[]
+  authTokens            AuthToken[]
+  orderMessages         OrderMessage[]
+  giftRegistries        GiftRegistry[]
+  groupGifts            GroupGift[]
+  adminActionLogs       AdminActionLog[]
+  agreementAcceptances  BusinessAgreementAcceptance[]
+  businessDocuments     BusinessDocument[]            @relation("BusinessDocumentUploadedBy")
+  rejectedDocuments     BusinessDocument[]            @relation("BusinessDocumentRejectedBy")
+  identityVerifications IdentityVerification[]        @relation("IdentityVerifiedBy")
 
   supportConversations         SupportConversation[] @relation("SupportConversationUser")
   assignedSupportConversations SupportConversation[] @relation("SupportConversationAgent")
@@ -435,6 +436,46 @@ model BusinessDocument {
   @@map("business_documents")
 }
 
+// Registro de que un administrador verificó la identidad del titular de un
+// negocio. Es lo ÚNICO que se conserva a largo plazo de esa verificación: las
+// imágenes del DUI (frente, reverso y selfie) se borran `imagesPurgeAfter`
+// (ver `lib/legal/privacy.ts` → DOCUMENT_RETENTION_VERIFIED_DAYS).
+//
+// El número completo del DUI NO se guarda en ninguna parte: solo los últimos 4
+// dígitos y una HMAC-SHA256 con un secreto del servidor (`DUI_FINGERPRINT_SECRET`),
+// que sirve para detectar que la misma persona se registra otra vez, sin poder
+// recuperar el número (con un SHA-256 simple se podría: son solo ~10^8 DUI).
+model IdentityVerification {
+  id         String   @id @default(uuid()) @db.Uuid
+  businessId String   @db.Uuid
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  verifiedById String?  @db.Uuid
+  verifiedBy   User?    @relation("IdentityVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
+  verifiedAt   DateTime @default(now())
+
+  // Qué documentos tenía delante el revisor.
+  reviewedDocuments BusinessDocumentType[]
+  // Criterios que confirmó (los cuatro tienen que ser true para registrarla).
+  documentLegible   Boolean
+  documentValid     Boolean
+  identityMatches   Boolean
+  photoMatches      Boolean
+
+  duiLast4           String
+  duiFingerprint     String
+  fingerprintVersion Int    @default(1)
+
+  // Borrado programado de las imágenes de identidad, y cuándo se ejecutó.
+  imagesPurgeAfter DateTime?
+  imagesDeletedAt  DateTime?
+
+  @@index([businessId])
+  @@index([duiFingerprint])
+  @@index([imagesPurgeAfter])
+  @@map("identity_verifications")
+}
+
 // ─────────────────────────────────────────────────────────────────────────
 // NEGOCIOS
 // ─────────────────────────────────────────────────────────────────────────
@@ -484,16 +525,17 @@ model Business {
   openingHours           Json? // { mon: ["09:00","18:00"], ... }
   preparationTimeMinutes Int           @default(60)
 
-  members          BusinessUser[]
-  products         Product[]
-  deliveryZones    DeliveryZone[]
-  reviews          Review[]
-  favorites        Favorite[]
-  promotions       Promotion[]
-  coverageRequests CoverageRequest[]
-  paymentSplits    PaymentSplit[]
-  agreements       BusinessAgreementAcceptance[]
-  documents        BusinessDocument[]
+  members               BusinessUser[]
+  products              Product[]
+  deliveryZones         DeliveryZone[]
+  reviews               Review[]
+  favorites             Favorite[]
+  promotions            Promotion[]
+  coverageRequests      CoverageRequest[]
+  paymentSplits         PaymentSplit[]
+  agreements            BusinessAgreementAcceptance[]
+  documents             BusinessDocument[]
+  identityVerifications IdentityVerification[]
 
   ratingAvg   Float @default(0)
   ratingCount Int   @default(0)
@@ -1205,8 +1247,9 @@ model Banner {
  */
 model AdminActionLog {
   id         String   @id @default(uuid()) @db.Uuid
-  adminId    String   @db.Uuid
-  admin      User     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  // null = acción automática del sistema (ej. la purga programada de documentos).
+  adminId    String?  @db.Uuid
+  admin      User?    @relation(fields: [adminId], references: [id], onDelete: Cascade)
   action     String
   targetType String
   targetId   String?

@@ -105,11 +105,18 @@ function DocumentSlot({
 }
 
 /** Lista de documentos de verificación del titular, con su estado y botón para subir. */
-export function DocumentUploader({ documents }: { documents: BusinessDocumentDTO[] }) {
+export function DocumentUploader({
+  documents,
+  hiddenTypes = [],
+}: {
+  documents: BusinessDocumentDTO[];
+  /** Documentos que no se piden (ej. el DUI de un negocio cuya identidad ya fue verificada). */
+  hiddenTypes?: BusinessDocumentTypeValue[];
+}) {
   const byType = new Map(documents.map((document) => [document.type, document]));
   return (
     <ul className="flex flex-col gap-3">
-      {BUSINESS_DOCUMENT_TYPES.map((type) => (
+      {BUSINESS_DOCUMENT_TYPES.filter((type) => !hiddenTypes.includes(type)).map((type) => (
         <DocumentSlot key={type} type={type} uploaded={byType.get(type)} />
       ))}
     </ul>

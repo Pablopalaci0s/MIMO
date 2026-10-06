@@ -10,7 +10,7 @@ type AuditLogRow = Prisma.AdminActionLogGetPayload<{ include: typeof AUDIT_LOG_I
 function toAdminActionLogDTO(log: AuditLogRow): AdminActionLogDTO {
   return {
     id: log.id,
-    adminName: log.admin.name,
+    adminName: log.admin?.name ?? "Sistema (automático)",
     action: log.action,
     targetType: log.targetType,
     targetId: log.targetId,
@@ -27,7 +27,8 @@ function toAdminActionLogDTO(log: AuditLogRow): AdminActionLogDTO {
  * y se sigue de largo en vez de propagar el error.
  */
 export async function logAdminAction(params: {
-  adminId: string;
+  /** null = acción automática del sistema (ej. la purga programada de documentos). */
+  adminId: string | null;
   action: string;
   targetType: string;
   targetId?: string | null;

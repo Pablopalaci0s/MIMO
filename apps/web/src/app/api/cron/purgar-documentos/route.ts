@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { apiError, apiErrorFromException, apiSuccess } from "@/lib/api-response";
-import { purgeExpiredBusinessDocuments } from "@/lib/services/business-document-service";
+import { purgeExpiredBusinessDocuments, purgeVerifiedIdentityImages } from "@/lib/services/business-document-service";
 
 /**
  * Borra los documentos de identidad (DUI) cuyo plazo de conservación venció
@@ -21,7 +21,11 @@ export async function GET(request: NextRequest) {
       return apiError("UNAUTHORIZED", "No autorizado", 401);
     }
 
-    return apiSuccess(await purgeExpiredBusinessDocuments());
+    // Dos plazos distintos: negocios rechazados/dados de baja, e imágenes de
+    // identidad de negocios ya verificados. Ver `lib/legal/privacy.ts`.
+    const expired = await purgeExpiredBusinessDocuments();
+    const verified = await purgeVerifiedIdentityImages();
+    return apiSuccess({ expired, verified });
   } catch (error) {
     return apiErrorFromException(error);
   }

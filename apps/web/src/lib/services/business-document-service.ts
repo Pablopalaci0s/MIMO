@@ -11,7 +11,7 @@ import {
   type RejectBusinessDocumentInput,
 } from "@mimo/validation";
 import { AppError } from "@/lib/errors";
-import { DOCUMENT_RETENTION_CLOSED_DAYS } from "@/lib/legal/privacy";
+import { DOCUMENT_RETENTION_CLOSED_DAYS, IDENTITY_IMAGE_TYPES } from "@/lib/legal/privacy";
 import { logger } from "@/lib/logger";
 import { logAdminAction } from "./admin-audit-service";
 import { createNotification } from "./notification-service";
@@ -54,9 +54,30 @@ export async function listBusinessDocuments(businessId: string): Promise<Busines
   return rows.map(toDTO);
 }
 
+/** ¿Un administrador ya registró la verificación de identidad de este negocio? */
+export async function hasIdentityVerification(businessId: string): Promise<boolean> {
+  const found = await prisma.identityVerification.findFirst({ where: { businessId }, select: { id: true } });
+  return found !== null;
+}
+
+/** La primera aprobación de un negocio real exige que su identidad esté verificada
+ * (la verificación se registra desde `identity-verification-service.ts`). */
+export async function assertIdentityVerified(business: { id: string; isDemo: boolean }): Promise<void> {
+  if (business.isDemo) return;
+  if (await hasIdentityVerification(business.id)) return;
+  throw new AppError(
+    "IDENTITY_NOT_VERIFIED",
+    "Antes de aprobar este negocio hay que verificar la identidad del titular: abrí sus documentos (botón Revisar y aprobar) y completá la verificación.",
+    409,
+  );
+}
+
 /** Faltan los obligatorios que no se subieron O que un admin rechazó (un
  * documento rechazado cuenta como no subido hasta que se reemplace). */
 export async function getMissingDocuments(businessId: string): Promise<BusinessDocumentTypeValue[]> {
+  // Un negocio cuya identidad ya fue verificada no debe volver a "faltar" el
+  // DUI cuando sus imágenes se borran por política de conservación.
+  if (await hasIdentityVerification(businessId)) return [];
   const rows = await prisma.businessDocument.findMany({
     where: { businessId, rejectedAt: null },
     select: { type: true },
@@ -245,12 +266,65 @@ export async function purgeExpiredBusinessDocuments(now: Date = new Date()): Pro
   });
   if (businesses.length === 0) return { businesses: 0, documents: 0 };
 
-  const result = await prisma.businessDocument.deleteMany({
-    where: { businessId: { in: businesses.map((business) => business.id) } },
-  });
+  let documents = 0;
+  for (const business of businesses) {
+    const result = await prisma.businessDocument.deleteMany({ where: { businessId: business.id } });
+    documents += result.count;
+    await logAdminAction({
+      adminId: null,
+      action: "business.documents.purged",
+      targetType: "BUSINESS",
+      targetId: business.id,
+      metadata: { deleted: result.count, reason: "retention_expired" },
+    });
+  }
   logger.info("documentos de identidad purgados por vencimiento del plazo de conservación", {
     businesses: businesses.length,
-    documents: result.count,
+    documents,
   });
-  return { businesses: businesses.length, documents: result.count };
+  return { businesses: businesses.length, documents };
+}
+
+/**
+ * Borra las imágenes de identidad (DUI frente, reverso y foto del titular) de
+ * los negocios cuya verificación ya cumplió `DOCUMENT_RETENTION_VERIFIED_DAYS`
+ * (el plazo vive en `lib/legal/privacy.ts` y es PROVISIONAL, a validar con un
+ * abogado). Es un borrado real de las filas — los bytes están en
+ * `BusinessDocument.data`, no hay un "marcado como borrado" — y no toca el
+ * registro de verificación, NIT ni permisos. Cada ejecución queda en la
+ * auditoría como acción del sistema.
+ */
+export async function purgeVerifiedIdentityImages(
+  now: Date = new Date(),
+): Promise<{ verifications: number; documents: number }> {
+  const due = await prisma.identityVerification.findMany({
+    where: { imagesDeletedAt: null, imagesPurgeAfter: { lte: now } },
+    select: { id: true, businessId: true },
+  });
+
+  let documents = 0;
+  for (const verification of due) {
+    const result = await prisma.businessDocument.deleteMany({
+      where: { businessId: verification.businessId, type: { in: [...IDENTITY_IMAGE_TYPES] } },
+    });
+    documents += result.count;
+    await prisma.identityVerification.update({
+      where: { id: verification.id },
+      data: { imagesDeletedAt: now },
+    });
+    await logAdminAction({
+      adminId: null,
+      action: "business.identity.images_deleted",
+      targetType: "BUSINESS",
+      targetId: verification.businessId,
+      metadata: { verificationId: verification.id, deleted: result.count },
+    });
+  }
+  if (due.length > 0) {
+    logger.info("imágenes de identidad borradas tras el plazo posterior a la verificación", {
+      verifications: due.length,
+      documents,
+    });
+  }
+  return { verifications: due.length, documents };
 }

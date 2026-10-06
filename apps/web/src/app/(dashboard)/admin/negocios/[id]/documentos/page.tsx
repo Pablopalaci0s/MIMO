@@ -1,10 +1,12 @@
-import { ArrowLeft, FileText, Lock, ShieldAlert } from "lucide-react";
+import { ArrowLeft, BadgeCheck, FileText, Lock, ShieldAlert } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { z } from "zod";
 import { notFound } from "next/navigation";
 import { DeleteDocumentsButton } from "@/components/admin/delete-documents-button";
 import { RejectDocumentForm } from "@/components/admin/reject-document-form";
+import { VerifyIdentityForm } from "@/components/admin/verify-identity-form";
+import { listIdentityVerifications } from "@/lib/services/identity-verification-service";
 import { AppError } from "@/lib/errors";
 import { requireDocumentReviewer } from "@/lib/services/admin-service";
 import { getAdminBusinessForReview } from "@/lib/services/admin-business-service";
@@ -41,7 +43,17 @@ export default async function AdminBusinessDocumentsPage({ params }: PageProps<"
     throw error;
   }
 
-  const [business, documents] = await Promise.all([getAdminBusinessForReview(id), listBusinessDocuments(id)]);
+  const [business, documents, verifications] = await Promise.all([
+    getAdminBusinessForReview(id),
+    listBusinessDocuments(id),
+    listIdentityVerifications(id),
+  ]);
+  const latest = verifications[0];
+  const identityImagesPresent = ['DUI_FRONT', 'DUI_BACK', 'OWNER_PHOTO'].every((type) =>
+    documents.some((document) => document.type === type && !document.rejectionReason),
+  );
+  const willApprove = business.status === 'PENDING' || business.status === 'REJECTED';
+  const fmt = (iso: string) => new Date(iso).toLocaleDateString('es-SV');
   const byType = new Map(documents.map((document) => [document.type, document]));
 
   return (
@@ -64,6 +76,35 @@ export default async function AdminBusinessDocumentsPage({ params }: PageProps<"
           queda registrado en la auditoría, con tu nombre.
         </p>
       </div>
+
+      {latest ? (
+        <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-neutral-700 dark:border-emerald-500/30 dark:bg-emerald-500/10">
+          <BadgeCheck className="mt-0.5 size-5 shrink-0 text-emerald-600" />
+          <div className="flex flex-col gap-0.5">
+            <p className="font-medium text-neutral-900">
+              Identidad verificada por {latest.verifiedByName ?? "un administrador"} el {fmt(latest.verifiedAt)}
+            </p>
+            <p>
+              DUI terminado en <strong>{latest.duiLast4}</strong> · Revisó: DUI frente, reverso y foto del titular ·
+              Legible, vigente, identidad y foto coinciden.
+            </p>
+            <p className="text-xs text-neutral-500">
+              {latest.imagesDeletedAt
+                ? `Las imágenes de identidad se borraron el ${fmt(latest.imagesDeletedAt)}; solo queda este registro.`
+                : latest.imagesPurgeAfter
+                  ? `Las imágenes de identidad se borran automáticamente el ${fmt(latest.imagesPurgeAfter)}.`
+                  : "Sin borrado programado."}
+            </p>
+          </div>
+        </div>
+      ) : identityImagesPresent ? (
+        <VerifyIdentityForm businessId={business.id} willApprove={willApprove} />
+      ) : (
+        <p className="rounded-2xl bg-neutral-100 p-4 text-sm text-neutral-600">
+          Para verificar la identidad tienen que estar subidos y vigentes el DUI (frente y reverso) y la foto del
+          titular.
+        </p>
+      )}
 
       <ul className="grid gap-4 sm:grid-cols-2">
         {BUSINESS_DOCUMENT_TYPES.map((type) => {

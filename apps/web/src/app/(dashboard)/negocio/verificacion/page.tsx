@@ -7,10 +7,13 @@ import {
   DOCUMENT_PURPOSE_STATEMENT,
   DOCUMENT_RETENTION_CLOSED_DAYS,
   DOCUMENT_RETENTION_REJECTED_DAYS,
+  DOCUMENT_RETENTION_VERIFIED_DAYS,
+  IDENTITY_IMAGE_TYPES,
   PRIVACY_POLICY_VERSION,
 } from "@/lib/legal/privacy";
 import { listBusinessDocuments } from "@/lib/services/business-document-service";
 import { hasAcceptedCurrentPrivacy } from "@/lib/services/business-privacy-service";
+import { listIdentityVerifications } from "@/lib/services/identity-verification-service";
 import { requireBusinessId } from "@/lib/services/business-service";
 import { missingRequiredDocuments } from "@mimo/validation";
 
@@ -18,10 +21,12 @@ export const metadata: Metadata = { title: "Verificación — MIMO" };
 
 export default async function BusinessVerificationPage() {
   const businessId = await requireBusinessId();
-  const [documents, privacyAccepted] = await Promise.all([
+  const [documents, privacyAccepted, verifications] = await Promise.all([
     listBusinessDocuments(businessId),
     hasAcceptedCurrentPrivacy(businessId),
+    listIdentityVerifications(businessId),
   ]);
+  const verified = verifications[0];
   const missing = missingRequiredDocuments(
     documents.filter((document) => !document.rejectionReason).map((document) => document.type),
   );
@@ -32,9 +37,11 @@ export default async function BusinessVerificationPage() {
         <h1 className="text-xl font-semibold tracking-tight text-neutral-900">Verificación del negocio</h1>
         <p className="text-sm text-neutral-500">
           Para aprobar tu negocio necesitamos confirmar quién sos.{" "}
-          {missing.length === 0
-            ? "Ya subiste los documentos obligatorios: el equipo de MIMO los revisa y te avisa."
-            : `Faltan ${missing.length} documento${missing.length === 1 ? "" : "s"} obligatorio${missing.length === 1 ? "" : "s"}.`}
+          {verified
+            ? `Verificamos tu identidad el ${new Date(verified.verifiedAt).toLocaleDateString("es-SV")}. Gracias.`
+            : missing.length === 0
+              ? "Ya subiste los documentos obligatorios: el equipo de MIMO los revisa y te avisa."
+              : `Faltan ${missing.length} documento${missing.length === 1 ? "" : "s"} obligatorio${missing.length === 1 ? "" : "s"}.`}
         </p>
       </div>
 
@@ -52,9 +59,14 @@ export default async function BusinessVerificationPage() {
             </li>
             <li>No se usa para marketing.</li>
             <li>
-              Si rechazamos tu solicitud, lo borramos a los {DOCUMENT_RETENTION_REJECTED_DAYS} días; si das de baja
-              tu negocio, a los {DOCUMENT_RETENTION_CLOSED_DAYS} días. Mientras tu negocio esté activo lo
-              conservamos, y podés pedir que lo borremos cuando quieras desde Ayuda.
+              Cuando verificamos tu identidad y aprobamos tu negocio, borramos las imágenes (DUI y foto) a los{" "}
+              {DOCUMENT_RETENTION_VERIFIED_DAYS} días. Solo conservamos el registro de que fuiste verificado/a, los
+              últimos 4 dígitos del DUI y un código que no permite reconstruir el número.
+            </li>
+            <li>
+              Si rechazamos tu solicitud, borramos todo a los {DOCUMENT_RETENTION_REJECTED_DAYS} días; si das de baja
+              tu negocio, a los {DOCUMENT_RETENTION_CLOSED_DAYS} días. Podés pedir que lo borremos cuando quieras desde
+              Ayuda.
             </li>
           </ul>
           <p>
@@ -68,7 +80,7 @@ export default async function BusinessVerificationPage() {
       </div>
 
       {privacyAccepted ? (
-        <DocumentUploader documents={documents} />
+        <DocumentUploader documents={documents} hiddenTypes={verified ? [...IDENTITY_IMAGE_TYPES] : []} />
       ) : (
         <>
           <PrivacyConsentCard version={PRIVACY_POLICY_VERSION} />

@@ -86,7 +86,11 @@ export function BusinessRow({ business }: { business: AdminBusinessDTO }) {
         {!business.isDemo && (
           <p className={`text-xs ${business.documentsComplete ? "text-neutral-400" : "text-amber-600"}`}>
             <Link href={`/admin/negocios/${business.id}/documentos`} className="underline hover:text-neutral-900">
-              {business.documentsComplete ? "Documentos completos" : `Faltan documentos (${business.documentsCount} subidos)`}
+              {business.identityVerified
+                ? "Identidad verificada"
+                : business.documentsComplete
+                  ? "Documentos completos"
+                  : `Faltan documentos (${business.documentsCount} subidos)`}
             </Link>
           </p>
         )}
@@ -131,7 +135,17 @@ export function BusinessRow({ business }: { business: AdminBusinessDTO }) {
       </td>
       <td className="py-3 pr-4">
         <div className="flex justify-end gap-2">
-          {NEXT_ACTIONS[business.status].map((action) => (
+          {NEXT_ACTIONS[business.status].map((action) => {
+            // Un negocio real que todavía no fue aprobado se aprueba desde la
+            // revisión de documentos (ahí se verifica la identidad del titular).
+            if (action.status === "APPROVED" && !business.isDemo && (business.status === "PENDING" || business.status === "REJECTED")) {
+              return (
+                <Button key={action.status} size="sm" asChild>
+                  <Link href={`/admin/negocios/${business.id}/documentos`}>Revisar y aprobar</Link>
+                </Button>
+              );
+            }
+            return (
             <Button
               key={action.status}
               size="sm"
@@ -141,7 +155,8 @@ export function BusinessRow({ business }: { business: AdminBusinessDTO }) {
             >
               {loading === action.status ? <Loader2 className="size-3.5 animate-spin" /> : action.label}
             </Button>
-          ))}
+            );
+          })}
         </div>
       </td>
     </tr>

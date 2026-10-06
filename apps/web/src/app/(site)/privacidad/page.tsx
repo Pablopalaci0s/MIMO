@@ -4,6 +4,7 @@ import {
   DOCUMENT_PURPOSE_STATEMENT,
   DOCUMENT_RETENTION_CLOSED_DAYS,
   DOCUMENT_RETENTION_REJECTED_DAYS,
+  DOCUMENT_RETENTION_VERIFIED_DAYS,
   PRIVACY_POLICY_UPDATED,
   PRIVACY_POLICY_VERSION,
 } from "@/lib/legal/privacy";
@@ -194,8 +195,18 @@ export default function PrivacidadPage() {
         </p>
         <ul>
           <li>
-            <strong>Negocio activo o suspendido:</strong> mientras esté en MIMO, para poder
-            responder a reclamos o investigaciones.
+            <strong>Negocio aprobado:</strong> una vez que verificamos tu identidad y aprobamos el
+            negocio, eliminamos las imágenes del DUI (frente y reverso) y la foto del titular a los{" "}
+            {DOCUMENT_RETENTION_VERIFIED_DAYS} días. Después solo conservamos un registro de que la
+            identidad fue verificada: quién la verificó, cuándo, qué documentos se revisaron, los
+            últimos 4 dígitos del DUI y un código que no permite reconstruir el número (lo usamos
+            para detectar que una misma persona se registre varias veces). <strong>No guardamos el
+            número completo del DUI.</strong> El NIT/NRC y los permisos, si los subiste, se
+            conservan mientras el negocio esté activo.
+          </li>
+          <li>
+            <strong>Negocio suspendido:</strong> el registro de verificación se mantiene; las
+            imágenes ya se habrán borrado según el plazo anterior.
           </li>
           <li>
             <strong>Solicitud rechazada:</strong> lo eliminamos {DOCUMENT_RETENTION_REJECTED_DAYS}{" "}

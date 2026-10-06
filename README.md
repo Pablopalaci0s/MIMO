@@ -1311,17 +1311,12 @@ y permisos (estos dos aceptan también PDF). Se suben *después* de registrarse
     quita. Un admin sin permiso ve los listados pero no los documentos.
   - *Sin marketing ni compartir*: ningún código lee estos datos fuera de lo
     anterior; la política lo dice sin ambigüedad.
-  - *Conservación*: negocio activo o suspendido → se conservan; **rechazado → se
-    borran a los 30 días** (`Business.documentsPurgeAfter`, se fija al rechazar y
-    se cancela con cualquier otro estado); **dado de baja (`deletedAt`) → a los 90
-    días**; a pedido del titular → botón "Borrar todos los documentos" en la
-    pantalla de revisión (irreversible, auditado). Los plazos viven en
-    `DOCUMENT_RETENTION_*_DAYS` y los usan la página y el código. La purga la
-    hace `/api/cron/purgar-documentos` (`CRON_SECRET`), diaria. **El schedule del
-    workflow `cron-purgar-documentos.yml` está comentado, como los otros crons,
-    hasta que haya deploy: hasta entonces hay que correrlo a mano
-    (`workflow_dispatch`) o los plazos no se cumplen solos.** Los respaldos de la
-    base pueden conservar el archivo unos días más (lo dice la política).
+  - *Conservación*: ver la sección siguiente ("minimización del DUI"): las
+    imágenes se borran 30 días después de aprobar; rechazado → 30 días
+    (`Business.documentsPurgeAfter`, se fija al rechazar y se cancela con
+    cualquier otro estado); dado de baja (`deletedAt`) → 90 días; a pedido del
+    titular → botón "Borrar todos los documentos" (irreversible, auditado).
+    Los plazos viven en `lib/legal/privacy.ts` y los usan la página y el código.
   - Verificado en navegador (build de producción): consentimiento obligatorio
     (400/409/bloqueo de subida); admin sin permiso → 403 en ver/rechazar/borrar/
     otorgarse el permiso, otorgado por uno autorizado → ve el documento, quitado
@@ -1329,6 +1324,80 @@ y permisos (estos dos aceptan también PDF). Se suben *después* de registrarse
     purga no toca nada antes del plazo, y vencido borra solo los documentos del
     negocio rechazado (el de un suspendido real quedó intacto); cron sin
     credencial → 401.
+### Minimización del DUI: verificar, registrar y borrar las imágenes
+
+Tras una auditoría del manejo del DUI se pasó de "conservar las imágenes mientras
+el negocio esté activo" a **verificar, dejar un registro y borrar las imágenes
+30 días después de aprobar**. Principio: guardar lo mínimo necesario para la
+finalidad.
+
+- **Qué se conserva a largo plazo** (`IdentityVerification`): quién verificó
+  (`verifiedById`), cuándo, qué documentos revisó (DUI frente, reverso y foto),
+  los cuatro criterios que confirmó (legible, vigente, identidad coincide, foto
+  coincide — los cuatro tienen que ser `true`, no existe un "verificado" a
+  medias), **los últimos 4 dígitos del DUI** y una **huella HMAC-SHA256**.
+- **El número completo no se guarda en ninguna parte.** Lo tipea el admin
+  mirando la imagen, entra por `verifyIdentity` solo para sacar los 4 dígitos y la
+  huella, y se descarta: nunca llega a Prisma (un error de base de datos no lo
+  puede volcar), a la auditoría, a una notificación, a un log ni a una respuesta.
+  Se valida el dígito verificador (`packages/validation/src/dui.ts`) para
+  atrapar errores de tipeo. Un test lee el schema y falla si aparece cualquier
+  columna con pinta de número de DUI; la prueba en navegador barrió las 165
+  columnas de texto/json de la base buscando el número y no apareció.
+- **HMAC y no SHA-256 simple**: hay ~10^8 DUI posibles, un SHA-256 sin clave se
+  invierte por fuerza bruta en minutos. La HMAC usa `DUI_FINGERPRINT_SECRET`
+  (≥32 caracteres, sin valor por defecto: sin él no se puede verificar a nadie).
+  **En producción hace falta un secreto propio y guardado a salvo: si se pierde o
+  cambia, las huellas viejas dejan de coincidir** (`fingerprintVersion` prepara
+  una rotación). Sirve para detectar que el mismo DUI aparece en otro negocio:
+  el admin ve el aviso y tiene que confirmar que es el mismo titular (no es un
+  bloqueo, una persona puede tener dos negocios) — queda en la auditoría.
+- **Flujo**: un negocio real ya no se aprueba con el botón "Aprobar": desde
+  `/admin/negocios` va a "Revisar y aprobar" (`/admin/negocios/[id]/documentos`),
+  donde se completa la verificación y *esa* acción aprueba
+  (`updateAdminBusiness` rechaza con `IDENTITY_NOT_VERIFIED` cualquier otro
+  camino; reactivar un suspendido sigue sin pedir nada). Si la aprobación
+  falla (ej. falta el acuerdo), el registro de verificación se deshace.
+- **Borrado**: al verificar se programa `imagesPurgeAfter = ahora + 30 días`; el
+  cron diario (`/api/cron/purgar-documentos`, `purgeVerifiedIdentityImages`)
+  hace un `deleteMany` real de las filas de `DUI_FRONT`, `DUI_BACK` y
+  `OWNER_PHOTO` — los bytes viven en `BusinessDocument.data`, no hay un
+  "marcado como borrado" — y anota `imagesDeletedAt`. NIT y permisos no se
+  tocan. Una verificación nueva reemplaza el calendario de las anteriores.
+  Después de la purga no existe ninguna URL funcional (admin y titular reciben
+  404) y el negocio no vuelve a "faltarle" el DUI. Los negocios rechazados (30
+  días) y dados de baja (90) siguen con sus plazos.
+- **Auditoría** (con "Sistema (automático)" cuando no hay admin: `adminId` de
+  `AdminActionLog` ahora es opcional): `business.identity.verify`,
+  `business.identity.purge_scheduled` (cuándo se programó y por cuántos días),
+  `business.identity.images_deleted` (cuándo se ejecutó y cuántas), y lo
+  equivalente para rechazados (`business.documents.purge_scheduled/purged`).
+- **El plazo de 30 días es PROVISIONAL** (`DOCUMENT_RETENTION_VERIFIED_DAYS`,
+  con la advertencia en el código): es una decisión operativa, no un requisito
+  legal confirmado. **Debe validarlo un abogado antes del lanzamiento
+  definitivo** (¿hay obligación de conservar copias? ¿alcanza el registro de
+  verificación como debida diligencia?). Cambiarlo es cambiar esa constante: la
+  política y la pantalla de verificación leen el valor desde ahí. Un negocio ya
+  verificado conserva el plazo con el que se programó.
+- **Límites que conviene saber**: (1) el borrado quita las filas de la tabla,
+  pero Postgres no sobrescribe los bytes al instante (hasta el próximo
+  VACUUM/autovacuum) y los respaldos de la base pueden conservar el archivo
+  hasta que roten — está dicho en la política; si hiciera falta borrado
+  criptográfico, habría que cifrar los archivos con una clave por negocio. (2) El
+  DUI que alguien escriba por su cuenta en el **chat de soporte** queda en el
+  texto de esa conversación: está fuera de este flujo (se podría agregar un aviso
+  en el chat). (3) El borrado depende de que el cron corra: con el schedule
+  comentado hasta el deploy, hay que lanzar el workflow a mano. (4) Un negocio
+  real aprobado *antes* de este cambio (sin registro de verificación) conserva
+  sus imágenes hasta que un admin registre su verificación (para eso tienen que
+  estar las tres imágenes) o las borre con "Borrar todos los documentos".
+- Tests nuevos (`identity-verification-service`, `identity-retention`,
+  `document-access`, `dui`): creación del registro, HMAC (vs SHA-256 simple, sin
+  secreto, formatos del número), el DUI completo nunca se persiste, borrado de
+  las tres imágenes tras el plazo y revisables antes, plazos de rechazados/baja,
+  admin sin permiso nunca llega a los documentos (las cuatro rutas), y que tras la
+  purga no queda URL funcional. Se comprobó con mutaciones (romper la purga, el
+  alcance del borrado, el permiso y el plazo) que los tests las detectan.
 - **Lo que NO hace** (a propósito, para no fingir): no valida que el DUI sea
   auténtico ni que la cara coincida (lo hace una persona del equipo mirando las
   imágenes); no cifra los archivos aparte

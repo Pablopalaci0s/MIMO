@@ -5,12 +5,13 @@ const update = vi.fn();
 const count = vi.fn();
 const assertCanBeApproved = vi.fn();
 const assertDocumentsComplete = vi.fn();
+const assertIdentityVerified = vi.fn();
 
 vi.mock("@mimo/database", () => ({ Prisma: {}, prisma: { business: { findFirst, update, count } } }));
 vi.mock("./admin-audit-service", () => ({ logAdminAction: vi.fn() }));
 vi.mock("./notification-service", () => ({ createNotification: vi.fn() }));
 vi.mock("./business-agreement-service", () => ({ assertCanBeApproved }));
-vi.mock("./business-document-service", () => ({ assertDocumentsComplete }));
+vi.mock("./business-document-service", () => ({ assertDocumentsComplete, assertIdentityVerified }));
 
 const { updateAdminBusiness } = await import("./admin-business-service");
 
@@ -27,6 +28,7 @@ function businessRow(status: string) {
     _count: { products: 0 },
     agreements: [],
     documents: [],
+    identityVerifications: [],
     ratingAvg: 0,
     ratingCount: 0,
     commissionRate: 10,
@@ -47,6 +49,8 @@ describe("updateAdminBusiness — requisitos de aprobación", () => {
 
     expect(assertCanBeApproved).toHaveBeenCalledTimes(1);
     expect(assertDocumentsComplete).toHaveBeenCalledTimes(1);
+    // y que un administrador haya verificado la identidad del titular
+    expect(assertIdentityVerified).toHaveBeenCalledTimes(1);
   });
 
   it("si falta algo, la aprobación se corta antes de tocar el negocio", async () => {
@@ -63,6 +67,7 @@ describe("updateAdminBusiness — requisitos de aprobación", () => {
 
     expect(assertCanBeApproved).not.toHaveBeenCalled();
     expect(assertDocumentsComplete).not.toHaveBeenCalled();
+    expect(assertIdentityVerified).not.toHaveBeenCalled();
     expect(update).toHaveBeenCalledTimes(1);
   });
 

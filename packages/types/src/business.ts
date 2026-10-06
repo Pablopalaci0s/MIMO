@@ -163,3 +163,20 @@ export interface BusinessDocumentDTO {
   /** Si un admin lo rechazó, el motivo que ve el titular; null si está vigente. */
   rejectionReason: string | null;
 }
+
+/** Registro de que un administrador verificó la identidad del titular. Nunca lleva el DUI completo. */
+export interface IdentityVerificationDTO {
+  id: string;
+  verifiedAt: string;
+  verifiedByName: string | null;
+  reviewedDocuments: BusinessDocumentType[];
+  documentLegible: boolean;
+  documentValid: boolean;
+  identityMatches: boolean;
+  photoMatches: boolean;
+  duiLast4: string;
+  /** Cuándo se borran las imágenes de identidad (null si ya no hay borrado programado). */
+  imagesPurgeAfter: string | null;
+  /** Cuándo se borraron efectivamente (null si todavía no). */
+  imagesDeletedAt: string | null;
+}

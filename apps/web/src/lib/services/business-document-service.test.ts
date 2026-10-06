@@ -6,6 +6,7 @@ const findUnique = vi.fn();
 const update = vi.fn();
 const deleteMany = vi.fn();
 const findBusinesses = vi.fn();
+const findVerification = vi.fn();
 const findOwner = vi.fn();
 const logAdminAction = vi.fn();
 const createNotification = vi.fn();
@@ -16,6 +17,7 @@ vi.mock("@mimo/database", () => ({
     businessDocument: { upsert, findMany, findUnique, update, deleteMany },
     businessUser: { findFirst: findOwner },
     business: { findMany: findBusinesses },
+    identityVerification: { findFirst: findVerification },
   },
 }));
 vi.mock("./admin-audit-service", () => ({ logAdminAction }));
@@ -41,6 +43,7 @@ function file(bytes: number[], name: string, type: string) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  findVerification.mockResolvedValue(null);
   upsert.mockImplementation(async ({ create }) => ({ ...create, updatedAt: new Date("2026-10-05T12:00:00Z") }));
 });
 
@@ -157,6 +160,12 @@ describe("rechazar un documento", () => {
     expect(createNotification).not.toHaveBeenCalled();
   });
 
+  it("un negocio ya verificado no vuelve a 'faltar' el DUI cuando sus imágenes se borran", async () => {
+    findVerification.mockResolvedValue({ id: "v1" });
+    expect(await getMissingDocuments("b1")).toEqual([]);
+    expect(findMany).not.toHaveBeenCalled();
+  });
+
   it("un documento rechazado cuenta como no subido (no se consulta ninguno rechazado)", async () => {
     findMany.mockResolvedValue([{ type: "DUI_BACK" }, { type: "OWNER_PHOTO" }]);
     expect(await getMissingDocuments("b1")).toEqual(["DUI_FRONT"]);
@@ -195,13 +204,16 @@ describe("borrado y retención", () => {
     findBusinesses.mockResolvedValue([{ id: "b1" }, { id: "b2" }]);
     deleteMany.mockResolvedValue({ count: 5 });
 
-    expect(await purgeExpiredBusinessDocuments(now)).toEqual({ businesses: 2, documents: 5 });
+    expect(await purgeExpiredBusinessDocuments(now)).toEqual({ businesses: 2, documents: 10 });
 
     const where = findBusinesses.mock.calls[0]![0].where;
     expect(where.documents).toEqual({ some: {} });
     expect(where.OR[0]).toEqual({ status: "REJECTED", documentsPurgeAfter: { lte: now } });
     expect(where.OR[1].deletedAt.lte.toISOString()).toBe("2026-07-07T12:00:00.000Z"); // 90 días antes
-    expect(deleteMany).toHaveBeenCalledWith({ where: { businessId: { in: ["b1", "b2"] } } });
+    // Un borrado por negocio (cada uno queda en la auditoría como acción del sistema).
+    expect(deleteMany).toHaveBeenCalledWith({ where: { businessId: "b1" } });
+    expect(deleteMany).toHaveBeenCalledWith({ where: { businessId: "b2" } });
+    expect(logAdminAction).toHaveBeenCalledTimes(2);
   });
 
   it("si no hay nada vencido no borra nada (activos y suspendidos conservan sus documentos)", async () => {
