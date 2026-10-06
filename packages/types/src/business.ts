@@ -160,4 +160,6 @@ export interface BusinessDocumentDTO {
   mimeType: string;
   sizeBytes: number;
   uploadedAt: string;
+  /** Si un admin lo rechazó, el motivo que ve el titular; null si está vigente. */
+  rejectionReason: string | null;
 }

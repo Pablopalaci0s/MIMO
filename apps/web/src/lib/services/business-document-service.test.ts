@@ -3,12 +3,24 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const upsert = vi.fn();
 const findMany = vi.fn();
 const findUnique = vi.fn();
+const update = vi.fn();
+const findOwner = vi.fn();
 const logAdminAction = vi.fn();
+const createNotification = vi.fn();
 
-vi.mock("@mimo/database", () => ({ prisma: { businessDocument: { upsert, findMany, findUnique } } }));
+vi.mock("@mimo/database", () => ({
+  prisma: { businessDocument: { upsert, findMany, findUnique, update }, businessUser: { findFirst: findOwner } },
+}));
 vi.mock("./admin-audit-service", () => ({ logAdminAction }));
+vi.mock("./notification-service", () => ({ createNotification }));
 
-const { assertDocumentsComplete, getBusinessDocumentFileForAdmin, saveBusinessDocument } = await import(
+const {
+  assertDocumentsComplete,
+  getBusinessDocumentFileForAdmin,
+  getMissingDocuments,
+  rejectBusinessDocument,
+  saveBusinessDocument,
+} = await import(
   "./business-document-service"
 );
 
@@ -99,5 +111,53 @@ describe("getBusinessDocumentFileForAdmin", () => {
     findUnique.mockResolvedValue(null);
     expect(await getBusinessDocumentFileForAdmin("b1", "PERMIT", "admin1")).toBeNull();
     expect(logAdminAction).not.toHaveBeenCalled();
+  });
+});
+
+describe("rechazar un documento", () => {
+  beforeEach(() => {
+    findUnique.mockResolvedValue({ id: "d1" });
+    findOwner.mockResolvedValue({ userId: "owner1" });
+    update.mockImplementation(async ({ data }) => ({
+      type: "DUI_FRONT",
+      mimeType: "image/png",
+      sizeBytes: 70,
+      updatedAt: new Date("2026-10-05T12:00:00Z"),
+      rejectionReason: data.rejectionReason,
+    }));
+  });
+
+  it("guarda el motivo, avisa al titular con el enlace para subir otro y deja constancia", async () => {
+    const dto = await rejectBusinessDocument("b1", "DUI_FRONT", { reason: "BLURRY", note: "No se lee el número" }, "admin1");
+
+    expect(dto.rejectionReason).toBe("La foto está borrosa o no se lee bien. No se lee el número");
+    expect(update.mock.calls[0]![0].data).toMatchObject({ rejectedById: "admin1" });
+    expect(createNotification).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: "owner1", linkHref: "/negocio/verificacion", body: expect.stringContaining("borrosa") }),
+    );
+    expect(logAdminAction).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "business.document.reject", targetId: "b1", metadata: { type: "DUI_FRONT", reason: "BLURRY" } }),
+    );
+  });
+
+  it("no se puede rechazar un documento que no existe", async () => {
+    findUnique.mockResolvedValue(null);
+    await expect(rejectBusinessDocument("b1", "PERMIT", { reason: "BLURRY" }, "admin1")).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
+    expect(update).not.toHaveBeenCalled();
+    expect(createNotification).not.toHaveBeenCalled();
+  });
+
+  it("un documento rechazado cuenta como no subido (no se consulta ninguno rechazado)", async () => {
+    findMany.mockResolvedValue([{ type: "DUI_BACK" }, { type: "OWNER_PHOTO" }]);
+    expect(await getMissingDocuments("b1")).toEqual(["DUI_FRONT"]);
+    expect(findMany.mock.calls[0]![0].where).toEqual({ businessId: "b1", rejectedAt: null });
+  });
+
+  it("volver a subir limpia el rechazo", async () => {
+    upsert.mockImplementation(async ({ update: u }) => ({ ...u, type: "DUI_FRONT", updatedAt: new Date() }));
+    await saveBusinessDocument("b1", "u1", "DUI_FRONT", file(JPEG, "nuevo.jpg", "image/jpeg"));
+    expect(upsert.mock.calls[0]![0].update).toMatchObject({ rejectedAt: null, rejectionReason: null, rejectedById: null });
   });
 });

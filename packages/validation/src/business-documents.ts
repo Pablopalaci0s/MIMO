@@ -109,3 +109,35 @@ export function missingRequiredDocuments(uploaded: Iterable<string>): BusinessDo
   const have = new Set(uploaded);
   return REQUIRED_BUSINESS_DOCUMENTS.filter((type) => !have.has(type));
 }
+
+/** Motivos predefinidos para rechazar un documento (el admin elige uno y puede
+ * agregar una nota). Texto que ve el titular, así que va en lenguaje claro. */
+export const DOCUMENT_REJECTION_REASONS = {
+  BLURRY: "La foto está borrosa o no se lee bien",
+  INCOMPLETE: "El documento sale cortado o incompleto",
+  WRONG_DOCUMENT: "No corresponde al documento que se pide",
+  UNREADABLE_DATA: "Los datos o la cara no se ven con claridad (reflejos, poca luz)",
+  MISMATCH: "Los datos no coinciden con los del titular registrado",
+  OTHER: "Otro motivo",
+} as const;
+export type DocumentRejectionReason = keyof typeof DOCUMENT_REJECTION_REASONS;
+
+export const rejectBusinessDocumentSchema = z
+  .object({
+    reason: z.enum(Object.keys(DOCUMENT_REJECTION_REASONS) as [DocumentRejectionReason, ...DocumentRejectionReason[]], {
+      errorMap: () => ({ message: "Elegí un motivo" }),
+    }),
+    note: z.string().trim().max(300, "La nota puede tener hasta 300 caracteres").optional(),
+  })
+  // "Otro motivo" sin explicación no le sirve al titular para corregir nada.
+  .refine((value) => value.reason !== "OTHER" || Boolean(value.note), {
+    message: "Explicá el motivo en la nota",
+    path: ["note"],
+  });
+export type RejectBusinessDocumentInput = z.infer<typeof rejectBusinessDocumentSchema>;
+
+/** El texto final que se guarda y se le muestra al titular. */
+export function formatRejectionReason(input: RejectBusinessDocumentInput): string {
+  const base = DOCUMENT_REJECTION_REASONS[input.reason];
+  return input.note ? `${base}. ${input.note}` : base;
+}

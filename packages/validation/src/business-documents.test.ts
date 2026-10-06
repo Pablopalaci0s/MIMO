@@ -3,7 +3,9 @@ import {
   REQUIRED_BUSINESS_DOCUMENTS,
   businessDocumentTypeSchema,
   detectFileKind,
+  formatRejectionReason,
   missingRequiredDocuments,
+  rejectBusinessDocumentSchema,
 } from "./business-documents";
 
 const bytes = (...values: number[]) => new Uint8Array(values);
@@ -45,5 +47,38 @@ describe("businessDocumentTypeSchema", () => {
   it("solo acepta tipos conocidos", () => {
     expect(businessDocumentTypeSchema.parse("PERMIT")).toBe("PERMIT");
     expect(() => businessDocumentTypeSchema.parse("PASSPORT")).toThrow();
+  });
+});
+
+describe("rejectBusinessDocumentSchema", () => {
+  it("acepta un motivo predefinido, con o sin nota", () => {
+    expect(rejectBusinessDocumentSchema.parse({ reason: "BLURRY" })).toEqual({ reason: "BLURRY" });
+    expect(rejectBusinessDocumentSchema.parse({ reason: "INCOMPLETE", note: "  Se corta la esquina  " }).note).toBe(
+      "Se corta la esquina",
+    );
+  });
+
+  it("rechaza un motivo inventado", () => {
+    expect(() => rejectBusinessDocumentSchema.parse({ reason: "NO_ME_GUSTA" })).toThrow();
+    expect(() => rejectBusinessDocumentSchema.parse({})).toThrow();
+  });
+
+  it("'Otro motivo' exige explicar en la nota", () => {
+    expect(() => rejectBusinessDocumentSchema.parse({ reason: "OTHER" })).toThrow();
+    expect(() => rejectBusinessDocumentSchema.parse({ reason: "OTHER", note: "   " })).toThrow();
+    expect(() => rejectBusinessDocumentSchema.parse({ reason: "OTHER", note: "Es de otra persona" })).not.toThrow();
+  });
+
+  it("limita la nota a 300 caracteres", () => {
+    expect(() => rejectBusinessDocumentSchema.parse({ reason: "BLURRY", note: "a".repeat(301) })).toThrow();
+  });
+});
+
+describe("formatRejectionReason", () => {
+  it("arma el texto que lee el titular", () => {
+    expect(formatRejectionReason({ reason: "BLURRY" })).toBe("La foto está borrosa o no se lee bien");
+    expect(formatRejectionReason({ reason: "WRONG_DOCUMENT", note: "Subiste el reverso" })).toBe(
+      "No corresponde al documento que se pide. Subiste el reverso",
+    );
   });
 });

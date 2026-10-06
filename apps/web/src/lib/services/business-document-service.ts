@@ -5,11 +5,14 @@ import {
   FILE_KIND_MIME,
   MAX_BUSINESS_DOCUMENT_BYTES,
   detectFileKind,
+  formatRejectionReason,
   missingRequiredDocuments,
   type BusinessDocumentTypeValue,
+  type RejectBusinessDocumentInput,
 } from "@mimo/validation";
 import { AppError } from "@/lib/errors";
 import { logAdminAction } from "./admin-audit-service";
+import { createNotification } from "./notification-service";
 
 /**
  * Documentos de verificación del titular (DUI, foto, NIT, permisos) — datos
@@ -19,19 +22,27 @@ import { logAdminAction } from "./admin-audit-service";
  * autenticadas que llaman a `getBusinessDocumentFile`.
  */
 
-const META_SELECT = { type: true, mimeType: true, sizeBytes: true, updatedAt: true } as const;
+const META_SELECT = {
+  type: true,
+  mimeType: true,
+  sizeBytes: true,
+  updatedAt: true,
+  rejectionReason: true,
+} as const;
 
 function toDTO(row: {
   type: BusinessDocumentTypeValue;
   mimeType: string;
   sizeBytes: number;
   updatedAt: Date;
+  rejectionReason: string | null;
 }): BusinessDocumentDTO {
   return {
     type: row.type,
     mimeType: row.mimeType,
     sizeBytes: row.sizeBytes,
     uploadedAt: row.updatedAt.toISOString(),
+    rejectionReason: row.rejectionReason,
   };
 }
 
@@ -40,8 +51,13 @@ export async function listBusinessDocuments(businessId: string): Promise<Busines
   return rows.map(toDTO);
 }
 
+/** Faltan los obligatorios que no se subieron O que un admin rechazó (un
+ * documento rechazado cuenta como no subido hasta que se reemplace). */
 export async function getMissingDocuments(businessId: string): Promise<BusinessDocumentTypeValue[]> {
-  const rows = await prisma.businessDocument.findMany({ where: { businessId }, select: { type: true } });
+  const rows = await prisma.businessDocument.findMany({
+    where: { businessId, rejectedAt: null },
+    select: { type: true },
+  });
   return missingRequiredDocuments(rows.map((row) => row.type));
 }
 
@@ -73,7 +89,16 @@ export async function saveBusinessDocument(
   const row = await prisma.businessDocument.upsert({
     where: { businessId_type: { businessId, type } },
     create: { businessId, type, mimeType: FILE_KIND_MIME[kind], sizeBytes: buffer.length, data: buffer, uploadedById: userId },
-    update: { mimeType: FILE_KIND_MIME[kind], sizeBytes: buffer.length, data: buffer, uploadedById: userId },
+    // Subir uno nuevo limpia el rechazo: vuelve a quedar pendiente de revisión.
+    update: {
+      mimeType: FILE_KIND_MIME[kind],
+      sizeBytes: buffer.length,
+      data: buffer,
+      uploadedById: userId,
+      rejectedAt: null,
+      rejectionReason: null,
+      rejectedById: null,
+    },
     select: META_SELECT,
   });
   return toDTO(row);
@@ -109,6 +134,54 @@ export async function getBusinessDocumentFileForAdmin(
     });
   }
   return file;
+}
+
+/**
+ * Un admin rechaza un documento puntual (ej. DUI borroso): queda como "no
+ * subido", el titular recibe una notificación con el motivo y el enlace para
+ * subir uno nuevo, y la acción queda en la auditoría. No cambia el estado del
+ * negocio — si ya estaba aprobado sigue publicado hasta que el admin decida
+ * otra cosa.
+ */
+export async function rejectBusinessDocument(
+  businessId: string,
+  type: BusinessDocumentTypeValue,
+  input: RejectBusinessDocumentInput,
+  adminId: string,
+): Promise<BusinessDocumentDTO> {
+  const existing = await prisma.businessDocument.findUnique({
+    where: { businessId_type: { businessId, type } },
+    select: { id: true },
+  });
+  if (!existing) throw new AppError("NOT_FOUND", "El negocio no subió ese documento.", 404);
+
+  const reason = formatRejectionReason(input);
+  const row = await prisma.businessDocument.update({
+    where: { id: existing.id },
+    data: { rejectedAt: new Date(), rejectionReason: reason, rejectedById: adminId },
+    select: META_SELECT,
+  });
+
+  const owner = await prisma.businessUser.findFirst({ where: { businessId, role: "OWNER" }, select: { userId: true } });
+  if (owner) {
+    await createNotification({
+      userId: owner.userId,
+      type: "SYSTEM",
+      title: "Tenés que volver a subir un documento",
+      body: `${BUSINESS_DOCUMENT_SPECS[type].label}: ${reason}.`,
+      linkHref: "/negocio/verificacion",
+    });
+  }
+
+  await logAdminAction({
+    adminId,
+    action: "business.document.reject",
+    targetType: "BUSINESS",
+    targetId: businessId,
+    metadata: { type, reason: input.reason },
+  });
+
+  return toDTO(row);
 }
 
 /** El admin no puede aprobar un negocio real sin los documentos obligatorios.

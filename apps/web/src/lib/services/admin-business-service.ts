@@ -19,7 +19,7 @@ const ADMIN_BUSINESS_INCLUDE = {
   _count: { select: { products: { where: { deletedAt: null } } } },
   agreements: { where: { version: BUSINESS_AGREEMENT_VERSION }, select: { id: true }, take: 1 },
   // Solo el tipo: el archivo (`data`) nunca se trae en un listado.
-  documents: { select: { type: true } },
+  documents: { select: { type: true, rejectedAt: true } },
 } satisfies Prisma.BusinessInclude;
 
 type AdminBusinessRow = Prisma.BusinessGetPayload<{ include: typeof ADMIN_BUSINESS_INCLUDE }>;
@@ -39,8 +39,11 @@ function toAdminBusinessDTO(business: AdminBusinessRow): AdminBusinessDTO {
     productCount: business._count.products,
     commissionRate: Number(business.commissionRate),
     agreementAccepted: business.agreements.length > 0,
-    documentsCount: business.documents.length,
-    documentsComplete: missingRequiredDocuments(business.documents.map((document) => document.type)).length === 0,
+    // Un documento rechazado cuenta como no subido.
+    documentsCount: business.documents.filter((document) => !document.rejectedAt).length,
+    documentsComplete:
+      missingRequiredDocuments(business.documents.filter((document) => !document.rejectedAt).map((document) => document.type))
+        .length === 0,
     createdAt: business.createdAt.toISOString(),
   };
 }
@@ -109,11 +112,14 @@ export async function updateAdminBusiness(
   const isFirstApproval =
     input.status === "APPROVED" && existing.status !== "APPROVED" && existing.status !== "SUSPENDED";
 
-  // Requisito antes de abrirle MIMO a un negocio real: haber aceptado el
-  // Acuerdo MIMO ↔ negocio vigente (ver `business-agreement-service.ts`) y
-  // haber subido los documentos de verificación del titular
-  // (`business-document-service.ts`).
-  if (input.status === "APPROVED" && existing.status !== "APPROVED") {
+  // Requisito antes de abrirle MIMO a un negocio real por PRIMERA vez: haber
+  // aceptado el Acuerdo MIMO ↔ negocio vigente (`business-agreement-service.ts`)
+  // y subido los documentos de verificación del titular
+  // (`business-document-service.ts`). NO aplica al reactivar un negocio
+  // suspendido: ese ya fue aprobado antes (quizá antes de que existieran
+  // estos requisitos) y reactivarlo es una decisión del admin — exigírselo
+  // acá dejaba a negocios legítimos suspendidos sin forma de volver.
+  if (isFirstApproval) {
     await assertCanBeApproved(existing);
     await assertDocumentsComplete(existing);
   }

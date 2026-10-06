@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { z } from "zod";
 import { notFound } from "next/navigation";
+import { RejectDocumentForm } from "@/components/admin/reject-document-form";
 import { getAdminBusinessForReview } from "@/lib/services/admin-business-service";
 import { listBusinessDocuments } from "@/lib/services/business-document-service";
 import { BUSINESS_DOCUMENT_SPECS, BUSINESS_DOCUMENT_TYPES } from "@mimo/validation";
@@ -72,6 +73,12 @@ export default async function AdminBusinessDocumentsPage({ params }: PageProps<"
                   Subido el {new Date(document.uploadedAt).toLocaleDateString("es-SV")}
                 </p>
               )}
+              {document?.rejectionReason && (
+                <p className="rounded-lg bg-red-50 p-2 text-xs text-red-700 dark:bg-red-500/10 dark:text-red-400">
+                  Rechazado: {document.rejectionReason}. Esperando que el titular suba uno nuevo.
+                </p>
+              )}
+              {document && !document.rejectionReason && <RejectDocumentForm businessId={business.id} type={type} />}
             </li>
           );
         })}

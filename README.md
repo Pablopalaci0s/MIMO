@@ -1258,7 +1258,8 @@ y permisos (estos dos aceptan también PDF). Se suben *después* de registrarse
   detección. Máx. 5 MB, 30 subidas por hora por usuario.
 - **Requisito de aprobación**: `updateAdminBusiness` rechaza aprobar un negocio
   real sin los 3 obligatorios (`DOCUMENTS_PENDING`, con el nombre exacto del que
-  falta), igual que con el acuerdo. Los demo quedan fuera. `/admin/negocios`
+  falta), igual que con el acuerdo. Los demo quedan fuera. Solo aplica a la
+  primera aprobación (ver más abajo). `/admin/negocios`
   muestra el estado de documentos y enlaza a `/admin/negocios/[id]/documentos`.
 - **Contrato**: la cláusula 2 del Acuerdo ahora dice qué se sube y cómo se
   protege; subió la versión a `2026-10-05.2` (los negocios que aceptaron la
@@ -1268,10 +1269,23 @@ y permisos (estos dos aceptan también PDF). Se suben *después* de registrarse
   anónimo → 401; archivo HTML disfrazado de JPG → rechazado; PDF como DUI →
   rechazado; PNG declarado como GIF → guardado como PNG; admin abre documento →
   auditoría; aprobar con un documento faltante → bloqueado; completo → aprobado.
+- **Rechazar un documento puntual** (borroso, incompleto, no corresponde, datos
+  que no coinciden, otro con nota obligatoria): botón "Rechazar" en
+  `/admin/negocios/[id]/documentos`. El documento pasa a contar como **no
+  subido** (no se puede aprobar el negocio hasta que se reemplace), el titular
+  recibe una notificación con el motivo y el enlace a `/negocio/verificacion`
+  (donde el documento sale en rojo con el motivo y el botón "Subir nuevo"), y
+  queda en la auditoría (`business.document.reject`). Volver a subir limpia el
+  rechazo. Rechazar no cambia el estado del negocio (si ya estaba aprobado sigue
+  publicado hasta que el admin decida otra cosa).
+- **Reactivar un negocio suspendido NO exige acuerdo ni documentos.** El
+  requisito de arriba vale solo para la *primera* aprobación (pendiente o
+  rechazado → aprobado). Al principio también se aplicaba al reactivar y dejaba
+  sin salida a negocios que ya habían sido aprobados antes de que existieran
+  estos requisitos; hay un test que lo fija (`admin-business-service.test.ts`).
 - **Lo que NO hace** (a propósito, para no fingir): no valida que el DUI sea
   auténtico ni que la cara coincida (lo hace una persona del equipo mirando las
-  imágenes); no hay "rechazar un documento y pedir otro" (hoy el admin rechaza o
-  deja pendiente el negocio y avisa por soporte); no cifra los archivos aparte
+  imágenes); no cifra los archivos aparte
   (dependen del cifrado en reposo de la base — conviene activarlo en el
   proveedor de Postgres antes de producción); no hay borrado automático al
   rechazar un negocio (se elimina a pedido).

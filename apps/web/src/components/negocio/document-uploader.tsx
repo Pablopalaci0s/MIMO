@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Circle, FileUp, Loader2 } from "lucide-react";
+import { CheckCircle2, Circle, FileUp, Loader2, XCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,7 @@ function DocumentSlot({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const spec = BUSINESS_DOCUMENT_SPECS[type];
+  const rejected = Boolean(uploaded?.rejectionReason);
 
   async function upload(file: File) {
     setLoading(true);
@@ -48,7 +49,9 @@ function DocumentSlot({
 
   return (
     <li className="flex flex-col gap-2 rounded-2xl border border-neutral-200 p-4 sm:flex-row sm:items-center">
-      {uploaded ? (
+      {rejected ? (
+        <XCircle className="size-5 shrink-0 text-destructive" />
+      ) : uploaded ? (
         <CheckCircle2 className="size-5 shrink-0 text-emerald-600" />
       ) : (
         <Circle className="size-5 shrink-0 text-neutral-300" />
@@ -56,7 +59,12 @@ function DocumentSlot({
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium text-neutral-900">{spec.label}</p>
         <p className="text-xs text-neutral-500">{spec.description}</p>
-        {uploaded && (
+        {rejected && (
+          <p className="mt-1 rounded-lg bg-red-50 p-2 text-xs text-red-700 dark:bg-red-500/10 dark:text-red-400">
+            El equipo de MIMO rechazó este documento: {uploaded?.rejectionReason}. Subí uno nuevo.
+          </p>
+        )}
+        {uploaded && !rejected && (
           <p className="mt-1 text-xs text-neutral-400">
             Subido el {new Date(uploaded.uploadedAt).toLocaleDateString("es-SV")} · {formatSize(uploaded.sizeBytes)} ·{" "}
             <a
@@ -85,12 +93,12 @@ function DocumentSlot({
       <Button
         type="button"
         size="sm"
-        variant={uploaded ? "outline" : "default"}
+        variant={uploaded && !rejected ? "outline" : "default"}
         disabled={loading}
         onClick={() => inputRef.current?.click()}
       >
         {loading ? <Loader2 className="size-3.5 animate-spin" /> : <FileUp className="size-3.5" />}
-        {uploaded ? "Reemplazar" : "Subir"}
+        {rejected ? "Subir nuevo" : uploaded ? "Reemplazar" : "Subir"}
       </Button>
     </li>
   );

@@ -257,7 +257,8 @@ model User {
   groupGifts           GroupGift[]
   adminActionLogs      AdminActionLog[]
   agreementAcceptances BusinessAgreementAcceptance[]
-  businessDocuments    BusinessDocument[]
+  businessDocuments    BusinessDocument[]            @relation("BusinessDocumentUploadedBy")
+  rejectedDocuments    BusinessDocument[]            @relation("BusinessDocumentRejectedBy")
 
   supportConversations         SupportConversation[] @relation("SupportConversationUser")
   assignedSupportConversations SupportConversation[] @relation("SupportConversationAgent")
@@ -406,20 +407,27 @@ enum BusinessDocumentType {
 // negocio: volver a subir reemplaza el anterior. Al listar, NUNCA seleccionar
 // `data` salvo que se vaya a servir el archivo.
 model BusinessDocument {
-  id           String               @id @default(uuid()) @db.Uuid
-  businessId   String               @db.Uuid
-  business     Business             @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  type         BusinessDocumentType
-  mimeType     String
-  sizeBytes    Int
-  data         Bytes
-  uploadedById String?              @db.Uuid
-  uploadedBy   User?                @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
-  createdAt    DateTime             @default(now())
-  updatedAt    DateTime             @updatedAt
+  id              String               @id @default(uuid()) @db.Uuid
+  businessId      String               @db.Uuid
+  business        Business             @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  type            BusinessDocumentType
+  mimeType        String
+  sizeBytes       Int
+  data            Bytes
+  uploadedById    String?              @db.Uuid
+  uploadedBy      User?                @relation("BusinessDocumentUploadedBy", fields: [uploadedById], references: [id], onDelete: SetNull)
+  // Un admin rechazó este archivo (ej. borroso): cuenta como NO subido hasta
+  // que el titular suba uno nuevo, y volver a subir limpia estos campos.
+  rejectedAt      DateTime?
+  rejectionReason String?
+  rejectedById    String?              @db.Uuid
+  rejectedBy      User?                @relation("BusinessDocumentRejectedBy", fields: [rejectedById], references: [id], onDelete: SetNull)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
 
   @@unique([businessId, type])
   @@index([uploadedById])
+  @@index([rejectedById])
   @@map("business_documents")
 }
 
