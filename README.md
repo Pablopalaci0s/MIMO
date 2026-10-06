@@ -1285,11 +1285,14 @@ y permisos (estos dos aceptan también PDF). Se suben *después* de registrarse
   estos requisitos; hay un test que lo fija (`admin-business-service.test.ts`).
 - **Privacidad del DUI** (checklist del dueño del producto, todo con
   mecanismo real y no solo texto):
-  - *Finalidad*: la frase "Se utilizará exclusivamente para verificar la
-    identidad y autenticidad de la cuenta del negocio." está (idéntica, desde
-    `DOCUMENT_PURPOSE_STATEMENT` en `lib/legal/privacy.ts`) en el formulario de
-    registro, en `/negocio/verificacion`, en la tarjeta de consentimiento y en la
-    sección 7 de `/privacidad` ("Documentos de identidad de los negocios").
+  - *Finalidad*: "Los documentos de identidad se utilizan para verificar la
+    identidad y autenticidad de la cuenta del negocio y para cumplir las
+    obligaciones legales aplicables." (desde `DOCUMENT_PURPOSE_STATEMENT` en
+    `lib/legal/privacy.ts`). Se evitó "exclusivamente" a propósito: prometer un
+    uso único ataría a MIMO ante un requerimiento de autoridad, una auditoría o
+    una disputa. Está en el formulario de registro, en `/negocio/verificacion`,
+    en la tarjeta de consentimiento y en la sección 7 de `/privacidad`; la
+    redacción definitiva la debe confirmar un abogado.
   - *Aceptación explícita*: casilla obligatoria de la Política de privacidad en
     el registro (`acceptedPrivacyVersion`; el servidor la compara con
     `PRIVACY_POLICY_VERSION`), guardada en `Business.privacyAcceptedVersion/At`.

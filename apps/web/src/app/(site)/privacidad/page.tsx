@@ -172,11 +172,13 @@ export default function PrivacidadPage() {
           </li>
           <li>
             <strong>Quién no lo ve:</strong> nunca se muestra públicamente en el Sitio, ni a los
-            clientes, ni a otros negocios, ni se comparte con terceros.
+            clientes, ni a otros negocios. No lo compartimos con terceros, salvo que una ley o
+            una autoridad competente nos obligue a entregarlo.
           </li>
           <li>
-            <strong>Para qué no se usa:</strong> no se usa para marketing, publicidad, perfilado ni
-            ningún fin distinto de la verificación indicada arriba.
+            <strong>Para qué no se usa:</strong> no se usa para marketing, publicidad ni perfilado.
+            Además de verificar la cuenta, solo lo usamos o conservamos cuando una ley, un
+            requerimiento de autoridad, una auditoría o una disputa abierta lo requiera.
           </li>
           <li>
             <strong>Cómo se guarda:</strong> en forma privada, en la base de datos (nunca en una

@@ -43,7 +43,10 @@ export default async function BusinessVerificationPage() {
         <div className="flex flex-col gap-1.5">
           <p className="font-medium text-neutral-900">{DOCUMENT_PURPOSE_STATEMENT}</p>
           <ul className="list-disc space-y-0.5 pl-4">
-            <li>Nunca se muestra en el Sitio ni a los clientes, y no se comparte con otros negocios.</li>
+            <li>
+              Nunca se muestra en el Sitio ni a los clientes, y no se comparte con otros negocios ni con terceros
+              (salvo que una ley o autoridad lo exija).
+            </li>
             <li>
               Solo lo ven administradores autorizados de MIMO, y cada vez que uno lo abre queda registrado.
             </li>

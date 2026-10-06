@@ -8,12 +8,18 @@
  * que subir `PRIVACY_POLICY_VERSION`: el titular tiene que volver a aceptarla
  * antes de subir un documento nuevo.
  */
-export const PRIVACY_POLICY_VERSION = "2026-10-06";
+export const PRIVACY_POLICY_VERSION = "2026-10-06.2";
 export const PRIVACY_POLICY_UPDATED = "6 de octubre de 2026";
 
-/** La finalidad, con estas mismas palabras, en todos los lugares donde se pide el DUI. */
+/**
+ * La finalidad, con estas mismas palabras, en todos los lugares donde se pide
+ * el DUI. A propósito NO dice "exclusivamente": MIMO puede necesitar el
+ * documento para cumplir una obligación legal (un requerimiento de autoridad,
+ * una auditoría, una disputa), y prometer un uso único lo dejaría atado de
+ * manos. La redacción definitiva debe confirmarla un abogado.
+ */
 export const DOCUMENT_PURPOSE_STATEMENT =
-  "Se utilizará exclusivamente para verificar la identidad y autenticidad de la cuenta del negocio.";
+  "Los documentos de identidad se utilizan para verificar la identidad y autenticidad de la cuenta del negocio y para cumplir las obligaciones legales aplicables.";
 
 /** Días que se conservan los documentos de un negocio cuya solicitud fue rechazada. */
 export const DOCUMENT_RETENTION_REJECTED_DAYS = 30;
